@@ -1,0 +1,11 @@
+sykosomatic is developed with SBCL. I can't guarantee that it'll run
+on anything else, but go ahead and try your luck. 
+
+
+Required libs: 
+- cl-store 
+- cl-ppcre
+
+
+Once those are installed, all should be set. 
+Just load sykosomatic up in slime. Happy Hacking!
