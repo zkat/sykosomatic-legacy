@@ -23,8 +23,7 @@
 ;;;;
 
 (asdf:defsystem #:sykosomatic
-  :depends-on (#:cl-ppcre)
-  :depends-on (#:cl-store)	     
+  :depends-on (#:cl-ppcre #:cl-store)
   :components ((:file "packages")
 	       (:file "config")
 	       (:file "db"
