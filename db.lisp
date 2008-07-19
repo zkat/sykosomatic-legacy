@@ -69,20 +69,20 @@
   (save-db *vocabulary* "vocabulary.db")
   (save-db *commands* "commands.db"))
 
-(defun get-db (filename)
+(defun get-db-from-file (filename)
   "Gets the contents of FILENAME and returns them in a setf-able format."
   (cl-store:restore
    (merge-pathnames filename *db-directory*)))
 
 (defun load-all-db ()
   "Loads everything from the db/ directory."
-  (setf *player-ids*(get-db "pid.db"))
-  (setf *room-ids*(get-db "rid.db"))
-  (setf *rooms* (get-db "rooms.db"))
-  (setf *players* (get-db "players.db"))
-  (setf *objects* (get-db "objects.db"))
-  (setf *vocabulary* (get-db "vocabulary.db"))
-  (setf *commands* (get-db "commands.db")))
+  (setf *player-ids*(get-db-from-file "pid.db"))
+  (setf *room-ids*(get-db-from-file "rid.db"))
+  (setf *rooms* (get-db-from-file "rooms.db"))
+  (setf *players* (get-db-from-file "players.db"))
+  (setf *objects* (get-db-from-file "objects.db"))
+  (setf *vocabulary* (get-db-from-file "vocabulary.db"))
+  (setf *commands* (get-db-from-file "commands.db")))
 
 ;;for testing
 (defun generate-huge-room-db ()
