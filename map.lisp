@@ -76,9 +76,7 @@
   "Returns a new ROOM after initializing the <ROOM> object"
   (let ((room (make-instance '<room>)))
     (with-accessors ((name name)) room
-      (setf name (progn
-		   (format t "Please enter a name for this room: ")
-		   (read-line))))
+      (setf name (format nil "Room #~a" (room-id room))))
     room))
 
 (defun make-room-from-file (file)

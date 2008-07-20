@@ -50,9 +50,8 @@
 (defun reset-room-ids ()
   (setf *room-ids* 0))
 
-
 (defun save-db (db filename)
-  "Saves the provided DB into a file called FILENAME in the game's db/ dir."
+  "Saves the provided DB into FILENAME in the game's db/ dir."
   (cl-store:store db 
 		  (ensure-directories-exist 
 		   (merge-pathnames 
@@ -61,13 +60,13 @@
 
 (defun save-all-db ()
   "Saves all the database variables to file."
-  (save-db *player-ids* "pid.db")
-  (save-db *room-ids* "rid.db")
-  (save-db *rooms* "rooms.db")
-  (save-db *players* "players.db")
-  (save-db *objects* "objects.db")
-  (save-db *vocabulary* "vocabulary.db")
-  (save-db *commands* "commands.db"))
+  (save-db *player-ids* #P"pid.db")
+  (save-db *room-ids* #P"rid.db")
+  (save-db *rooms* #P"rooms.db")
+  (save-db *players* #P"players.db")
+  (save-db *objects* #P"objects.db")
+  (save-db *vocabulary* #P"vocabulary.db")
+  (save-db *commands* #P"commands.db"))
 
 (defun get-db-from-file (filename)
   "Gets the contents of FILENAME and returns them in a setf-able format."
@@ -76,19 +75,59 @@
 
 (defun load-all-db ()
   "Loads everything from the db/ directory."
-  (setf *player-ids*(get-db-from-file "pid.db"))
-  (setf *room-ids*(get-db-from-file "rid.db"))
-  (setf *rooms* (get-db-from-file "rooms.db"))
-  (setf *players* (get-db-from-file "players.db"))
-  (setf *objects* (get-db-from-file "objects.db"))
-  (setf *vocabulary* (get-db-from-file "vocabulary.db"))
-  (setf *commands* (get-db-from-file "commands.db")))
+  (setf *player-ids*(get-db-from-file #P"pid.db"))
+  (setf *room-ids*(get-db-from-file #P"rid.db"))
+  (setf *rooms* (get-db-from-file #P"rooms.db"))
+  (setf *players* (get-db-from-file #P"players.db"))
+  (setf *objects* (get-db-from-file #P"objects.db"))
+  (setf *vocabulary* (get-db-from-file #P"vocabulary.db"))
+  (setf *commands* (get-db-from-file #P"commands.db")))
 
-;;for testing
-(defun generate-huge-room-db ()
-  (dotimes (i 15000)
-    (pushnew (make-instance '<room> :name (format nil "This is room #~a" i)) *rooms*)))
+;; The following section can either be an alternative, used alongside the functions above,
+;; or removed altogether. I'm not sure whan to do about it right now. Using both might cause
+;; conflicts, but being able to individually save rooms/players is a plus.
+;;
+;; It's worth noting that it's much slower at saving the entire blob, and makes quite a few files.
+;; The tradeoff is that I can incrementally save rooms (and their contents), with the potential to
+;; swap out data to the hard drive. This means a persistent world where items and other things don't poof :)
+;;
+(defgeneric write-object-to-file (object)
+  (:documentation "Saves OBJECT to a file."))
 
-(defun generate-medium-room-db ()
-  (dotimes (i 500)
-    (pushnew (make-instance '<room> :name (format nil "This is room #~a" i)) *rooms*)))
+(defmethod write-object-to-file ((room <room>))
+  (cl-store:store room (ensure-directories-exist
+			(merge-pathnames
+			 (format nil "room-~a.room" (room-id room))
+			 *rooms-directory*))))
+
+(defmethod write-object-to-file ((player <player>))
+  (cl-store:store player (ensure-directories-exist
+			  (merge-pathnames
+			   (format nil "player-~a.player" (player-id player))
+			   *players-directory*))))
+
+(defun write-rooms-to-files ()
+  (loop for room in *rooms*
+     do (write-object-to-file room)))
+
+(defun get-object-from-file (filepath)
+  (cl-store:restore filepath))
+
+(defun get-objects-from-directory (path)
+  (let ((files (directory (merge-pathnames "*.*" path))))
+    (loop for file in files
+	 collect (cl-store:restore file))))
+
+;;                 for testing
+;;------------------------------------------------
+(defun generate-test-player-db (num-players)
+  "Generates NUM-PLAYERS instances of <player> and pushes them into *players*"
+  (dotimes (i num-players)
+    (pushnew (new-player) *players*))
+  (format nil "Generated ~d players." num-players))
+
+(defun generate-test-room-db (num-rooms)
+  "Generates NUM-ROOMS instances of <room> and pushes them into *rooms*"
+  (dotimes (i num-rooms)
+    (pushnew (new-room) *rooms*))
+  (format nil "Generated ~d rooms." num-rooms))
