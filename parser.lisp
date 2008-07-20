@@ -130,7 +130,7 @@ right-child, if-exists, is a direct object/parameter to the verb."
 ;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defun noun->obj (noun)
+(defun noun->obj (noun) ;; What this -should- do is look through all possible targets
   "Takes a NOUN object and returns the OBJECT it refers to."
   (loop
        for object in *objects*
@@ -152,7 +152,7 @@ right-child, if-exists, is a direct object/parameter to the verb."
 	  (t nil))))
 	
 (defun string->sexp (string) ;; uses the basic abstract-syntax tree!!
-  "Takes a STRING and turns it into a valid S-EXP to run."
+  "Takes a STRING and turns it into a valid S-EXP FUNCTION to run."
   (parse-tree->sexp
    (obj-list->basic-ast
     (string->obj-list string))))
