@@ -16,7 +16,7 @@
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Database ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;;;
+;;;========================================== Database ==========================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (in-package #:sykosomatic)
@@ -44,12 +44,33 @@
 ;;~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defun reset-player-ids ()
-  (setf *player-ids* 0))
+;; The following section can either be an alternative to, used alongside their globals-using versions,
+;; or removed altogether. I'm not sure whan to do about it right now. Using both might cause
+;; conflicts, but being able to individually save rooms/players is a plus.
+;;
+;; It's worth noting that it's much slower at saving the entire blob, and makes quite a few files.
+;; The tradeoff is that I can incrementally save rooms (and their contents), with the potential to
+;; swap out data to the hard drive. This means a persistent world where items and other things don't poof :)
+;
+(defgeneric write-object-to-file (object path)
+  (:documentation "Saves OBJECT to a file."))
 
-(defun reset-room-ids ()
-  (setf *room-ids* 0))
+(defun objects-to-files (object-list path)
+  "Saves all OBJECTS in OBJECT-LIST into files within PATH"
+  (loop for object in object-list
+       do (write-object-to-file object path)))
 
+(defun get-object-from-file (filepath)
+  (cl-store:restore filepath))
+
+(defun get-objects-from-directory (path)
+  (let ((files (directory (merge-pathnames "*.*" path))))
+    (loop for file in files
+	 collect (cl-store:restore file))))
+
+;; Begin evil globals-users. Want to remove. :(
+;; -----------------------------------------------
+;
 (defun save-db (db filename)
   "Saves the provided DB into FILENAME in the game's db/ dir."
   (cl-store:store db 
@@ -57,6 +78,11 @@
 		   (merge-pathnames 
 		    filename 
 		    *db-directory*))))
+
+(defun get-db-from-file (filename)
+  "Gets the contents of FILENAME and returns them in a setf-able format."
+  (cl-store:restore
+   (merge-pathnames filename *db-directory*)))
 
 (defun save-all-db ()
   "Saves all the database variables to file."
@@ -68,11 +94,6 @@
   (save-db *vocabulary* #P"vocabulary.db")
   (save-db *commands* #P"commands.db"))
 
-(defun get-db-from-file (filename)
-  "Gets the contents of FILENAME and returns them in a setf-able format."
-  (cl-store:restore
-   (merge-pathnames filename *db-directory*)))
-
 (defun load-all-db ()
   "Loads everything from the db/ directory."
   (setf *player-ids*(get-db-from-file #P"pid.db"))
@@ -83,43 +104,21 @@
   (setf *vocabulary* (get-db-from-file #P"vocabulary.db"))
   (setf *commands* (get-db-from-file #P"commands.db")))
 
-;; The following section can either be an alternative, used alongside the functions above,
-;; or removed altogether. I'm not sure whan to do about it right now. Using both might cause
-;; conflicts, but being able to individually save rooms/players is a plus.
-;;
-;; It's worth noting that it's much slower at saving the entire blob, and makes quite a few files.
-;; The tradeoff is that I can incrementally save rooms (and their contents), with the potential to
-;; swap out data to the hard drive. This means a persistent world where items and other things don't poof :)
-;;
-(defgeneric write-object-to-file (object)
-  (:documentation "Saves OBJECT to a file."))
-
-(defmethod write-object-to-file ((room <room>))
-  (cl-store:store room (ensure-directories-exist
-			(merge-pathnames
-			 (format nil "room-~a.room" (room-id room))
-			 *rooms-directory*))))
-
-(defmethod write-object-to-file ((player <player>))
-  (cl-store:store player (ensure-directories-exist
-			  (merge-pathnames
-			   (format nil "player-~a.player" (player-id player))
-			   *players-directory*))))
-
 (defun write-rooms-to-files ()
+  "Bastard child of all evil."
   (loop for room in *rooms*
      do (write-object-to-file room)))
 
-(defun get-object-from-file (filepath)
-  (cl-store:restore filepath))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~ Utilities ~~~~~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+(defun reset-player-ids ()
+  (setf *player-ids* 0))
 
-(defun get-objects-from-directory (path)
-  (let ((files (directory (merge-pathnames "*.*" path))))
-    (loop for file in files
-	 collect (cl-store:restore file))))
+(defun reset-room-ids ()
+  (setf *room-ids* 0))
 
-;;                 for testing
-;;------------------------------------------------
 (defun generate-test-player-db (num-players)
   "Generates NUM-PLAYERS instances of <player> and pushes them into *players*"
   (dotimes (i num-players)
