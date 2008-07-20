@@ -67,7 +67,7 @@
     :initform 1 ;;everything should start with 1hp, if it's an entity. (= 0 DEATH)
     :accessor hp)))
 
-(defclass <item> (<entity>)
+(defclass <item> (<entity>) ;; Think about this one some more.
   ((equippable
     :initarg :equip-p
     :initform nil

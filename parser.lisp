@@ -15,20 +15,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; -*- Mode:Lisp; Syntax:ANSI-Common-Lisp; Coding:utf-8 -*-
-
-;;;; parser.lisp
-;;;;
-;;;; Contains the parser functions
-
 (in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  Parser  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;;;
+;;;===========================================  Parser  =========================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
-;;; Pre-processing (data cleanup)
-;;; -----------------------------
-;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~ Pre-processing ~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
 (defun preprocess-string (string)
   "Get rid of trailing whitespace"
   (string-trim '(#\Space #\Tab #\Newline) string))
@@ -38,12 +33,13 @@
   "Cleans up the chat string and removes stupidity"
   )
 
-;;; Tokenizer
-;;; ---------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~~ Tokenizer ~~~~~~~~~~~~~~~~~::
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Notes: *This tokenizer (and the <word> class) assumes that there is only one pos per existing word.
-
+;
 ;; Part 1: Raw string -> list of strings
-;; ------
+;; -------------------------------------
 ;
 (defun split-command-string (command-string)
   "Splits each COMMAND in COMMAND-STRING and puts it in a list of words-strings."
@@ -83,8 +79,9 @@
        for word in string-list
        collect (word->word-obj word))))
 
-;; Parser
-;; ------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~~~~ Parser ~~~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 (defclass parse-tree-node ()
   ((left-child
@@ -129,8 +126,9 @@ right-child, if-exists, is a direct object/parameter to the verb."
 		 :rc (make-instance 'parse-tree-node :contents (second obj-list))
 		 :contents 'verb-phrase))
 
-;; Binder
-;; ------
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 (defun noun->obj (noun)
   "Takes a NOUN object and returns the OBJECT it refers to."
@@ -158,39 +156,3 @@ right-child, if-exists, is a direct object/parameter to the verb."
   (parse-tree->sexp
    (obj-list->basic-ast
     (string->obj-list string))))
-
-;;Execution example
-;; (apply #'funcall (string->sexp (user-input)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;; (defmethod save-object ((player <player>)) ;; Currently clobbers whatever file was there before.
-;;   "Saves PLAYER to the appropriate file."
-;;   (cl-store:store player (merge-pathnames 
-;; 			(format nil "players/player-~a.noob" (player-id player)) *game-directory*)))
-
-;; (defun load-player (player-id)
-;;   "If the player is not already loaded, and a file for them exists, load the appropriate player by PLAYER-ID"
-;;   (let ((file (player-file-exists-p player-id)))
-;;     (if (player-loaded-p player-id) 
-;; 	(format t "Player #~a Exists, aborting load." player-id)
-;; 	(if file 
-;; 	    (pushnew 
-;; 	     (cl-store:restore 
-;; 	      (merge-pathnames 
-;; 	       (format nil "players/player-~a.noob" player-id) *game-directory*)) 
-;; 	     *players*)
-;; 	    (format t "No file for Player #~a" player-id)))))
-
-;; (defun player-loaded-p (player-id)
-;;   "Checks to see if a player with PLAYER-ID exists in *players* list"
-;;   (loop for player in *players*
-;;      do (if (= (player-id player) player-id) 
-;; 	    (return t)
-;; 	    (return nil))))
-
-;; (defun player-file-exists-p (player-id)
-;;   "Returns a PATHNAME if a player file with PLAYER-ID exists"
-;;   (probe-file (merge-pathnames (format nil "players/player-~a.noob" player-id) *game-directory*)))

@@ -17,7 +17,7 @@
 
 (in-package :sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Map classes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;;;
+;;;========================================== Map classes =======================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defclass <room> (<game-object>)
@@ -64,7 +64,7 @@
     :documentation "Room object this exit points to")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Map-related Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;;;
+;;;==================================== Map-related Functions ===================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -80,8 +80,9 @@
     room))
 
 (defun make-room-from-file (file)
-  "Takes a text FILE and creates a new ROOM object."
+  "Generates a room from a raw text FILE."
   )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~ Info ~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -105,7 +106,6 @@ FROM-ROOM and sets it to TO-ROOM, and adds the"
       (let ((door (cdr (assoc direction (exits from-room) :test #'string-equal))))
 	(setf (next-room door) to-room))))
 
-
 (defgeneric put-entity (entity room)
   (:documentation "Simply changes the LOCATION of ENTITY to ROOM"))
 
@@ -116,3 +116,13 @@ FROM-ROOM and sets it to TO-ROOM, and adds the"
 
 (defgeneric move (entity direction)
   (:documentation "Moves ENTITY in DIRECTION"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+(defmethod write-object-to-file ((room <room>) path)
+  (cl-store:store room (ensure-directories-exist
+			(merge-pathnames
+			 (format nil "room-~a.room" (room-id room))
+			 path))))

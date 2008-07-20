@@ -15,25 +15,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;;;; Kat M
-;;;; zkat@gmail.com
-;;;; June/July 2008
-;;;; 
-;;;; A little text adventure game written in common lisp.
-;;;;
-
 (asdf:defsystem #:sykosomatic
   :name "SykoSoMaTIC"
   :author "Kat M <zkat@gmail.com>"
   :version "nil"
   :maintainer "Kat M <zkat@gmail.com>"
   :description "Sykopomp's Sodomizingly Masterful Text in Console"
-  :long-description "lolwut"
+  :long-description "A heavily-extensible, simple, text-adventure engine."
   :depends-on (#:cl-ppcre #:cl-store)
   :components ((:file "packages")
 	       (:file "config")
-	       (:file "db"
-		      :depends-on ("config"))
 	       (:file "classes"
 		      :depends-on ("packages"))
 	       (:file "player"
@@ -49,6 +40,10 @@
 		      :depends-on ("player"
 				   "packages"
 				   "classes"
-				   "db"))))
-
-
+				   "db"))
+	       (:file "db"
+		      :depends-on ("config")
+		      :depends-on ("classes")
+		      :depends-on ("map")
+		      :depends-on ("player")
+		      :depends-on ("parser"))))
