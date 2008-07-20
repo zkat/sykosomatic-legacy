@@ -38,10 +38,10 @@
     :initform (incf *room-ids*)
     :reader room-id
     :documentation "Universal room ID number")
-   (exits				
+   (exits
     :initarg :exits
     :initform nil
-    :accessor exits				   
+    :accessor exits
     :documentation "Contains an assoc list of <exit> objects that refer to the next room.")))
 
 (defclass <door> (<game-object>)
@@ -98,7 +98,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 (defun set-exit (from-room to-room direction) ;seems to be working fine... we'll see.
-  "Receives a DIRECTION symbol. Gets the <door> object in the EXITS hash of 
+  "Receives a DIRECTION symbol. Gets the <door> object in the EXITS hash of
 FROM-ROOM and sets it to TO-ROOM, and adds the"
   (if (not (assoc direction (exits from-room) :test #'string-equal))
       (let ((door (make-instance '<door> :next-room to-room)))
@@ -121,7 +121,7 @@ FROM-ROOM and sets it to TO-ROOM, and adds the"
 ;;~~~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defmethod write-object-to-file ((room <room>) path)
+(defmethod obj->file ((room <room>) path)
   (cl-store:store room (ensure-directories-exist
 			(merge-pathnames
 			 (format nil "room-~a.room" (room-id room))

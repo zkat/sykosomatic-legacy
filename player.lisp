@@ -11,7 +11,7 @@
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
- 
+
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -50,21 +50,21 @@
 ;;~~~~~~~~~~~~~~~  User Commands  ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defun look (player &optional (object nil))
+(defun look (player &optional (obj nil))
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (if object 
-      (format t "~a" (desc object)) 
+  (if obj
+      (format t "~a" (desc obj))
       (format t "~a" (desc (location player)))))
 
-(defun examine (player &optional (object nil))
+(defun examine (player &optional (obj nil))
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (if object 
-      (format t "~a" (desc-long object))
+  (if obj
+      (format t "~a" (desc-long obj))
       (format t "~a" (desc-long (location player)))))
 
 (defmethod move ((entity <entity>) direction)
   (let ((next-room (next-room (cdr (assoc direction
-					  (exits (location entity)) 
+					  (exits (location entity))
 					  :test #'string-equal)))))
     (if next-room (put-entity entity next-room))))
 
@@ -81,7 +81,7 @@
 ;;~~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defmethod write-object-to-file ((player <player>) path)
+(defmethod obj->file ((player <player>) path)
   (cl-store:store player (ensure-directories-exist
 			  (merge-pathnames
 			   (format nil "player-~a.player" (player-id player))

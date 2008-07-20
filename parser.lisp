@@ -66,7 +66,7 @@
 
 (defun word->word-obj (word-string)
   "Searches DB for <WORD> object match with WORD-STRING"
-  (loop 
+  (loop
      for word-obj in *vocabulary*
      do (if (string-equal word-string (word word-obj))
 	    (return-from word->word-obj word-obj)
@@ -96,7 +96,7 @@
     :initarg :contents
     :initform nil
     :accessor contents)))
-  
+
 (defun verb-p (word-obj)
   "Returns T if word-obj is a VERB"
   (let ((pos-list (pos word-obj)))
@@ -104,7 +104,7 @@
 	 for pos in pos-list
 	 do (if (equal pos :verb)
 		(return-from verb-p t)))))
- 
+
 (defun noun-p (word-obj)
   "Returns T if WORD-OBJ is a NOUN"
   (if word-obj
@@ -121,8 +121,8 @@
 (defun obj-list->basic-ast (obj-list)
   "Takes an OBJ-LIST and returns an abstract syntax tree. Left-child is the verb,
 right-child, if-exists, is a direct object/parameter to the verb."
-  (make-instance 'parse-tree-node 
-		 :lc (make-instance 'parse-tree-node :contents (first obj-list)) 
+  (make-instance 'parse-tree-node
+		 :lc (make-instance 'parse-tree-node :contents (first obj-list))
 		 :rc (make-instance 'parse-tree-node :contents (second obj-list))
 		 :contents 'verb-phrase))
 
@@ -130,6 +130,7 @@ right-child, if-exists, is a direct object/parameter to the verb."
 ;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
+;; !!! Extremely non-functional. Review this.
 (defun noun->obj (noun) ;; What this -should- do is look through all possible targets
   "Takes a NOUN object and returns the OBJECT it refers to."
   (loop
@@ -137,11 +138,12 @@ right-child, if-exists, is a direct object/parameter to the verb."
        do (if (string-equal (word noun) (string-downcase (name object)))
 	      (return-from noun->obj object))))
 
+;; !!! non-func
 (defun verb->function (verb) ;;NOTE: Only accepts directions right now
   "Takes a VERB object and returns the FUNCTION the verb is supposed to call"
   (loop
      for direction in *directions*
-     do (if (string-equal (word verb) direction) 
+     do (if (string-equal (word verb) direction)
 	    (return-from verb->function (list #'move *current-player* direction)))))
 
 (defun parse-tree->sexp (tree) ;; This is really basic!
@@ -150,10 +152,10 @@ right-child, if-exists, is a direct object/parameter to the verb."
     (cond ((and (verb-p verb) (not (noun-p noun))) (verb->function verb))
 	  ((and (verb-p verb) (noun-p noun)) (append (verb->function verb) (noun->obj noun)))
 	  (t nil))))
-	
+
+;; !!! ???
 (defun string->sexp (string) ;; uses the basic abstract-syntax tree!!
   "Takes a STRING and turns it into a valid S-EXP FUNCTION to run."
   (parse-tree->sexp
    (obj-list->basic-ast
     (string->obj-list string))))
-
