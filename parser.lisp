@@ -68,9 +68,6 @@
     :initform (error "Must supply a part of speech in form '(:pos :pos :etc)")
     :documentation "The part of speech of this word")))
 
-(defun new-word ()
-  )
-
 (defun word->word-obj (word-string)
   "Searches DB for <WORD> object match with WORD-STRING"
   (loop 

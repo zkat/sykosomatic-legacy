@@ -47,9 +47,7 @@
   "RETURNS a new PLAYER after initializing the <player> object"
   (let ((player (make-instance '<player>)))
     (with-accessors ((name name)) player
-      (setf name (progn
-		   (format t "Please enter a name for this player: ")
-		   (read-line))))
+      (setf name (format nil "Player #~a" (player-id player))))
     player))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
