@@ -1,11 +1,40 @@
-sykosomatic is developed with SBCL. I can't guarantee that it'll run
-on anything else, but go ahead and try your luck. 
+REQUIREMENTS
+------------
 
+* cl-store (http://common-lisp.net/project/cl-store/)
+* cl-ppcre (http://weitz.de/cl-ppcre/)
+* Probably SBCL. I haven't tested this on any other implementation.
 
-Required libs: 
-- cl-store 
-- cl-ppcre
+INSTALLATION
+------------
 
+1. Get all the required source code
+   A. With asdf-install:
+      *CL-USER> (asdf-install:install :cl-store)
+      *CL-USER> (asdf-install:install :cl-ppcre)
+   B. Manually
+      * download http://weitz.de/files/cl-ppcre.tar.gz
+       		http://common-lisp.net/project/cl-store/files/cl-store-latest.tgz
+      * extract to ~/.sbcl/site/ (or whereven you put your sources)
+      * expose relevant .asd files to Lisp.
+   
+	See http://www.cliki.net/asdf for generic information on how to use
+	ASDF.
+	Basically, create symlinks to cl-store.asd and cl-ppcre.asd
+	inside your systems folder for your lisp (like
+	~/.sbcl/systems/)
 
-Once those are installed, all should be set. 
-Just load sykosomatic up in slime. Happy Hacking!
+2. Load up sykosomatic.
+   A. In Slime with SBCL:
+      * (require 'sykosomatic)
+      * Hope for the best!
+   B. In anything else:
+      *something like (asdf:oos 'asdf:load-op 'sykosomatic)
+      * Hope for the best even more.
+
+3. Get yourself into the package.
+   * (in-package sykosomatic)
+
+4. ???
+
+5. Happy Hacking!
