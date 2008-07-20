@@ -46,4 +46,6 @@
 		      :depends-on ("classes")
 		      :depends-on ("map")
 		      :depends-on ("player")
-		      :depends-on ("parser"))))
+		      :depends-on ("parser"))
+	       (:file "game"
+		      :depends-on ("db"))))

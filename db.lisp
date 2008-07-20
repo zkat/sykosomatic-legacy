@@ -15,103 +15,47 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+(in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;========================================== Database ==========================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(in-package #:sykosomatic)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defvar *rooms* nil)
-(defvar *players* nil)
-(defvar *objects* nil)
-
-(defvar *current-player* nil)
 (defvar *player-ids* 0)
 (defvar *room-ids* 0)
 
-(defvar *vocabulary* nil)
-(defvar *commands* nil)
-(defvar *directions* '("north" "south" "east" 
-		       "west" "northeast" "northwest" 
-		       "southeast" "southwest" "up" 
+(defvar *directions* '("north" "south" "east" ;;necessary? I don't think so.
+		       "west" "northeast" "northwest"
+		       "southeast" "southwest" "up"
 		       "down" "enter"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-;; The following section can either be an alternative to, used alongside their globals-using versions,
-;; or removed altogether. I'm not sure whan to do about it right now. Using both might cause
-;; conflicts, but being able to individually save rooms/players is a plus.
-;;
-;; It's worth noting that it's much slower at saving the entire blob, and makes quite a few files.
-;; The tradeoff is that I can incrementally save rooms (and their contents), with the potential to
-;; swap out data to the hard drive. This means a persistent world where items and other things don't poof :)
-;
-(defgeneric write-object-to-file (object path)
+(defgeneric obj->file (obj path)
   (:documentation "Saves OBJECT to a file."))
 
-(defun objects-to-files (object-list path)
+(defun obj-list->files-in-dir (obj-list path)
   "Saves all OBJECTS in OBJECT-LIST into files within PATH"
-  (loop for object in object-list
-       do (write-object-to-file object path)))
+  (loop for obj in obj-list
+       do (obj->file obj path)))
 
-(defun get-object-from-file (filepath)
+(defun file->obj (filepath)
   (cl-store:restore filepath))
 
-(defun get-objects-from-directory (path)
+(defun files-in-path->obj-list (path)
   (let ((files (directory (merge-pathnames "*.*" path))))
     (loop for file in files
 	 collect (cl-store:restore file))))
 
-;; Begin evil globals-users. Want to remove. :(
-;; -----------------------------------------------
-;
-(defun save-db (db filename)
-  "Saves the provided DB into FILENAME in the game's db/ dir."
-  (cl-store:store db 
-		  (ensure-directories-exist 
-		   (merge-pathnames 
-		    filename 
-		    *db-directory*))))
-
-(defun get-db-from-file (filename)
-  "Gets the contents of FILENAME and returns them in a setf-able format."
-  (cl-store:restore
-   (merge-pathnames filename *db-directory*)))
-
-(defun save-all-db ()
-  "Saves all the database variables to file."
-  (save-db *player-ids* #P"pid.db")
-  (save-db *room-ids* #P"rid.db")
-  (save-db *rooms* #P"rooms.db")
-  (save-db *players* #P"players.db")
-  (save-db *objects* #P"objects.db")
-  (save-db *vocabulary* #P"vocabulary.db")
-  (save-db *commands* #P"commands.db"))
-
-(defun load-all-db ()
-  "Loads everything from the db/ directory."
-  (setf *player-ids*(get-db-from-file #P"pid.db"))
-  (setf *room-ids*(get-db-from-file #P"rid.db"))
-  (setf *rooms* (get-db-from-file #P"rooms.db"))
-  (setf *players* (get-db-from-file #P"players.db"))
-  (setf *objects* (get-db-from-file #P"objects.db"))
-  (setf *vocabulary* (get-db-from-file #P"vocabulary.db"))
-  (setf *commands* (get-db-from-file #P"commands.db")))
-
-(defun write-rooms-to-files ()
-  "Bastard child of all evil."
-  (loop for room in *rooms*
-     do (write-object-to-file room)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~ Utilities ~~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;
 (defun reset-player-ids ()
   (setf *player-ids* 0))
@@ -119,14 +63,19 @@
 (defun reset-room-ids ()
   (setf *room-ids* 0))
 
-(defun generate-test-player-db (num-players)
-  "Generates NUM-PLAYERS instances of <player> and pushes them into *players*"
-  (dotimes (i num-players)
-    (pushnew (new-player) *players*))
-  (format nil "Generated ~d players." num-players))
+(defun generate-test-players (num-players)
+  (loop for i upto (1- num-players)
+       collect (new-player)))
 
-(defun generate-test-room-db (num-rooms)
-  "Generates NUM-ROOMS instances of <room> and pushes them into *rooms*"
-  (dotimes (i num-rooms)
-    (pushnew (new-room) *rooms*))
-  (format nil "Generated ~d rooms." num-rooms))
+(defun generate-test-rooms (num-rooms)
+  (loop for i upto (1- num-rooms)
+       collect (new-room)))
+
+;; Utility vars
+;; ------------
+(defvar *rooms* nil)
+(defvar *players* nil)
+(defvar *objects* nil)
+(defvar *vocabulary* nil)
+(defvar *commands* nil)
+(defvar *current-player* nil)
