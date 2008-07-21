@@ -27,7 +27,7 @@
 (defvar *player-ids* 0)
 (defvar *room-ids* 0)
 
-(defconstant +directions+ '("north" "south" "east" ;;necessary? I don't think so.
+(defvar *directions* '("north" "south" "east" ;;necessary? I don't think so.
 		       "west" "northeast" "northwest"
 		       "southeast" "southwest" "up"
 		       "down" "enter"))

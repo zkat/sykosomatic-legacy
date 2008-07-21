@@ -53,9 +53,9 @@
 ;; -------
 ;
 (defclass <word> ()
-  ((word
-    :initarg :word
-    :accessor word
+  ((word-string
+    :initarg :word-string
+    :accessor word-string
     :initform (error "Must supply a word")
     :documentation "A string containing the word")
    (pos
@@ -64,14 +64,13 @@
     :initform (error "Must supply a part of speech in form '(:pos :pos :etc)")
     :documentation "The part of speech of this word")))
 
-(defun word->word-obj (word-string)
-  "Searches DB for <WORD> object match with WORD-STRING"
+(defun string->word-obj (string)
+  "Searches DB for <WORD> object match with STRING"
   (loop
-     for word-obj in *vocabulary*
-     do (if (string-equal word-string (word word-obj))
-	    (return-from word->word-obj word-obj)
-	    (return-from word->word-obj word-string))))
-
+     for word-obj in *vocabulary* 
+     when (string-equal string (word-string word-obj))
+     return word-obj))
+     
 (defun string->obj-list (string)
   "Takes a STRING and turns it into a list of parsable <word> objects"
   (let ((string-list (split-command-string string)))
@@ -133,18 +132,19 @@ right-child, if-exists, is a direct object/parameter to the verb."
 ;; !!! Extremely non-functional. Review this.
 (defun noun->obj (noun) ;; What this -should- do is look through all possible targets
   "Takes a NOUN object and returns the OBJECT it refers to."
-  (loop
-       for object in *objects*
-       do (if (string-equal (word noun) (string-downcase (name object)))
-	      (return-from noun->obj object))))
+  (if (find (word noun) *objects* :test #'string-equal)
+      (word noun)))
+;;;   (loop
+;;;      for object in *objects* 
+;;;      when (string-equal (word noun) (string-downcase (name object)))
+;;;      return object))
 
 ;; !!! non-func
 (defun verb->function (verb) ;;NOTE: Only accepts directions right now
   "Takes a VERB object and returns the FUNCTION the verb is supposed to call"
-  (loop
-     for direction in +directions+
-     do (if (string-equal (word verb) direction)
-	    (return-from verb->function (list #'move *current-player* direction)))))
+  (if (find (word verb) *directions* :test #'string-equal)
+      (list #'move *current-player* (word verb))
+      nil))
 
 (defun parse-tree->sexp (tree) ;; This is really basic!
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"

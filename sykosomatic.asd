@@ -20,7 +20,7 @@
   :author "Kat M <zkat@gmail.com>"
   :version "nil"
   :maintainer "Kat M <zkat@gmail.com>"
-  :description "Sykopomp's Sodomizingly Masterful Text in Console"
+  :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, text-adventure engine."
   :depends-on (#:cl-ppcre #:cl-store)
   :components ((:file "packages")
