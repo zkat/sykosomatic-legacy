@@ -142,7 +142,7 @@ right-child, if-exists, is a direct object/parameter to the verb."
 (defun verb->function (verb) ;;NOTE: Only accepts directions right now
   "Takes a VERB object and returns the FUNCTION the verb is supposed to call"
   (loop
-     for direction in *directions*
+     for direction in +directions+
      do (if (string-equal (word verb) direction)
 	    (return-from verb->function (list #'move *current-player* direction)))))
 

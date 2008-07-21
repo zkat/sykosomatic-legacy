@@ -27,7 +27,7 @@
 (defvar *player-ids* 0)
 (defvar *room-ids* 0)
 
-(defvar *directions* '("north" "south" "east" ;;necessary? I don't think so.
+(defconstant +directions+ '("north" "south" "east" ;;necessary? I don't think so.
 		       "west" "northeast" "northwest"
 		       "southeast" "southwest" "up"
 		       "down" "enter"))
@@ -37,7 +37,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 (defgeneric obj->file (obj path)
-  (:documentation "Saves OBJECT to a file."))
+  (:documentation "Saves OBJECT to a file within PATH."))
 
 (defun obj-list->files-in-dir (obj-list path)
   "Saves all OBJECTS in OBJECT-LIST into files within PATH"
@@ -45,9 +45,11 @@
        do (obj->file obj path)))
 
 (defun file->obj (filepath)
+  "Takes the FILEPATH of a file, returns the OBJECT it represents."
   (cl-store:restore filepath))
 
 (defun files-in-path->obj-list (path)
+  "Takes -all- files in PATH and collects them into a LIST of OBJECTS."
   (let ((files (directory (merge-pathnames "*.*" path))))
     (loop for file in files
 	 collect (cl-store:restore file))))
@@ -55,7 +57,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~ Utilities ~~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 ;
 (defun reset-player-ids ()
   (setf *player-ids* 0))
@@ -64,10 +65,12 @@
   (setf *room-ids* 0))
 
 (defun generate-test-players (num-players)
+  "Returns a LIST containing NUM-PLAYERS instances of <player>."
   (loop for i upto (1- num-players)
        collect (new-player)))
 
 (defun generate-test-rooms (num-rooms)
+    "Returns a LIST containing NUM-ROOMS instances of <room>."
   (loop for i upto (1- num-rooms)
        collect (new-room)))
 
