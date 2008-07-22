@@ -27,6 +27,14 @@
 (defvar *player-ids* 0)
 (defvar *room-ids* 0)
 
+(defvar *articles* '("a" "an" "the"))
+(defvar *nouns* nil)
+(defvar *verbs* nil)
+(defvar *adjectives* nil)
+(defvar *adverbs* nil)
+(defvar *prepositions* nil)
+(defvar *pronouns* nil)
+
 (defvar *directions* '("north" "south" "east" ;;necessary? I don't think so.
 		       "west" "northeast" "northwest"
 		       "southeast" "southwest" "up"
@@ -53,6 +61,29 @@
   (let ((files (directory (merge-pathnames "*.*" path))))
     (loop for file in files
 	 collect (cl-store:restore file))))
+
+;; Some untidy saving/loading. Mostly temporary.
+;; ---------------------------------------------
+;
+(defun save-vocabulary () ;; this stuff could go in the parser.
+  "Saves all the nice vocabulary words :)"
+  (cl-store:store *articles* (ensure-directories-exist (merge-pathnames #P"articles.db" *vocab-directory*)))
+  (cl-store:store *nouns* (ensure-directories-exist (merge-pathnames #P"nouns.db" *vocab-directory*)))
+  (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (cl-store:store *adjectives* (ensure-directories-exist (merge-pathnames #P"adjectives.db" *vocab-directory*)))
+  (cl-store:store *adverbs* (ensure-directories-exist (merge-pathnames #P"adverbs.db" *vocab-directory*)))
+  (cl-store:store *prepositions* (ensure-directories-exist (merge-pathnames #P"prepositions.db" *vocab-directory*)))
+  (cl-store:store *pronouns* (ensure-directories-exist (merge-pathnames #P"pronouns.db" *vocab-directory*))))
+
+(defun load-vocabulary ()
+  "Loads saved vocab files into their respective variables."
+  (setf *articles* (cl-store:restore (merge-pathnames #P"articles.db" *vocab-directory*)))
+  (setf *nouns* (cl-store:restore (merge-pathnames #P"nouns.db" *vocab-directory*)))
+  (setf *verbs* (cl-store:restore (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (setf *adjectives* (cl-store:restore (merge-pathnames #P"adjectives.db" *vocab-directory*)))
+  (setf *adverbs* (cl-store:restore (merge-pathnames #P"adverbs.db" *vocab-directory*)))
+  (setf *prepositions* (cl-store:restore (merge-pathnames #P"prepositions.db" *vocab-directory*)))
+  (setf *pronouns* (cl-store:restore (merge-pathnames #P"pronouns.db" *vocab-directory*))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~ Utilities ~~~~~~~~~~~~~~~~~~~~;;
