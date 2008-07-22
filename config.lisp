@@ -24,7 +24,7 @@
 (defvar *rooms-directory* (merge-pathnames #P"rooms/" *game-directory*))
 (defvar *players-directory* (merge-pathnames #P"players/" *game-directory*))
 (defvar *db-directory* (merge-pathnames #P"db/" *game-directory*))
-
+(defvar *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

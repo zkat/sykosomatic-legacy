@@ -14,7 +14,7 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
- 
+
 (in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;===========================================  Parser  =========================================;;;
@@ -28,7 +28,7 @@
   "Get rid of trailing whitespace"
   (string-trim '(#\Space #\Tab #\Newline) string))
 
-;;Do this later, when I have the rest of the parser working
+;; TODO (when everything else is done)
 (defun grammaritisize-chat-string (chat-string)
   "Cleans up the chat string and removes stupidity"
   )
@@ -49,103 +49,63 @@
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
   (cl-ppcre:split "^+'| +'|\"" string :limit 2))
 
-;; Part 2: List of strings -> list of word objects
-;; -------
-;
-(defclass <word> ()
-  ((word-string
-    :initarg :word-string
-    :accessor word-string
-    :initform (error "Must supply a word")
-    :documentation "A string containing the word")
-   (pos
-    :initarg :pos
-    :accessor pos
-    :initform (error "Must supply a part of speech in form '(:pos :pos :etc)")
-    :documentation "The part of speech of this word")))
-
-(defun string->word-obj (string)
-  "Searches DB for <WORD> object match with STRING"
-  (loop
-     for word-obj in *vocabulary* 
-     when (string-equal string (word-string word-obj))
-     return word-obj))
-     
-(defun string->obj-list (string)
-  "Takes a STRING and turns it into a list of parsable <word> objects"
-  (let ((string-list (split-command-string string)))
-    (loop
-       for word in string-list
-       collect (word->word-obj word))))
+(defun string->token-list (string)
+  (let* ((com+chat (split-off-chat-string string))
+	 (commands (split-command-string (car com+chat)))
+	 (merged-command-list (append commands (cdr com+chat))))
+    merged-command-list))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~ Parser ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-(defclass parse-tree-node ()
-  ((left-child
-    :initarg :lc
-    :initform nil
-    :accessor left-child)
-   (right-child
-    :initarg :rc
-    :initform nil
-    :accessor right-child)
-   (contents
-    :initarg :contents
-    :initform nil
-    :accessor contents)))
+; TODO
+;; A basic parser
+;; Grammar:
+;; Command ::= verb | verb noun-phrase
+;; noun-phrase ::= noun | article noun
+;; article ::= "a" | "an" | "the"
+;; verb ::= *verbs*
+;; noun ::= *any object in the scope of player*
+;; -----------------------------------------------
+;; !!! TODO
+(defun parse-input (input) ;; well... something's something.
+  (let* ((commands (string->token-list input))
+	 (command-stack commands)
+	 (current-token (pop command-stack)))
+    (cond ((verb-p current-token) (list current-token))
+	  (t (format t "unknown command ~a" current-token)))))
 
-(defun verb-p (word-obj)
-  "Returns T if word-obj is a VERB"
-  (let ((pos-list (pos word-obj)))
-    (loop
-	 for pos in pos-list
-	 do (if (equal pos :verb)
-		(return-from verb-p t)))))
+(defun verb-p (token)
+  "Checks if a TOKEN is a VERB."
+  (find token *verbs* :test #'string-equal))
 
-(defun noun-p (word-obj)
-  "Returns T if WORD-OBJ is a NOUN"
-  (if word-obj
-      (let ((pos-list (pos word-obj)))
-	(loop
-	   for pos in pos-list
-	   do (if (equal pos :noun)
-		  (return-from noun-p t))))))
+(defun article-p (token)
+  "Checks if TOKEN is an ARTICLE."
+  (find token *articles* :test #'string-equal))
 
-(defun obj-list->tree (obj-list)
-  "Takes an OBJ-LIST and returns a parsed TREE"
+;; TODO
+(defun noun-p (token)
+  "Checks if TOKEN is a NOUN within scope."
   )
-
-(defun obj-list->basic-ast (obj-list)
-  "Takes an OBJ-LIST and returns an abstract syntax tree. Left-child is the verb,
-right-child, if-exists, is a direct object/parameter to the verb."
-  (make-instance 'parse-tree-node
-		 :lc (make-instance 'parse-tree-node :contents (first obj-list))
-		 :rc (make-instance 'parse-tree-node :contents (second obj-list))
-		 :contents 'verb-phrase))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;; !!! Extremely non-functional. Review this.
-(defun noun->obj (noun) ;; What this -should- do is look through all possible targets
+; !!! I don't know how well the binder will deal with all the changes yet.
+;; TODO
+(defun noun->obj (noun) ;; This needs some info on scope to know what to bind to.
   "Takes a NOUN object and returns the OBJECT it refers to."
   (if (find (word noun) *objects* :test #'string-equal)
       (word noun)))
-;;;   (loop
-;;;      for object in *objects* 
-;;;      when (string-equal (word noun) (string-downcase (name object)))
-;;;      return object))
 
-;; !!! non-func
+;; TODO
 (defun verb->function (verb) ;;NOTE: Only accepts directions right now
   "Takes a VERB object and returns the FUNCTION the verb is supposed to call"
   (if (find (word verb) *directions* :test #'string-equal)
       (list #'move *current-player* (word verb))
       nil))
 
+;; TODO
 (defun parse-tree->sexp (tree) ;; This is really basic!
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
   (let ((verb (contents (left-child tree))) (noun (contents (right-child tree))))
@@ -153,7 +113,7 @@ right-child, if-exists, is a direct object/parameter to the verb."
 	  ((and (verb-p verb) (noun-p noun)) (append (verb->function verb) (noun->obj noun)))
 	  (t nil))))
 
-;; !!! ???
+;;TODO
 (defun string->sexp (string) ;; uses the basic abstract-syntax tree!!
   "Takes a STRING and turns it into a valid S-EXP FUNCTION to run."
   (parse-tree->sexp
