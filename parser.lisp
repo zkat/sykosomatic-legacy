@@ -58,50 +58,63 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~ Parser ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; TODO
+;
 ;; A basic parser
 ;; Grammar:
-;; Command ::= verb | verb noun-phrase
-;; noun-phrase ::= noun | article noun
+;; Command ::= verb [noun-phrase]
+;; noun-phrase ::= [article] noun
 ;; article ::= "a" | "an" | "the"
 ;; verb ::= *verbs*
 ;; noun ::= *any object in the scope of player*
 ;; -----------------------------------------------
-;; !!! TODO
-(defun parse-input (input) ;; well... something's something.
-  (let* ((commands (string->token-list input))
-	 (command-stack commands)
-	 (current-token (pop command-stack)))
-    (cond ((verb-p current-token) (list current-token))
-	  (t (format t "unknown command ~a" current-token)))))
+;; !!! TODO - make the parser more complete.
+(defun parse-command (token-list)
+  (let ((verb (verb-p (car token-list)))
+	(noun-phrase (noun-phrase-p (cdr token-list))))
+  (if verb
+      (if noun-phrase
+	  (list verb noun-phrase)
+	  (list verb))
+      (format t "~%Unknown verb: '~a'~%" (car token-list)))))
+  
+(defun noun-phrase-p (token-list)
+  (if (noun-p (car token-list))
+      (list (car token-list))
+      (if (article-p (car token-list))
+	  (if (noun-p (second token-list))
+	      (list (second token-list) (car token-list))
+	      (format t "~%Unknown noun: '~a'~%" (second token-list)))
+	  (format t "~%Unknown word: '~a'~%" (car token-list)))))
 
 (defun verb-p (token)
   "Checks if a TOKEN is a VERB."
-  (find token *verbs* :test #'string-equal))
+  (member token *verbs* :test #'string-equal))
 
 (defun article-p (token)
   "Checks if TOKEN is an ARTICLE."
-  (find token *articles* :test #'string-equal))
+  (member token *articles* :test #'string-equal))
 
-;; TODO
+; !!! this deserves a paddlin'
 (defun noun-p (token)
   "Checks if TOKEN is a NOUN within scope."
-  )
+  (if (string-equal token "flask")
+      token
+      nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; !!! I don't know how well the binder will deal with all the changes yet.
+; !!! Has to be rewritten to take in the new AST
 ;; TODO
 (defun noun->obj (noun) ;; This needs some info on scope to know what to bind to.
   "Takes a NOUN object and returns the OBJECT it refers to."
-  (if (find (word noun) *objects* :test #'string-equal)
+  (if (member (word noun) *objects* :test #'string-equal)
       (word noun)))
 
 ;; TODO
 (defun verb->function (verb) ;;NOTE: Only accepts directions right now
   "Takes a VERB object and returns the FUNCTION the verb is supposed to call"
-  (if (find (word verb) *directions* :test #'string-equal)
+  (if (member (word verb) *directions* :test #'string-equal)
       (list #'move *current-player* (word verb))
       nil))
 
