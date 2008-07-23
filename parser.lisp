@@ -83,16 +83,16 @@
       (if (article-p (car token-list))
 	  (if (noun-p (second token-list))
 	      (list (second token-list) (car token-list))
-	      (format t "~%Unknown noun: '~a'~%" (second token-list)))
-	  (format t "~%Unknown word: '~a'~%" (car token-list)))))
+	      (format t "~%Unknown noun: '~a'~%" (second token-list))))))
+	
 
 (defun verb-p (token)
   "Checks if a TOKEN is a VERB."
-  (member token *verbs* :test #'string-equal))
+  (find token *verbs* :test #'string-equal))
 
 (defun article-p (token)
   "Checks if TOKEN is an ARTICLE."
-  (member token *articles* :test #'string-equal))
+  (find token *articles* :test #'string-equal))
 
 ; !!! this deserves a paddlin'
 (defun noun-p (token)
