@@ -49,12 +49,33 @@
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
   (cl-ppcre:split "^+'| +'|\"" string :limit 2))
 
-(defun string->token-list (string)
+(defun string-list->token-list (string-list)
+  "Turns a list of STRINGS into a list of <TOKENS>"
+  (apply #'string->token string-list))
+
+(defun chat-string->token (chat-string)
+  "Takes a CHAT-STRING, returns the corresponding <TOKEN>"
+  (make-instance '<token> :token-string chat-string :type :chat-string))
+
+;; NOTE: I'm creating one of the the actual <token> instances here, a little early.
+;; This is an easy way to tokenize the chat-string. I don't know how to do it later than this step.
+(defun string->token-list (string) 
+  "Converts a STRING into a LIST of TOKENS."
   (let* ((com+chat (split-off-chat-string string))
 	 (commands (split-command-string (car com+chat)))
-	 (merged-command-list (append commands (cdr com+chat))))
+	 (merged-command-list (append commands (list (chat-string->token (cdr com+chat))))))
     merged-command-list))
 
+(defclass <token> () ;; this only involves modifying string->token-list and the predicates in parser
+  ((token-string
+    :initarg :token-string
+    :initform (error "Must provide a :word-string")
+    :accessor token-string)
+   (type
+    :initarg :type
+    :initform (error "Must supply a :type")
+    :accessor type)))
+   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~ Parser ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -68,23 +89,22 @@
 ;; noun ::= *any object in the scope of player*
 ;; -----------------------------------------------
 ;; !!! TODO - make the parser more complete.
+
 (defun parse-command (token-list)
+  "Parses a TOKEN-LIST into an ABSTRACT SYNTAX TREE."
   (let ((verb (verb-p (car token-list)))
-	(noun-phrase (noun-phrase-p (cdr token-list))))
+	(noun-phrase (parse-noun-phrase (cdr token-list))))
   (if verb
       (if noun-phrase
 	  (list verb noun-phrase)
 	  (list verb))
       (format t "~%Unknown verb: '~a'~%" (car token-list)))))
   
-(defun noun-phrase-p (token-list)
-  (if (noun-p (car token-list))
-      (list (car token-list))
-      (if (article-p (car token-list))
-	  (if (noun-p (second token-list))
-	      (list (second token-list) (car token-list))
-	      (format t "~%Unknown noun: '~a'~%" (second token-list))))))
-	
+(defun parse-noun-phrase (token-list)
+  "Parses a TOKEN-LIST into a NOUN-PHRASE list."
+  (if (article-p (car token-list))
+   (list (second token-list) (car token-list))
+   (list (car token-list))))
 
 (defun verb-p (token)
   "Checks if a TOKEN is a VERB."
@@ -94,12 +114,13 @@
   "Checks if TOKEN is an ARTICLE."
   (find token *articles* :test #'string-equal))
 
-; !!! this deserves a paddlin'
-(defun noun-p (token)
-  "Checks if TOKEN is a NOUN within scope."
-  (if (string-equal token "flask")
-      token
-      nil))
+(defun old-verb-p (token)
+  "Checks if a TOKEN is a VERB."
+  (find token *verbs* :test #'string-equal))
+
+(defun old-article-p (token)
+  "Checks if TOKEN is an ARTICLE."
+  (find token *articles* :test #'string-equal))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
