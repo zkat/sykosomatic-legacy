@@ -27,13 +27,15 @@
 (defvar *player-ids* 0)
 (defvar *room-ids* 0)
 
-(defvar *articles* '("a" "an" "the"))
+(defvar *articles* '("a" "an" "the" "ye"))
 (defvar *nouns* nil)
 (defvar *verbs* nil)
 (defvar *adjectives* nil)
 (defvar *adverbs* nil)
 (defvar *prepositions* nil)
 (defvar *pronouns* nil)
+
+(defvar *vocabulary* nil) ;;looks like I might use this after all.
 
 (defvar *directions* '("north" "south" "east" ;;necessary? I don't think so.
 		       "west" "northeast" "northwest"
@@ -110,6 +112,6 @@
 (defvar *rooms* nil)
 (defvar *players* nil)
 (defvar *objects* nil)
-(defvar *vocabulary* nil)
+
 (defvar *commands* nil)
 (defvar *current-player* nil)
