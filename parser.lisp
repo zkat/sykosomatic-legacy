@@ -36,7 +36,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Tokenizer ~~~~~~~~~~~~~~~~~::
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Notes: *This tokenizer (and the <word> class) assumes that there is only one pos per existing word.
 ;
 ;; Part 1: Raw string -> list of strings
 ;; -------------------------------------
@@ -49,33 +48,22 @@
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
   (cl-ppcre:split "^+'| +'|\"" string :limit 2))
 
-(defun string-list->token-list (string-list)
-  "Turns a list of STRINGS into a list of <TOKENS>"
-  (apply #'string->token string-list))
+(defun format-chat-string (chat-string)
+  (if chat-string
+      (concatenate 'string "'" chat-string)
+      nil))
 
 (defun chat-string->token (chat-string)
   "Takes a CHAT-STRING, returns the corresponding <TOKEN>"
   (make-instance '<token> :token-string chat-string :type :chat-string))
 
-;; NOTE: I'm creating one of the the actual <token> instances here, a little early.
-;; This is an easy way to tokenize the chat-string. I don't know how to do it later than this step.
-(defun string->token-list (string) 
-  "Converts a STRING into a LIST of TOKENS."
+(defun string->token-list (string) ;;this is so ugly. Whatever...
+  "Converts a STRING into a LIST of TOKEN-STRINGS."
   (let* ((com+chat (split-off-chat-string string))
 	 (commands (split-command-string (car com+chat)))
-	 (merged-command-list (append commands (list (chat-string->token (cdr com+chat))))))
-    merged-command-list))
+	 (token-list (append commands (list (format-chat-string (cadr com+chat))))))
+    token-list))
 
-(defclass <token> () ;; this only involves modifying string->token-list and the predicates in parser
-  ((token-string
-    :initarg :token-string
-    :initform (error "Must provide a :word-string")
-    :accessor token-string)
-   (type
-    :initarg :type
-    :initform (error "Must supply a :type")
-    :accessor type)))
-   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~ Parser ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -83,7 +71,7 @@
 ;; A basic parser
 ;; Grammar:
 ;; Command ::= verb [noun-phrase]
-;; noun-phrase ::= [article] noun
+;; Noun-phrase ::= [article] noun
 ;; article ::= "a" | "an" | "the"
 ;; verb ::= *verbs*
 ;; noun ::= *any object in the scope of player*
