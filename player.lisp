@@ -64,18 +64,24 @@
       (format t "~a" (desc-long (location player)))))
 
 (defmethod move ((entity <entity>) direction)
-  (let ((next-room (next-room 
-		    (cdr 
-		     (assoc direction
-			    (exits (location entity))
-			    :test #'string-equal)))))
-    (if next-room (put-entity entity next-room))))
+  (let ((curr-room (location entity)))
+    (if curr-room
+	(let ((exit (assoc direction
+		     (exits curr-room) :test #'string-equal)))
+	(if exit
+	    (let ((next-room (next-room 
+			      (cdr exit))))
+	      (if next-room 
+		  (put-entity entity next-room)
+		  (format t "No exit in that direction")))
+	    (format t "No exit in that direction.")))
+    (format t "Player can't move. He isn't anywhere to begin with!"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~  User Interaction ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defun user-prompt ()
+(defun prompt-user ()
   "Prompts the user for input, and returns a string."
   (format t "~%-> ")
   (read-line))
