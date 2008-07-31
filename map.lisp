@@ -107,12 +107,15 @@ FROM-ROOM and sets it to TO-ROOM, and adds the"
 	(setf (next-room door) to-room))))
 
 (defgeneric put-entity (entity room)
-  (:documentation "Simply changes the LOCATION of ENTITY to ROOM"))
+  (:documentation "Changes where ENTITY is, taking care of any room-contents juggling."))
 
 (defmethod put-entity ((entity <entity>) room) ; This should also make sure that the room where
   "Sets the LOCATION of ENTITY to ROOM."       ; <entity> currently resides has its CONTENTS
-  (with-accessors ((loc location)) entity      ; updated. Ditto for the new room.
-    (setf loc room)))
+  (let ((old-room (location entity))
+	(new-room room))
+    (setf (location entity) new-room)
+    (pushnew entity (contents new-room))
+    (setf (contents old-room) (remove entity (contents old-room)))))
 
 (defgeneric move (entity direction)
   (:documentation "Moves ENTITY in DIRECTION"))
