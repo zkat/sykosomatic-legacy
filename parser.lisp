@@ -53,11 +53,6 @@
       (format nil "'~a" chat-string)
       nil))
 
-(defun concat-format-chat-string (chat-string)
-  (if chat-string
-      (concatenate 'string "'" chat-string)
-      nil))
-
 (defun chat-string->token (chat-string)
   "Takes a CHAT-STRING, returns the corresponding <TOKEN>"
   (make-instance '<token> :token-string chat-string :type :chat-string))
@@ -82,38 +77,31 @@
 ;; noun ::= *any object in the scope of player*
 ;; -----------------------------------------------
 ;; !!! TODO - make the parser more complete.
-
-(defun parse-player-input (player string)
+(defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns a S-EXP"
-  (parse-command player (string->token-list string)))
+  (parse-command (string->token-list string)))
 
-(defun parse-command (player token-list)
-  (let ((verb (parse-verb (car token-list)))
-	(noun-phrase (parse-noun-phrase player (cdr token-list))))
-    (cond (verb
-	   (if noun-phrase
-	       (list verb player noun-phrase))
-	       (list verb player))
-	  (t 
-	   (format t "~%Unknown verb: '~a'~%" (car token-list))))))
+(defun parse-command (token-list)
+  (if (verb-p (car token-list))
+      (let ((noun-phrase (parse-noun-phrase (cdr token-list)))
+	    (verb (car token-list)))
+	(if noun-phrase
+	    (list verb noun-phrase)
+	    (list verb)))
+      (format t "~%Unknown verb: '~a'~%" (car token-list))))
 
-(defun parse-verb (string)
-  "Checks if STRING is a VERB. Returns a FUNCTION."
-  (cdr (assoc string *verbs* :test #'string-equal)))
+;; These are the only ones I have to change! :D
+(defun verb-p (string)
+  (assoc string *verbs* :test #'string-equal))
 
-(defun parse-article (string)
-  "Checks if STRING is an ARTICLE. Returns a KEYWORD."
-  (cdr (assoc string *articles* :test #'string-equal)))
+(defun article-p (string)
+  (assoc string *articles* :test #'string-equal))
 
-(defun parse-noun (player string)
-  "Checks if STRING is a NOUN within PLAYER'S scope. Returns an OBJECT."
-  t)
-
-(defun parse-noun-phrase (player token-list)
+(defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST. Returns a LIST depicting a NOUN-PHRASE. Uses PLAYER'S scope to find objects."
-  (if (parse-article (car token-list))
-      (list (parse-noun player (cadr token-list)) (parse-article (car token-list)))
-      (list (parse-noun player (car token-list)))))
+  (if (article-p (car token-list))
+      (list (cadr token-list) (car token-list))
+      (list (car token-list))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
@@ -121,32 +109,20 @@
 ; AST goes in, function goes out.
 ;This whole thing has to be written within the context of the main loop.
 ;; TODO
-(defun noun->obj (noun) ;; This needs some info on scope to know what to bind to.
+(defun noun->obj (player noun) ;; This needs some info on scope to know what to bind to.
   "Takes a NOUN object and returns the OBJECT it refers to."
-  (if (member (word noun) *objects* :test #'string-equal)
-      (word noun)))
+  (find noun (contents (location player))))
+
+(defun verb->function (string)
+  "Checks if STRING is a VERB. Returns a FUNCTION."
+  (cdr (assoc string *verbs* :test #'string-equal)))
 
 ;; TODO
-(defun verb->function (verb) ;;NOTE: Only accepts directions right now
-  "Takes a VERB object and returns the FUNCTION the verb is supposed to call"
-  (if (member (word verb) *directions* :test #'string-equal)
-      (list #'move *current-player* (word verb))
-      nil))
-
-;; TODO
-(defun parse-tree->sexp (tree) ;; This is really basic!
+(defun parse-tree->sexp (player tree)
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  (let ((verb (contents (left-child tree))) (noun (contents (right-child tree))))
-    (cond ((and (verb-p verb) (not (noun-p noun))) 
-	   (verb->function verb))
-	  ((and (verb-p verb) (noun-p noun)) 
-	   (append (verb->function verb) (noun->obj noun)))
-	  (t
-	   nil))))
+  )
 
 ;;TODO
-(defun string->sexp (string) ;; uses the basic abstract-syntax tree!!
+(defun string->sexp (player string)
   "Takes a STRING and turns it into a valid S-EXP to run."
-  (parse-tree->sexp
-   (obj-list->basic-ast
-    (string->obj-list string))))
+  )

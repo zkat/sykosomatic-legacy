@@ -50,7 +50,6 @@
 ;;~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;BRACE FOR LULZ!!!!11
-
 (defgeneric obj->file (obj path)
   (:documentation "Saves OBJECT to a file within PATH."))
 
