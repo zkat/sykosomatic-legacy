@@ -111,18 +111,26 @@
 ;; TODO
 (defun noun->obj (player noun) ;; This needs some info on scope to know what to bind to.
   "Takes a NOUN object and returns the OBJECT it refers to."
-  (find noun (contents (location player))))
+  (find noun *directions* :test #'string-equal))
 
 (defun verb->function (string)
   "Checks if STRING is a VERB. Returns a FUNCTION."
   (cdr (assoc string *verbs* :test #'string-equal)))
 
 ;; TODO
-(defun parse-tree->sexp (player tree)
+(defun parse-tree->sexp (player tree) ;;only does directions right now.
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  )
+  (let ((verb (verb->function (first tree)))
+	(direct-object (noun->obj player (car (cadr tree)))))
+    (list verb player direct-object)))
 
 ;;TODO
-(defun string->sexp (player string)
+(defun string->sexp (player string) ;;temporary state. Can only move in directions.
   "Takes a STRING and turns it into a valid S-EXP to run."
-  )
+  (parse-tree->sexp player 
+		    (parse-string string)))
+
+(defun execute-command (player string)
+  (let ((sexp (string->sexp player string)))
+    (if (functionp (car sexp))
+	(apply (car sexp) (cdr sexp)))))
