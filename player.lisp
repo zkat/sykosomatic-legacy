@@ -50,22 +50,25 @@
 ;;~~~~~~~~~~~~~~~  User Commands  ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defun look (player &optional (obj nil))
+;; !!! Working on parser... Expect breakage.
+(defun look (player &optional (noun-phrase nil))
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (if obj
-      (format t "~a" (desc obj))
+  (if noun-phrase
+      (format t "~a" (desc (first noun-phrase)))
       (format t "~a" (desc (location player)))))
 
-(defun examine (player &optional (obj nil))
+(defun examine (player &optional (noun-phrase nil))
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (if obj
-      (format t "~a" (desc-long obj))
+      (format t "~a" (desc-long (first noun-phrase)))
       (format t "~a" (desc-long (location player)))))
 
 (defmethod move ((entity <entity>) direction)
-  (let ((next-room (next-room (cdr (assoc direction
-					  (exits (location entity))
-					  :test #'string-equal)))))
+  (let ((next-room (next-room 
+		    (cdr 
+		     (assoc direction
+			    (exits (location entity))
+			    :test #'string-equal)))))
     (if next-room (put-entity entity next-room))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -86,3 +89,4 @@
 			  (merge-pathnames
 			   (format nil "player-~a.player" (player-id player))
 			   path))))
+

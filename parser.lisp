@@ -36,7 +36,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Tokenizer ~~~~~~~~~~~~~~~~~::
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+;String goes in, string-list goes out.
 ;; Part 1: Raw string -> list of strings
 ;; -------------------------------------
 ;
@@ -49,6 +49,11 @@
   (cl-ppcre:split "^+'| +'|\"" string :limit 2))
 
 (defun format-chat-string (chat-string)
+  (if chat-string
+      (format nil "'~a" chat-string)
+      nil))
+
+(defun concat-format-chat-string (chat-string)
   (if chat-string
       (concatenate 'string "'" chat-string)
       nil))
@@ -67,7 +72,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~ Parser ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+; This whole section: string-list goes in, AST comes out.
 ;; A basic parser
 ;; Grammar:
 ;; Command ::= verb [noun-phrase]
@@ -78,42 +83,43 @@
 ;; -----------------------------------------------
 ;; !!! TODO - make the parser more complete.
 
-(defun parse-command (token-list)
-  "Parses a TOKEN-LIST into an ABSTRACT SYNTAX TREE."
-  (let ((verb (verb-p (car token-list)))
-	(noun-phrase (parse-noun-phrase (cdr token-list))))
-  (if verb
-      (if noun-phrase
-	  (list verb noun-phrase)
-	  (list verb))
-      (format t "~%Unknown verb: '~a'~%" (car token-list)))))
-  
-(defun parse-noun-phrase (token-list)
-  "Parses a TOKEN-LIST into a NOUN-PHRASE list."
-  (if (article-p (car token-list))
-   (list (second token-list) (car token-list))
-   (list (car token-list))))
+(defun parse-player-input (player string)
+  "Parses a STRING that was entered by PLAYER and returns a S-EXP"
+  (parse-command player (string->token-list string)))
 
-(defun verb-p (token)
-  "Checks if a TOKEN is a VERB."
-  (find token *verbs* :test #'string-equal))
+(defun parse-command (player token-list)
+  (let ((verb (parse-verb (car token-list)))
+	(noun-phrase (parse-noun-phrase player (cdr token-list))))
+    (cond (verb
+	   (if noun-phrase
+	       (list verb player noun-phrase))
+	       (list verb player))
+	  (t 
+	   (format t "~%Unknown verb: '~a'~%" (car token-list))))))
 
-(defun article-p (token)
-  "Checks if TOKEN is an ARTICLE."
-  (find token *articles* :test #'string-equal))
+(defun parse-verb (string)
+  "Checks if STRING is a VERB. Returns a FUNCTION."
+  (cdr (assoc string *verbs* :test #'string-equal)))
 
-(defun old-verb-p (token)
-  "Checks if a TOKEN is a VERB."
-  (find token *verbs* :test #'string-equal))
+(defun parse-article (string)
+  "Checks if STRING is an ARTICLE. Returns a KEYWORD."
+  (cdr (assoc string *articles* :test #'string-equal)))
 
-(defun old-article-p (token)
-  "Checks if TOKEN is an ARTICLE."
-  (find token *articles* :test #'string-equal))
+(defun parse-noun (player string)
+  "Checks if STRING is a NOUN within PLAYER'S scope. Returns an OBJECT."
+  t)
+
+(defun parse-noun-phrase (player token-list)
+  "Parses a TOKEN-LIST. Returns a LIST depicting a NOUN-PHRASE. Uses PLAYER'S scope to find objects."
+  (if (parse-article (car token-list))
+      (list (parse-noun player (cadr token-list)) (parse-article (car token-list)))
+      (list (parse-noun player (car token-list)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; !!! Has to be rewritten to take in the new AST
+; AST goes in, function goes out.
+;This whole thing has to be written within the context of the main loop.
 ;; TODO
 (defun noun->obj (noun) ;; This needs some info on scope to know what to bind to.
   "Takes a NOUN object and returns the OBJECT it refers to."
@@ -131,13 +137,16 @@
 (defun parse-tree->sexp (tree) ;; This is really basic!
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
   (let ((verb (contents (left-child tree))) (noun (contents (right-child tree))))
-    (cond ((and (verb-p verb) (not (noun-p noun))) (verb->function verb))
-	  ((and (verb-p verb) (noun-p noun)) (append (verb->function verb) (noun->obj noun)))
-	  (t nil))))
+    (cond ((and (verb-p verb) (not (noun-p noun))) 
+	   (verb->function verb))
+	  ((and (verb-p verb) (noun-p noun)) 
+	   (append (verb->function verb) (noun->obj noun)))
+	  (t
+	   nil))))
 
 ;;TODO
 (defun string->sexp (string) ;; uses the basic abstract-syntax tree!!
-  "Takes a STRING and turns it into a valid S-EXP FUNCTION to run."
+  "Takes a STRING and turns it into a valid S-EXP to run."
   (parse-tree->sexp
    (obj-list->basic-ast
     (string->obj-list string))))

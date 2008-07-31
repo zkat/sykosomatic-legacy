@@ -20,9 +20,7 @@
 ;;;============================================== Game ==========================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defun main ()
-  (format t "Starting game...")
-  (let ((rooms (get-objects-from-directory *rooms-directory*))
-	(players (get-objects-from-directory *players-directory*)))
-    (eval rooms)
-    (eval players)))
+(defun player-action (player)
+  )
+    
+    
