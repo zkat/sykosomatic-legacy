@@ -79,9 +79,17 @@
       (setf name (format nil "Room #~a" (room-id room))))
     room))
 
-(defun make-room-from-file (file)
+(defmacro make-room (&key name desc desc-long)
+  `(make-instance '<room> :name ,name :desc ,desc :desc-long ,desc-long))
+
+(defun make-room-from-file (file) ;;uses jeebus' parser
   "Generates a room from a raw text FILE."
-  )
+  (let ((rooms (with-open-file (in file)
+		  (loop for line = (read in nil)
+		     while line
+		     collect line))))
+    (loop for room in rooms
+	 collect (eval room))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~ Info ~~~~~~~~~~~~~~~~~~~;;

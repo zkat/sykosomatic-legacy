@@ -146,6 +146,10 @@
 (defun reset-room-ids ()
   (setf *room-ids* 0))
 
+(defun set-room-id-to-highest ()
+  (setf *room-ids* (apply #'max (loop for room in *rooms*
+       collect (room-id room)))))
+
 (defun generate-test-players (num-players)
   "Returns a LIST containing NUM-PLAYERS instances of <player>."
   (loop for i upto (1- num-players)
