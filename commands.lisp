@@ -22,6 +22,57 @@
 ;; !!! Working on parser... Expect breakage.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defun emote (&rest args)
+  "Emotes an EMOTE-STRING."
+  (let ((emote (third args)))
+    (format t "You ~a." emote)))
+
+(defun look (&rest args)
+  "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
+  (let ((player (first args))
+	(noun-phrase (second args)))
+    (let* ((current-room (location player))
+	   (target-string (first noun-phrase))
+	   (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
+      (if target
+	  (format t "~a" (desc target))
+	  (format t "~a" (desc current-room))))))
+
+(defun examine (&rest args)
+  "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
+  (let ((player (first args))
+	(noun-phrase (second args)))
+    (let* ((current-room (location player))
+	   (target-string (first noun-phrase))
+	   (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
+      (if target
+	  (format t "~a" (desc-long target))
+	  (format t "~a" (desc-long current-room))))))
+
+;; (defgeneric move (entity direction)
+;;   (:documentation "Moves ENTITY in DIRECTION"))
+
+(defun move (&rest args)
+  (let ((player (first args))
+	(noun-phrase (second args)))
+    (let ((curr-room (location player)))
+      (if curr-room
+	  (let* ((direction (car noun-phrase))
+		 (exit (assoc direction
+			      (exits curr-room) :test #'string-equal)))
+	    (if exit
+		(let ((next-room (next-room 
+				  (cdr exit))))
+		  (if next-room 
+		      (put-entity player next-room)
+		      (format t "No exit in that direction~%")))
+		(format t "No exit in that direction.~%")))
+	  (format t "Player can't move. He isn't anywhere to begin with!~%")))))
+  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~ Utils ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -50,47 +101,4 @@ removing all previous associations with STRING"
 	(delete
 	 (find string *emotes* :test #'string-equal)
 	 *emotes*)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; I think I have to add emotes as a special part-of-speech in the parser.
-(defun emote (&key player noun-phrase emote)
-  "Emotes an EMOTE-STRING."
-  (format t "You ~a." emote))
 
-(defun look (&key player noun-phrase emote)
-  "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (let* ((current-room (location player))
-	 (target-string (first noun-phrase))
-	 (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
-    (if target
-	(format t "~a" (desc target))
-	(format t "~a" (desc current-room)))))
-
-(defun examine (player &optional (noun-phrase nil))
-  "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (let* ((current-room (location player))
-	 (target-string (first noun-phrase))
-	 (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
-    (if target
-	(format t "~a" (desc-long target))
-	(format t "~a" (desc-long current-room)))))
-
-(defgeneric move (entity direction)
-  (:documentation "Moves ENTITY in DIRECTION"))
-
-(defmethod move ((player <player>) noun-phrase)
-  (let ((curr-room (location player)))
-    (if curr-room
-	(let* ((direction (car noun-phrase))
-	       (exit (assoc direction
-		     (exits curr-room) :test #'string-equal)))
-	(if exit
-	    (let ((next-room (next-room 
-			      (cdr exit))))
-	      (if next-room 
-		  (put-entity player next-room)
-		  (format t "No exit in that direction~%")))
-	    (format t "No exit in that direction.~%")))
-    (format t "Player can't move. He isn't anywhere to begin with!~%"))))
