@@ -42,11 +42,24 @@ removing all previous associations with STRING"
 	 (assoc string *verbs* :test #'string-equal) 
 	 *verbs*)))
 
+(defun add-emote (string)
+  (pushnew string *emotes*))
+
+(defun remove-emote (string)
+  (setf *emotes*
+	(delete
+	 (find string *emotes* :test #'string-equal)
+	 *emotes*)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defun look (player &optional (noun-phrase nil))
+;; I think I have to add emotes as a special part-of-speech in the parser.
+(defun emote (&key player noun-phrase emote)
+  "Emotes an EMOTE-STRING."
+  (format t "You ~a." emote))
+
+(defun look (&key player noun-phrase emote)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let* ((current-room (location player))
 	 (target-string (first noun-phrase))
@@ -81,4 +94,3 @@ removing all previous associations with STRING"
 		  (format t "No exit in that direction~%")))
 	    (format t "No exit in that direction.~%")))
     (format t "Player can't move. He isn't anywhere to begin with!~%"))))
-

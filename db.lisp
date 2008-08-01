@@ -34,6 +34,7 @@
 
 (defvar *articles* '("a" "an" "the" "ye"))
 (defvar *verbs* nil)
+(defvar *emotes* nil)
 (defvar *adjectives* nil)
 (defvar *adverbs* nil)
 (defvar *prepositions* nil)
@@ -107,6 +108,7 @@
   "Saves all the nice vocabulary words :)"
   (cl-store:store *articles* (ensure-directories-exist (merge-pathnames #P"articles.db" *vocab-directory*)))
   (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (cl-store:store *emotes* (ensure-directories-exist (merge-pathnames #P"emotes.db" *vocab-directory*)))
   (cl-store:store *adjectives* (ensure-directories-exist (merge-pathnames #P"adjectives.db" *vocab-directory*)))
   (cl-store:store *adverbs* (ensure-directories-exist (merge-pathnames #P"adverbs.db" *vocab-directory*)))
   (cl-store:store *prepositions* (ensure-directories-exist (merge-pathnames #P"prepositions.db" *vocab-directory*)))
@@ -117,6 +119,7 @@
   "Loads saved vocab files into their respective variables."
   (setf *articles* (cl-store:restore (merge-pathnames #P"articles.db" *vocab-directory*)))
   (setf *verbs* (cl-store:restore (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (setf *emotes* (cl-store:restore (merge-pathnames #P"emotes.db" *vocab-directory*)))
   (setf *adjectives* (cl-store:restore (merge-pathnames #P"adjectives.db" *vocab-directory*)))
   (setf *adverbs* (cl-store:restore (merge-pathnames #P"adverbs.db" *vocab-directory*)))
   (setf *prepositions* (cl-store:restore (merge-pathnames #P"prepositions.db" *vocab-directory*)))

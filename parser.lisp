@@ -83,15 +83,26 @@
 
 (defun parse-command (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (if (verb-p (car token-list))
-      (let ((noun-phrase (parse-noun-phrase (cdr token-list)))
-	    (verb (car token-list)))
-	(if noun-phrase
-	    (list verb noun-phrase)
-	    (list verb)))
-      (format t "Unknown verb: '~a'" (car token-list))))
+  (cond ((emote-p (car token-list))
+	 (let ((noun-phrase (parse-noun-phrase (cdr token-list)))
+	       (emote (car token-list)))
+	   (if noun-phrase
+	       (list "emote" noun-phrase emote)
+	       (list "emote" nil emote))))
+	 ((verb-p (car token-list))
+	  (let ((noun-phrase (parse-noun-phrase (cdr token-list)))
+		(verb (car token-list)))
+	    (if noun-phrase
+		(list verb noun-phrase)
+		(list verb nil nil))))
+	 (t
+	  (format t "Unknown verb: '~a'" (car token-list)))))
 
 ;; These are the only ones I have to change! :D
+(defun emote-p (string)
+  "Is string just an EMOTE?"
+  (find string *emotes* :test #'string-equal))
+
 (defun verb-p (string)
   "Is STRING a VERB?"
   (assoc string *verbs* :test #'string-equal))
@@ -125,8 +136,9 @@
 (defun parse-tree->sexp (player tree) ;; maybe the best way to handle this is for the functions to take care of evaluating the noun.
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
   (let ((verb (verb->function (first tree)))
-	(noun-phrase (cadr tree)))
-    (list verb player noun-phrase)))
+	(noun-phrase (cadr tree))
+	(emote (third tree)))
+    (list verb :player player :noun-phrase noun-phrase :emote emote)))
 
 (defun string->sexp (player string)
   "Takes a STRING and turns it into a valid S-EXP to run."
