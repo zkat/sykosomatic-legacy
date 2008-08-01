@@ -22,9 +22,9 @@
 ;;
 (defclass <player> (<mobile>)
   ((desc
-    :initform "This is you.")
+    :initform "This is a player.")
    (desc-long
-    :initform "This is you. You are quite handsome. ;)")
+    :initform "This is a player. It is quite handsome. ;)")
    (player-id
     :initarg :player-id
     :initform (incf *player-ids*)
@@ -43,7 +43,7 @@
   "RETURNS a new PLAYER after initializing the <player> object"
   (let ((player (make-instance '<player>)))
     (with-accessors ((name name)) player
-      (setf name (format nil "Player #~a" (player-id player))))
+      (setf name (format nil "Player~d" (player-id player))))
     player))
 
 (defmacro make-player (&key name desc desc-long features)

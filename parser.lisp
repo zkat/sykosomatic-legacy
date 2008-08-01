@@ -75,7 +75,20 @@
 ;; verb ::= *verbs*
 ;; noun ::= *any object in the scope of player*
 ;; -----------------------------------------------
-;; !!! TODO - add complexity to the parser.
+;; The complete parser
+;; Command ::= {adverb} verb {adverb} {<noun-phrase> 
+;; 				    {adverb} 
+;; 				    {preposition <noun-phrase> {adverb}}}
+;; Noun-phrase ::= <noun-group> {preposition <noun-group>}
+;; noun-group ::= {article} {number} {adjective} (pronoun | string)
+;; verb ::= *verbs*
+;; adverb ::= *adverbs*
+;; preposition ::= *prepositions*
+;; article ::= *articles*
+;; pronoun ::= *pronouns*
+;; number ::= number, or number-string
+;; ----------------------------------------------
+;; !!! TODO - Add everything to the parser.
 ;
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
@@ -83,33 +96,14 @@
 
 (defun parse-command (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (cond ((emote-p (car token-list))
-	 (let ((noun-phrase (parse-noun-phrase (cdr token-list)))
-	       (emote (car token-list)))
-	   (if noun-phrase
-	       (list "emote" noun-phrase emote)
-	       (list "emote" nil emote))))
-	 ((verb-p (car token-list))
+  (cond ((verb-p (car token-list))
 	  (let ((noun-phrase (parse-noun-phrase (cdr token-list)))
 		(verb (car token-list)))
 	    (if noun-phrase
-		(list verb noun-phrase)
+		(list verb noun-phrase nil)
 		(list verb nil nil))))
 	 (t
 	  (format t "Unknown verb: '~a'" (car token-list)))))
-
-;; These are the only ones I have to change! :D
-(defun emote-p (string)
-  "Is string just an EMOTE?"
-  (find string *emotes* :test #'string-equal))
-
-(defun verb-p (string)
-  "Is STRING a VERB?"
-  (assoc string *verbs* :test #'string-equal))
-
-(defun article-p (string)
-  "Is STRING an ARTICLE?"
-  (assoc string *articles* :test #'string-equal))
 
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE."
@@ -117,16 +111,38 @@
       (list (cadr token-list) (car token-list))
       (list (car token-list))))
 
+(defun verb-p (string)
+  "Is STRING a VERB?"
+  (assoc string *verbs* :test #'string-equal))
+
+(defun preposition-p (string)
+  "Is STRING a PREPOSITION?"
+  (member string *prepositions* :test #'string-equal))
+
+(defun article-p (string)
+  "Is STRING an ARTICLE?"
+  (member string *articles* :test #'string-equal))
+
+(defun adverb-p (string)
+  "Is STRING an ADVERB?"
+  (member string *adverbs* :test #'string-equal))
+
+(defun pronoun-p (string)
+  "Is STRING a PRONOUN?"
+  (member string *pronouns* :test #'string-equal))
+;;need a numberp of some sort here
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; AST goes in, function goes out.
+;; Goal AST - (#'verb player noun-phrase emote) ;;this will be expanded further.
+;; -----------------------------------------------
+;; Expanded AST - (#' player (noun-phrases) (adverbs) emote) 
+;; where noun-phrases is (noun-group preposition noun-group)
+;; where noun-group is (noun (identifiers))
+;; -----------------------------------------------
 ;; !!! TODO - make sure any changes to the parser get mirrored here.
-;
-;; TODO
-(defun noun->obj (player noun) ;; Only handles directions. Can be expanded relatively easily.
-  "Takes a NOUN object and returns the OBJECT it refers to."
-  (find noun *directions* :test #'string-equal))
 
 (defun verb->function (string)
   "Checks if STRING is a VERB. Returns a FUNCTION."
