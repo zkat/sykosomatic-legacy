@@ -105,14 +105,18 @@
 ;;~~~~~~~~~~~~~~~~~ Manipulation ~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defun set-exit (from-room to-room direction) ;seems to be working fine... we'll see.
-  "Receives a DIRECTION symbol. Gets the <door> object in the EXITS hash of
-FROM-ROOM and sets it to TO-ROOM, and adds the"
+(defun set-exit (from-room to-room direction)
+  "Creates an EXIT that leads FROM-ROOM TO-ROOM in DIRECTION. NOT REFLEXIVE."
   (if (not (assoc direction (exits from-room) :test #'string-equal))
       (let ((door (make-instance '<door> :next-room to-room)))
 	(pushnew (cons direction door) (exits from-room)))
       (let ((door (cdr (assoc direction (exits from-room) :test #'string-equal))))
 	(setf (next-room door) to-room))))
+
+;; TODO
+;; (defun reflexive-set-exit (from-room to-room direction)
+;;   "Manages exit creation. Mirrors the creation in the other room."
+;;   nil)
 
 (defgeneric put-entity (entity room)
   (:documentation "Changes where ENTITY is, taking care of any room-contents juggling."))
