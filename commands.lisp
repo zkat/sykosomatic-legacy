@@ -24,6 +24,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TODO - Maybe add a defalias command? Maybe this should be done at a different level. I'll stick to go for now.
+;; TODO - Keep an eye out for a possible defcommand macro.
 ;;
 (defun emote (&rest args)
   "Emotes an EMOTE-STRING."
@@ -52,10 +54,8 @@
 	  (format t "~a" (desc-long target))
 	  (format t "~a" (desc-long current-room))))))
 
-;; (defgeneric move (entity direction)
-;;   (:documentation "Moves ENTITY in DIRECTION"))
-
 (defun move (&rest args)
+  "Moves PLAYER in DIRECTION."
   (let ((player (first args))
 	(noun-phrase (second args)))
     (let ((curr-room (location player)))
@@ -67,10 +67,14 @@
 		(let ((next-room (next-room 
 				  (cdr exit))))
 		  (if next-room 
-		      (put-entity player next-room)
-		      (format t "No exit in that direction~%")))
-		(format t "No exit in that direction.~%")))
-	  (format t "Player can't move. He isn't anywhere to begin with!~%")))))
+		      (progn 
+			(put-entity player next-room)
+			(format t "Entering ~a" (name (location player)))
+			;(sleep 0.7) ;;removing while I test. This should go in later, though.
+			(format t "~%~a" (desc (location player))))
+		      (format t "No exit in that direction.")))
+		(format t "No exit in that direction.")))
+	  (format t "Player can't move. He isn't anywhere to begin with!")))))
   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~ Utils ~~~~~~~~~~~~~~~~~~;;
