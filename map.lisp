@@ -82,7 +82,7 @@
 (defmacro make-room (&key name desc desc-long)
   `(make-instance '<room> :name ,name :desc ,desc :desc-long ,desc-long))
 
-(defun make-room-from-file (file) ;;uses jeebus' parser
+(defun make-rooms-from-file (file)
   "Generates a room from a raw text FILE."
   (let ((rooms (with-open-file (in file)
 		  (loop for line = (read in nil)
@@ -125,8 +125,6 @@ FROM-ROOM and sets it to TO-ROOM, and adds the"
     (pushnew entity (contents new-room))
     (setf (contents old-room) (remove entity (contents old-room)))))
 
-(defgeneric move (entity direction)
-  (:documentation "Moves ENTITY in DIRECTION"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~;;

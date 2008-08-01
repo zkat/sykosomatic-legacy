@@ -53,29 +53,56 @@
 ;; !!! Working on parser... Expect breakage.
 (defun look (player &optional (noun-phrase nil))
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (if noun-phrase
-      (format t "~a" (desc (first noun-phrase)))
-      (format t "~a" (desc (location player)))))
+  (let* ((current-room (location player))
+	 (target-string (first noun-phrase))
+	 (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
+    (if target
+	(format t "~a" (desc target))
+	(format t "~a" (desc current-room)))))
 
 (defun examine (player &optional (noun-phrase nil))
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (if obj
-      (format t "~a" (desc-long (first noun-phrase)))
-      (format t "~a" (desc-long (location player)))))
+  (let* ((current-room (location player))
+	 (target-string (first noun-phrase))
+	 (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
+    (if target
+	(format t "~a" (desc-long target))
+	(format t "~a" (desc-long current-room)))))
 
-(defmethod move ((entity <entity>) direction)
-  (let ((curr-room (location entity)))
+(defgeneric move (entity direction)
+  (:documentation "Moves ENTITY in DIRECTION"))
+
+(defmethod move ((player <player>) noun-phrase)
+  (let ((curr-room (location player)))
     (if curr-room
-	(let ((exit (assoc direction
+	(let* ((direction (car noun-phrase))
+	       (exit (assoc direction
 		     (exits curr-room) :test #'string-equal)))
 	(if exit
 	    (let ((next-room (next-room 
 			      (cdr exit))))
 	      (if next-room 
-		  (put-entity entity next-room)
-		  (format t "No exit in that direction")))
-	    (format t "No exit in that direction.")))
-    (format t "Player can't move. He isn't anywhere to begin with!"))))
+		  (put-entity player next-room)
+		  (format t "No exit in that direction~%")))
+	    (format t "No exit in that direction.~%")))
+    (format t "Player can't move. He isn't anywhere to begin with!~%"))))
+
+(defun refresh-verb (string function)
+  "Associates STRING with FUNCTION and adds it to *VERBS*, 
+removing all previous associations with STRING"
+  (remove-verb string)
+  (add-verb string function))
+
+(defun add-verb (string function)
+  "Associates STRING with FUNCTION and adds the new verb to *VERBS*"
+  (pushnew (cons string function) *verbs*))
+
+(defun remove-verb (string)
+  "Removes the VERB that corresponds to STRING from *VERBS*"
+  (setf *verbs*
+	(delete 
+	 (assoc string *verbs* :test #'string-equal) 
+	 *verbs*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~  User Interaction ~~~~~~~~~~~~~~;;
@@ -83,7 +110,7 @@
 ;
 (defun prompt-user ()
   "Prompts the user for input, and returns a string."
-  (format t "~%-> ")
+  (format t "~%~%-> ")
   (read-line))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -95,4 +122,3 @@
 			  (merge-pathnames
 			   (format nil "player-~a.player" (player-id player))
 			   path))))
-
