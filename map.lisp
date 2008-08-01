@@ -79,8 +79,8 @@
       (setf name (format nil "Room #~a" (room-id room))))
     room))
 
-(defmacro make-room (&key name desc desc-long)
-  `(make-instance '<room> :name ,name :desc ,desc :desc-long ,desc-long))
+(defmacro make-room (&key name desc desc-long features)
+  `(make-instance '<room> :name ,name :desc ,desc :desc-long ,desc-long :features ,features))
 
 (defun make-rooms-from-file (file)
   "Generates a room from a raw text FILE."
@@ -124,7 +124,6 @@ FROM-ROOM and sets it to TO-ROOM, and adds the"
     (setf (location entity) new-room)
     (pushnew entity (contents new-room))
     (setf (contents old-room) (remove entity (contents old-room)))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~;;
