@@ -138,7 +138,7 @@
   (let ((verb (verb->function (first tree)))
 	(noun-phrase (cadr tree))
 	(emote (third tree)))
-    (list verb :player player :noun-phrase noun-phrase :emote emote)))
+    (list verb player noun-phrase emote)))
 
 (defun string->sexp (player string)
   "Takes a STRING and turns it into a valid S-EXP to run."

@@ -32,15 +32,13 @@
 
 (defvar *objects* nil) ;this one's new!
 
-(defvar *articles* '("a" "an" "the" "ye"))
+(defvar *articles* '("a" "an" "the" "ye")) ;;yes. It's an article.
 (defvar *verbs* nil)
 (defvar *emotes* nil)
 (defvar *adjectives* nil)
 (defvar *adverbs* nil)
 (defvar *prepositions* nil)
 (defvar *pronouns* nil)
-
-(defvar *vocabulary* nil) ;;looks like I might use this after all.
 
 (defvar *directions* '("north" "south" "east" ;;necessary? I don't think so.
 		       "west" "northeast" "northwest"
