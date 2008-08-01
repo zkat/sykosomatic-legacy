@@ -27,15 +27,17 @@
 ;; TODO - Maybe add a defalias command? Maybe this should be done at a different level. I'll stick to go for now.
 ;; TODO - Keep an eye out for a possible defcommand macro.
 ;;
-(defun emote (&rest args)
+;; This is what all commands receive as argument:
+;; '(<player> noun-phrase emote-string)
+(defun emote (&rest ast)
   "Emotes an EMOTE-STRING."
-  (let ((emote (third args)))
+  (let ((emote (third ast)))
     (format t "You ~a." emote)))
 
-(defun look (&rest args)
+(defun look (&rest ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (let ((player (first args))
-	(noun-phrase (second args)))
+  (let ((player (first ast))
+	(noun-phrase (second ast)))
     (let* ((current-room (location player))
 	   (target-string (first noun-phrase))
 	   (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
@@ -43,10 +45,10 @@
 	  (format t "~a" (desc target))
 	  (format t "~a" (desc current-room))))))
 
-(defun examine (&rest args)
+(defun examine (&rest ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (let ((player (first args))
-	(noun-phrase (second args)))
+  (let ((player (first ast))
+	(noun-phrase (second ast)))
     (let* ((current-room (location player))
 	   (target-string (first noun-phrase))
 	   (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
@@ -54,10 +56,10 @@
 	  (format t "~a" (desc-long target))
 	  (format t "~a" (desc-long current-room))))))
 
-(defun move (&rest args)
+(defun move (&rest ast)
   "Moves PLAYER in DIRECTION."
-  (let ((player (first args))
-	(noun-phrase (second args)))
+  (let ((player (first ast))
+	(noun-phrase (second ast)))
     (let ((curr-room (location player)))
       (if curr-room
 	  (let* ((direction (car noun-phrase))
@@ -98,11 +100,4 @@ removing all previous associations with STRING"
 	 *verbs*)))
 
 (defun add-emote (string)
-  (pushnew string *emotes*))
-
-(defun remove-emote (string)
-  (setf *emotes*
-	(delete
-	 (find string *emotes* :test #'string-equal)
-	 *emotes*)))
-
+  (add-verb string #'emote))
