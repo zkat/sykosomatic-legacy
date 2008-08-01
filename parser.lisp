@@ -24,6 +24,11 @@
 ;;~~~~~~~~~~~~~~~~ Pre-processing ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
+(defun prompt-user ()
+  "Prompts the user for input, and returns a string."
+  (format t "~%~%-> ")
+  (read-line))
+
 (defun preprocess-string (string)
   "Get rid of trailing whitespace"
   (string-trim '(#\Space #\Tab #\Newline) string))
