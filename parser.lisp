@@ -78,16 +78,21 @@
 ;; The complete parser
 ;; Command ::= (adverb) verb (adverb) (<noun-phrase> (adverb) (preposition <noun-phrase> (adverb)))
 ;; Noun-phrase ::= <noun-group> (preposition <noun-group>)
-;; noun-group ::= (article) (number) (adjective) (pronoun | string)
+;; noun-group ::= (article) (number) (adjective) pronoun | string
 ;; verb ::= *verbs*
 ;; adverb ::= *adverbs*
 ;; preposition ::= *prepositions*
 ;; article ::= *articles*
 ;; pronoun ::= *pronouns*
 ;; number ::= number, or number-string
+;; adjective ::= any unknown token, can be used later.
+;; noun ::= any unknown token, can be used later.
 ;; ----------------------------------------------
 ;; !!! TODO - Add everything to the parser.
 ;
+
+;;; Ignoring adverbs for now.
+
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-command (string->token-list string)))
@@ -95,19 +100,29 @@
 (defun parse-command (token-list)
   "Uses a TOKEN-LIST to generate an AST"
   (cond ((verb-p (car token-list))
-	  (let ((noun-phrase (parse-noun-phrase (cdr token-list)))
-		(verb (car token-list)))
-	    (if noun-phrase
-		(list verb noun-phrase nil)
-		(list verb nil nil))))
-	 (t
+	 (let ((verb (car token-list)))
+	   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
+	     (if token-list
+		 (list verb noun-phrase nil) ;just return what we have
+		 )))) ; !!! TODO - continue parsing the rest of it.
+	(t
 	  (format t "Unknown verb: '~a'" (car token-list)))))
 
 (defun parse-noun-phrase (token-list)
-  "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE."
+  "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE. 
+MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
+  (multiple-value-bind (noun-group-1 token-list) (parse-noun-group token-list)
+    (if (preposition-p (car token-list))
+	(let ((preposition (car token-list)))
+	  (multiple-value-bind (noun-group-2 token-list) (parse-noun-group (cdr token-list))
+	    (values (list noun-group-1 preposition noun-group-2) token-list)))
+	(values (list noun-group-1) token-list))))
+	
+(defun parse-noun-group (token-list)
+  "Parses a NOUN-GROUP"
   (if (article-p (car token-list))
-      (list (cadr token-list) (car token-list))
-      (list (car token-list))))
+      (values (list (cadr token-list) (car token-list)) (cddr token-list))
+      (values (list (car token-list)) (cdr token-list))))
 
 (defun verb-p (string)
   "Is STRING a VERB?"
@@ -116,6 +131,10 @@
 (defun preposition-p (string)
   "Is STRING a PREPOSITION?"
   (member string *prepositions* :test #'string-equal))
+
+(defun adjective-p (string)
+  "Is STRING a PREPOSITION?"
+  (member string *adjectives* :test #'string-equal))
 
 (defun article-p (string)
   "Is STRING an ARTICLE?"
@@ -147,7 +166,7 @@
   (cdr (assoc string *verbs* :test #'string-equal)))
 
 ;; TODO
-(defun parse-tree->sexp (player tree) ;; Do I even need the player for this part?
+(defun parse-tree->sexp (player tree) ;; Do I even need the player for this part? No, but I have to change a lot.
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
   (let ((verb (verb->function (car tree)))
 	(emote (car tree))
