@@ -24,28 +24,22 @@
   :long-description "A heavily-extensible, simple, text-adventure engine."
   :depends-on (#:cl-ppcre #:cl-store)
   :components ((:file "packages")
-	       (:file "config")
+	       (:file "config"
+		      :depends-on ("packages"))
 	       (:file "classes"
 		      :depends-on ("packages"))
-	       (:file "player"
-		      :depends-on ("packages"
-				   "classes"
-				   "db"))
-	       (:file "map"
-		      :depends-on ("packages"
-				   "classes"
-				   "player"
-				   "db"))
 	       (:file "parser"
-		      :depends-on ("player"
-				   "packages"
-				   "classes"
-				   "db"))
+		      :depends-on ("packages"))
+	       (:file "player"
+		      :depends-on ("classes"))
+	       (:file "map"
+		      :depends-on ("classes"))
 	       (:file "db"
-		      :depends-on ("config")
-		      :depends-on ("classes")
-		      :depends-on ("map")
 		      :depends-on ("player")
-		      :depends-on ("parser"))
+		      :depends-on ("map"))
+	       (:file "commands"
+		      :depends-on ("db")
+		      :depends-on ("player")
+		      :depends-on ("map"))
 	       (:file "game"
-		      :depends-on ("db"))))
+		      :depends-on ("parser"))))

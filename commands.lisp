@@ -29,12 +29,12 @@
 ;;
 ;; This is what all commands receive as argument:
 ;; '(<player> noun-phrase emote-string)
-(defun emote (&rest ast)
+(defun pc-emote (&rest ast)
   "Emotes an EMOTE-STRING."
   (let ((emote (third ast)))
     (format t "You ~a." emote)))
 
-(defun look (&rest ast)
+(defun pc-look (&rest ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let ((player (first ast))
 	(noun-phrase (second ast)))
@@ -45,7 +45,7 @@
 	  (format t "~a" (desc target))
 	  (format t "~a" (desc current-room))))))
 
-(defun examine (&rest ast)
+(defun pc-examine (&rest ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let ((player (first ast))
 	(noun-phrase (second ast)))
@@ -53,13 +53,40 @@
 	   (target-string (first noun-phrase))
 	   (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
       (if target
-	  (format t "~a" (desc-long target))
-	  (format t "~a" (desc-long current-room))))))
+	  (progn (format t "You begin to examine ~a.~%" (name target))
+		 (sleep 0.8)
+		 (format t "~a" (desc-long target)))
+	  (progn (format t "You begin to examine ~a.~%" (name current-room))
+		 (sleep 0.8)
+		 (format t "~a" (desc-long current-room)))))))
 
-(defun move (&rest ast)
+
+(defun pc-direction-go (&rest ast)
   "Moves PLAYER in DIRECTION."
-  (let ((player (first ast))
-	(noun-phrase (second ast)))
+  (let ((player (car ast))
+	(direction (third ast)))
+    (let ((curr-room (location player)))
+      (if curr-room
+	  (let ((exit (assoc direction
+			      (exits curr-room) :test #'string-equal)))
+	    (if exit
+		(let ((next-room 
+		       (next-room (cdr exit))))
+		  (if next-room 
+		      (progn 
+			(put-entity player next-room)
+			(format t "You begin to enter ~a." (name (cdr exit)))
+			(sleep 0.7) ;;removing while I test. This should go in later, though.
+			(format t "~%~a" (desc (location player)))
+			(sleep 0.7))
+		      (format t "There's nowhere to go through there.")))
+		(format t "No exit in that direction.")))
+	  (format t "Player can't move. He isn't anywhere to begin with!")))))
+
+(defun pc-go (&rest ast)
+  "Moves PLAYER in DIRECTION."
+  (let ((player (car ast))
+	(noun-phrase (cadr ast)))
     (let ((curr-room (location player)))
       (if curr-room
 	  (let* ((direction (car noun-phrase))
@@ -71,13 +98,14 @@
 		  (if next-room 
 		      (progn 
 			(put-entity player next-room)
-			(format t "Entering ~a" (name (location player)))
-			;(sleep 0.7) ;;removing while I test. This should go in later, though.
-			(format t "~%~a" (desc (location player))))
-		      (format t "No exit in that direction.")))
+			(format t "You begin to enter ~a." (name (cdr exit)))
+			(sleep 0.7) ;;removing while I test. This should go in later, though.
+			(format t "~%~a" (desc (location player)))
+			(sleep 0.7))
+		      (format t "There's nowhere to go through there.")))
 		(format t "No exit in that direction.")))
 	  (format t "Player can't move. He isn't anywhere to begin with!")))))
-  
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~ Utils ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -76,11 +76,9 @@
 ;; noun ::= *any object in the scope of player*
 ;; -----------------------------------------------
 ;; The complete parser
-;; Command ::= {adverb} verb {adverb} {<noun-phrase> 
-;; 				    {adverb} 
-;; 				    {preposition <noun-phrase> {adverb}}}
-;; Noun-phrase ::= <noun-group> {preposition <noun-group>}
-;; noun-group ::= {article} {number} {adjective} (pronoun | string)
+;; Command ::= (adverb) verb (adverb) (<noun-phrase> (adverb) (preposition <noun-phrase> (adverb)))
+;; Noun-phrase ::= <noun-group> (preposition <noun-group>)
+;; noun-group ::= (article) (number) (adjective) (pronoun | string)
 ;; verb ::= *verbs*
 ;; adverb ::= *adverbs*
 ;; preposition ::= *prepositions*
@@ -149,11 +147,11 @@
   (cdr (assoc string *verbs* :test #'string-equal)))
 
 ;; TODO
-(defun parse-tree->sexp (player tree) ;; maybe the best way to handle this is for the functions to take care of evaluating the noun.
+(defun parse-tree->sexp (player tree) ;; Do I even need the player for this part?
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  (let ((verb (verb->function (first tree)))
-	(noun-phrase (cadr tree))
-	(emote (third tree)))
+  (let ((verb (verb->function (car tree)))
+	(emote (car tree))
+	(noun-phrase (cadr tree)))
     (list verb player noun-phrase emote)))
 
 (defun string->sexp (player string)
