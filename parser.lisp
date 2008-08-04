@@ -52,10 +52,6 @@
       (format nil "'~a" chat-string)
       nil))
 
-(defun chat-string->token (chat-string)
-  "Takes a CHAT-STRING, returns the corresponding <TOKEN>"
-  (make-instance '<token> :token-string chat-string :type :chat-string))
-
 (defun string->token-list (string) ;;this is so ugly. Whatever...
   "Converts a STRING into a LIST of TOKEN-STRINGS."
   (let* ((com+chat (split-off-chat-string string))
@@ -94,14 +90,12 @@
  
 (defun parse-command (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (cond ((verb-p (car token-list))
-   (let ((verb (car token-list)))
-   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
-   (if token-list
-     (list verb noun-phrase nil) ;just return what we have
-     )))) ; !!! TODO - continue parsing the rest of it.
-  (t
-   (format t "Unknown verb: '~a'" (car token-list)))))
+  (if (verb-p (car token-list))
+      (let ((verb (car token-list))
+	    (token-list (cdr token-list)))
+	(multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
+	  (values (list verb noun-phrase nil) token-list)))
+      (format t "Unknown verb: '~a'" (car token-list))))
  
 (defun parse-noun-phrase (token-list) ;; DONE. DO NOT TOUCH
   "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
