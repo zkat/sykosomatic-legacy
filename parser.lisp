@@ -52,12 +52,14 @@
       (format nil "'~a" chat-string)
       nil))
 
-(defun string->token-list (string) ;;this is so ugly. Whatever...
+(defun string->token-list (string)
   "Converts a STRING into a LIST of TOKEN-STRINGS."
   (let* ((com+chat (split-off-chat-string string))
-	 (commands (split-command-string (car com+chat)))
-	 (token-list (append commands (list (format-chat-string (cadr com+chat))))))
-    token-list))
+	 (commands (split-command-string (car com+chat))))
+    (if (cadr com+chat)
+	(let ((chat-string (format-chat-string (cadr com+chat))))
+	  (append commands (list chat-string)))
+	commands)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~ Parser ~~~~~~~~~~~~~~~~~~;;
@@ -78,7 +80,7 @@
 ;; noun ::= any unknown token, can be used later.
 ;; ----------------------------------------------
 ;; The goal AST:
-;; ("verb" (adverbs) (rest-of-predicate) "chat-string"))
+;; ("verb" (rest-of-predicate) adverbs "chat-string"))
 ;; where (rest-of-predicate) is (noun-phrase-1 preposition noun-phrase-2)
 ;; where (noun-phrase) is (noun (modifiers))
 ;;
@@ -87,17 +89,21 @@
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-command (string->token-list string)))
- 
+
 (defun parse-command (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (if (verb-p (car token-list))
-      (let ((verb (car token-list))
-	    (token-list (cdr token-list)))
-	(multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
-	  (values (list verb noun-phrase nil) token-list)))
-      (format t "Unknown verb: '~a'" (car token-list))))
- 
-(defun parse-noun-phrase (token-list) ;; DONE. DO NOT TOUCH
+  (cond ((chat-string-p (car token-list))
+	 (list "say" nil nil (car token-list)))
+	((verb-p (car token-list))
+	 (let ((verb (car token-list))
+	       (token-list (cdr token-list)))
+	   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
+	     (values (list verb noun-phrase nil nil) token-list))))
+	(t
+	 (format t "Unknown verb: '~a'" (car token-list)))))
+
+;; Do not touch the following functions until adverbs get added. And then, only if absolutely necessary.
+(defun parse-noun-phrase (token-list) 
   "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
   (multiple-value-bind (noun-group-1 token-list) (parse-noun-group token-list)
@@ -108,6 +114,8 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
 	(values (list noun-group-1) token-list))))
   
 (defun parse-noun-group (token-list)
+  "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP.
+MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   (cond ((or (preposition-p (car token-list))
 	     (null (car token-list))
 	     (chat-string-p (car token-list)))
@@ -126,6 +134,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
   (assoc string *verbs* :test #'string-equal))
 
 (defun chat-string-p (string)
+  "Is STRING a CHAT-STRING?"
   (if (not (null string))
       (char-equal #\' (char string 0))))
  
@@ -150,14 +159,14 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
   (member string *pronouns* :test #'string-equal))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;
+;;~~~~~~~~~~~~~~~~~~ Sexy Builder ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; AST goes in, function goes out.
-;; Goal AST - (#'verb player noun-phrase emote) ;;this will be expanded further.
+;; AST goes in, sexp goes out. (it builds s-exps, so it's sexy)
 ;; -----------------------------------------------
-;; Expanded AST - (#' player (noun-phrases) (adverbs) emote) 
-;; where noun-phrases is (noun-group preposition noun-group)
-;; where noun-group is (noun (identifiers))
+;; Goal AST - (#'verb emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
+;; ----------Where rest-of-sentence is ((noun-phrase) &optional (noun-phrase))
+;; ---------------Where noun-phrase is ((descriptors) &optional (descriptors))
+;; ---------------------where descriptors is ("noun" &rest "adjectives, articles, etc")
 ;; -----------------------------------------------
 ;; !!! TODO - make sure any changes to the parser get mirrored here.
 
@@ -166,17 +175,16 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
   (cdr (assoc string *verbs* :test #'string-equal)))
 
 ;; TODO
-(defun parse-tree->sexp (player tree) ;; Do I even need the player for this part? No, but I have to change a lot.
+(defun parse-tree->sexp (tree) ;; Do I even need the player for this part? No, but I have to change a lot.
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
   (let ((verb (verb->function (car tree)))
 	(emote (car tree))
 	(noun-phrase (cadr tree)))
-    (list verb player noun-phrase emote)))
+    (list verb noun-phrase emote)))
 
-(defun string->sexp (player string)
+(defun string->sexp (string)
   "Takes a STRING and turns it into a valid S-EXP to run."
-  (parse-tree->sexp player
-		    (parse-string string)))
+  (parse-tree->sexp (parse-string string)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ EXECUTOR!! ~~~~~~~~~~~~~~~~;;
@@ -184,6 +192,6 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
 ;
 (defun execute-command (player string)
   "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
-  (let ((sexp (string->sexp player string)))
+  (let ((sexp (string->sexp string)))
     (if (functionp (car sexp))
 	(apply (car sexp) (cdr sexp)))))
