@@ -70,21 +70,13 @@
 ;; Command ::= (adverb) verb (adverb) ((pronoun)<noun-phrase> (adverb) (preposition <noun-phrase> (adverb)))
 ;; Noun-phrase ::= <noun-group> (preposition <noun-group>)
 ;; noun-group ::= (pronoun) | ((article) (number) (adjective) string) ;;whoever wrote this doesn't know english :-\
-;; verb ::= *verbs*
-;; adverb ::= *adverbs*
-;; preposition ::= *prepositions*
-;; article ::= *articles*
-;; pronoun ::= *pronouns*
-;; number ::= number, or number-string
-;; adjective ::= any unknown token, can be used later.
-;; noun ::= any unknown token, can be used later.
 ;; ----------------------------------------------
 ;; The goal AST:
 ;; ("verb" (rest-of-predicate) adverbs "chat-string"))
 ;; where (rest-of-predicate) is (noun-phrase-1 preposition noun-phrase-2)
 ;; where (noun-phrase) is (noun (modifiers))
 ;;
-;; !!! TODO - Add everything to the parser.
+;; !!! TODO - Add adverb support to the parser.
 ;
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
@@ -129,6 +121,10 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 	     (values (append descriptors (list descriptor))
 		     token-list))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~ Predicates ~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
 (defun verb-p (string)
   "Is STRING a VERB?"
   (assoc string *verbs* :test #'string-equal))
@@ -142,21 +138,9 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   "Is STRING a PREPOSITION?"
   (member string *prepositions* :test #'string-equal))
  
-(defun adjective-p (string)
-  "Is STRING a PREPOSITION?"
-  (member string *adjectives* :test #'string-equal))
- 
-(defun article-p (string)
-  "Is STRING an ARTICLE?"
-  (member string *articles* :test #'string-equal))
- 
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
   (member string *adverbs* :test #'string-equal))
- 
-(defun pronoun-p (string)
-  "Is STRING a PRONOUN?"
-  (member string *pronouns* :test #'string-equal))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Sexy Builder ~~~~~~~~~~~~~~;;
