@@ -88,120 +88,72 @@
 ;;
 ;; !!! TODO - Add everything to the parser.
 ;
-;;; Ignoring adverbs for now. It's worth noting that I should be able to add them as soon as I know
-;;; how to parse noun-groups properly and completely.
-
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-command (string->token-list string)))
-
+ 
 (defun parse-command (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (let ((adverbs nil))
-    (cond ((verb-p (car token-list))
-	   (let ((verb (car token-list)))
-	     (if (adverb-p (cadr token-list))
-		 (let ((adverbs (append (list (cadr token-list)) adverbs)))
-		   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase 
-								    (cddr token-list))
-		     (if (car token-list)
-			 (format t "Don't know what ~a is." (car token-list))
-			 (list verb adverbs noun-phrase nil))))
-		 (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase (cdr token-list))
-		   (if (chat-string-p (car token-list))
-		       (let ((chat-string (car token-list)))
-			 (list verb adverbs noun-phrase chat-string))
-		       (list verb adverbs noun-phrase nil))))))
-	  (t
-	    (format t "Unknown verb: '~a'" (car token-list))))))
-	   
-(defun parse-noun-phrase (token-list)
-  "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE. 
-MULTIPLE RETURN VALUES: NOUN-PHRASE, and REST OF THE TOKEN LIST."
+  (cond ((verb-p (car token-list))
+   (let ((verb (car token-list)))
+   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
+   (if token-list
+     (list verb noun-phrase nil) ;just return what we have
+     )))) ; !!! TODO - continue parsing the rest of it.
+  (t
+   (format t "Unknown verb: '~a'" (car token-list)))))
+ 
+(defun parse-noun-phrase (token-list) ;; DONE. DO NOT TOUCH
+  "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
+MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
   (multiple-value-bind (noun-group-1 token-list) (parse-noun-group token-list)
     (if (preposition-p (car token-list))
 	(let ((preposition (car token-list)))
 	  (multiple-value-bind (noun-group-2 token-list) (parse-noun-group (cdr token-list))
-	    (values 
-	     (list noun-group-1 preposition noun-group-2)
-	     token-list)))
+	    (values (list noun-group-1 preposition noun-group-2) token-list)))
 	(values (list noun-group-1) token-list))))
-
+  
 (defun parse-noun-group (token-list)
-  "Parses a TOKEN-LIST into a NOUN-GROUP."
-  (if (pronoun-p (car token-list))
-      (values (list (car token-list)) (cdr token-list)) ;if it's a pronoun, we're all set. :)
-      (multiple-value-bind (adj-phrase token-list) 
-	  (reverse (parse-adjectival-phrase token-list))
-	(values adj-phrase token-list))))
+  (cond ((or (preposition-p (car token-list))
+	     (null (car token-list))
+	     (chat-string-p (car token-list)))
+	 (values nil (cdr token-list)))
+	((or (preposition-p (cadr token-list))
+	     (chat-string-p (cadr token-list)))
+	 (values (list (car token-list)) (cdr token-list)))
+	(t
+	 (let ((descriptor (car token-list)))
+	   (multiple-value-bind (descriptors token-list) (parse-noun-group (cdr token-list))
+	     (values (append descriptors (list descriptor))
+		     token-list))))))
 
-(defun parse-adjectival-phrase (token-list) ;;OH GOD WHY D:
-  "Parses a TOKEN-LIST into an ADJECTIVAL PHRASE."
-  (if (not (or (adverb-p (car token-list))
-	       (preposition-p (car token-list))
-	       (null (car token-list))))
-      (values (append (list (car token-list)) (parse-adjectival-phrase (cdr token-list))) (cdddr token-list)) 
-      nil))
-
-;; (defun parse-noun-group (token-list) ;;THIS IS THE MOST AWFUL CRAP EVER.
-;;   "Parses a NOUN-GROUP from a TOKEN LIST.
-;; Returns a NOUN-GROUP list, and the rest of the token list it didn't parse."
-;;   (cond ((pronoun-p (car token-list))
-;; 	 (values (list (car token-list)) (cdr token-list)))
-;; 	((article-p (car token-list))
-;; 	 (let ((article (car token-list))
-;; 	       (token-list (cdr token-list))))
-;; 	   (cond ((number-qualifier-p (car token-list))
-;; 		  (let ((number-qualifier (car token-list))
-;; 			(token-list (cdr token-list)))
-;; 		    (if (and (not (adverb-p (car token-list)))
-;; 			     (not (preposition-p (cadr token-list))))
-;; 			(if ((and (not (adverb-p (cadr token-list)))
-;; 				  (not (preposition-p (car token-list))))
-;; 			     (let ((adjective (car token-list))
-;; 				   (noun (cadr token-list))
-;; 				   (token-list (cddr token-list)))
-;; 			       (values (list noun article number-qualifier adjective) token-list))
-;; 			     (let ((noun (car token-list))
-;; 				   (token-list (cdr token-list)))
-;; 			       (values (list noun article number-qualifier) token-list))))
-;; 			(progn (format t "~a is not a noun or adjective.")
-;; 			       (values nil nil)))))
-;; 		 ((
-				  
-(defun chat-string-p (string)
-  "Is STRING a CHAT-STRING?."
-  (if string 
-      (char-equal #\' (char string 0))))
-
-(defun possessive-p (string)
-  "Is STRING a POSSESSIVE?"
-  (find #\' string :test #'char-equal))
-   
 (defun verb-p (string)
   "Is STRING a VERB?"
   (assoc string *verbs* :test #'string-equal))
 
+(defun chat-string-p (string)
+  (if (not (null string))
+      (char-equal #\' (char string 0))))
+ 
 (defun preposition-p (string)
   "Is STRING a PREPOSITION?"
   (member string *prepositions* :test #'string-equal))
-
+ 
 (defun adjective-p (string)
   "Is STRING a PREPOSITION?"
   (member string *adjectives* :test #'string-equal))
-
+ 
 (defun article-p (string)
   "Is STRING an ARTICLE?"
   (member string *articles* :test #'string-equal))
-
+ 
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
   (member string *adverbs* :test #'string-equal))
-
+ 
 (defun pronoun-p (string)
   "Is STRING a PRONOUN?"
   (member string *pronouns* :test #'string-equal))
-;;need a numberp of some sort here
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~~ Binder ~~~~~~~~~~~~~~~~;;

@@ -28,8 +28,6 @@
 		      :depends-on ("packages"))
 	       (:file "classes"
 		      :depends-on ("packages"))
-	       (:file "parser"
-		      :depends-on ("packages"))
 	       (:file "player"
 		      :depends-on ("classes"))
 	       (:file "map"
@@ -37,6 +35,9 @@
 	       (:file "db"
 		      :depends-on ("player")
 		      :depends-on ("map"))
+	       (:file "parser"
+		      :depends-on ("packages")
+		      :depends-on ("db"))
 	       (:file "commands"
 		      :depends-on ("db")
 		      :depends-on ("player")
