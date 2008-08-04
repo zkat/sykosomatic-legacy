@@ -3,7 +3,12 @@ REQUIREMENTS
 
 * cl-store (http://common-lisp.net/project/cl-store/)
 * cl-ppcre (http://weitz.de/cl-ppcre/)
+* xmls ()
 * Probably SBCL. I haven't tested this on any other implementation.
+
+If you wish to run sykosomatic through a bunch of tests making sure
+it's completely functional, you'll also need the FiveAM library:
+  http://common-lisp.net/project/bese/FiveAM.html
 
 INSTALLATION
 ------------

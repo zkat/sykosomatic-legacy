@@ -16,14 +16,8 @@
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package #:sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;===========================================  Parser  =========================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~ Pre-processing ~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+
+;;;; PRE-PROCESSING ;;;;
 (defun prompt-user ()
   "Prompts the user for input, and returns a string."
   (format t "~%~%-> ")
@@ -33,11 +27,9 @@
   "Get rid of trailing whitespace"
   (string-trim '(#\Space #\Tab #\Newline) string))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~ Tokenizer ~~~~~~~~~~~~~~~~~::
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;String goes in, string-list goes out.
-;
+;;;; TOKENIZER ;;;;
+;; String goes in, string-list goes out.
+
 (defun split-command-string (command-string)
   "Splits each COMMAND in COMMAND-STRING and puts it in a list of words-strings."
   (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9!/@$%&']{1,}" command-string))
@@ -63,35 +55,33 @@
 	 (token-list (append commands (list (format-chat-string (cadr com+chat))))))
     token-list))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~~~ Parser ~~~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; This whole section: string-list goes in, AST comes out.
-;; A basic parser
-;; Grammar:
-;; Command ::= verb [noun-phrase]
-;; Noun-phrase ::= [article] noun
-;; article ::= "a" | "an" | "the"
-;; verb ::= *verbs*
-;; noun ::= *any object in the scope of player*
-;; -----------------------------------------------
-;; The complete parser
-;; Command ::= (adverb) verb (adverb) (<noun-phrase> (adverb) (preposition <noun-phrase> (adverb)))
-;; Noun-phrase ::= <noun-group> (preposition <noun-group>)
-;; noun-group ::= (article) (number) (adjective) pronoun | string
-;; verb ::= *verbs*
-;; adverb ::= *adverbs*
-;; preposition ::= *prepositions*
-;; article ::= *articles*
-;; pronoun ::= *pronouns*
-;; number ::= number, or number-string
-;; adjective ::= any unknown token, can be used later.
-;; noun ::= any unknown token, can be used later.
-;; ----------------------------------------------
-;; !!! TODO - Add everything to the parser.
-;
+;;;; PARSER ;;;;
+#| This whole section: string-list goes in, AST comes out.
+ A basic parser
+ Grammar:
+ Command ::= verb [noun-phrase]
+ Noun-phrase ::= [article] noun
+ article ::= "a" | "an" | "the"
+ verb ::= *verbs*
+ noun ::= *any object in the scope of player*
+ -----------------------------------------------
+ The complete parser
+ Command ::= (adverb) verb (adverb) (<noun-phrase> (adverb) (preposition <noun-phrase> (adverb)))
+ Noun-phrase ::= <noun-group> (preposition <noun-group>)
+ noun-group ::= (article) (number) (adjective) pronoun | string
+ verb ::= *verbs*
+ adverb ::= *adverbs*
+ preposition ::= *prepositions*
+ article ::= *articles*
+ pronoun ::= *pronouns*
+ number ::= number, or number-string
+ adjective ::= any unknown token, can be used later.
+ noun ::= any unknown token, can be used later.
+ ----------------------------------------------
+ !!! TODO - Add everything to the parser.
 
-;;; Ignoring adverbs for now.
+ Ignoring adverbs for now.
+|#
 
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
@@ -117,7 +107,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
 	  (multiple-value-bind (noun-group-2 token-list) (parse-noun-group (cdr token-list))
 	    (values (list noun-group-1 preposition noun-group-2) token-list)))
 	(values (list noun-group-1) token-list))))
-	
+
 (defun parse-noun-group (token-list)
   "Parses a NOUN-GROUP"
   (if (article-p (car token-list))
