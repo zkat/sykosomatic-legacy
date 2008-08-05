@@ -76,7 +76,6 @@
 ;; where (rest-of-predicate) is (noun-phrase-1 preposition noun-phrase-2)
 ;; where (noun-phrase) is (noun (modifiers))
 ;;
-;; !!! TODO - Add adverb support to the parser.
 ;
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
@@ -85,11 +84,13 @@
 (defun preparse-adverbs (token-list) ;The Final Solution to the Adverb problem.
   "Yoinks all the adverbs it recognizes out of a list.
 MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of this evil."
-  (let ((adverb (find-if #'adverb-p token-list)))
-    (if adverb
-	(let ((token-list (remove adverb token-list)))
-	  (values adverb token-list))
-	(values adverb token-list))))
+  (if (> (length token-list) 1)
+      (let ((adverb (find-if #'adverb-p token-list)))
+	(if adverb
+	    (let ((token-list (remove-if #'adverb-p token-list :count 1)))
+	      (values adverb token-list))
+	    (values adverb token-list)))
+      (values nil token-list)))
 
 (defun parse-command (token-list)
   "Uses a TOKEN-LIST to generate an AST"
@@ -102,8 +103,8 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 	     (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
 	       (if (chat-string-p (car token-list))
 		   (let ((chat-string (car token-list)))
-		     (list verb noun-phrase nil chat-string))
-		   (list verb noun-phrase nil nil)))))
+		     (list verb noun-phrase adverb chat-string))
+		   (list verb noun-phrase adverb nil)))))
 	  (t
 	   (format t "Unknown verb: '~a'" (car token-list))))))
 
