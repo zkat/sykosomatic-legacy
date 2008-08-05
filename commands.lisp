@@ -128,4 +128,4 @@ removing all previous associations with STRING"
 	 *verbs*)))
 
 (defun add-emote (string)
-  (add-verb string #'emote))
+  (add-verb string #'pc-emote))
