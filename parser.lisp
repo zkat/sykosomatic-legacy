@@ -78,35 +78,35 @@
 ;;
 ;; !!! TODO - Add adverb support to the parser.
 ;
-(defun test-the-parser ()
-  (let ((current-input (prompt-user)))
-    (if (string-equal current-input "quit")
-	(format t "Bye bye!")
-	(progn 
-	  (let ((parse-tree (parse-string current-input)))
-	    (format t "~a" parse-tree))
-	  (test-the-parser)))))
-
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-command (string->token-list string)))
 
+(defun preparse-adverbs (token-list) ;The Final Solution to the Adverb problem.
+  "Yoinks all the adverbs it recognizes out of a list.
+MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of this evil."
+  (let ((adverb (find-if #'adverb-p token-list)))
+    (if adverb
+	(let ((token-list (remove adverb token-list)))
+	  (values adverb token-list))
+	(values adverb token-list))))
+
 (defun parse-command (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (cond ((chat-string-p (car token-list))
-	 (list "say" nil nil (car token-list)))
-	((verb-p (car token-list))
-	 (let ((verb (car token-list))
-	       (token-list (cdr token-list)))
-	   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
-	     (if (chat-string-p (car token-list))
-		 (let ((chat-string (car token-list)))
-		   (list verb noun-phrase nil chat-string))
-		 (list verb noun-phrase nil nil)))))
-	(t
-	 (format t "Unknown verb: '~a'" (car token-list)))))
+  (multiple-value-bind (adverb token-list) (preparse-adverbs token-list)
+    (cond ((chat-string-p (car token-list))
+	   (list "say" nil adverb (car token-list)))
+	  ((verb-p (car token-list))
+	   (let ((verb (car token-list))
+		 (token-list (cdr token-list)))
+	     (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
+	       (if (chat-string-p (car token-list))
+		   (let ((chat-string (car token-list)))
+		     (list verb noun-phrase nil chat-string))
+		   (list verb noun-phrase nil nil)))))
+	  (t
+	   (format t "Unknown verb: '~a'" (car token-list))))))
 
-;; Do not touch the following functions until adverbs get added. And then, only if absolutely necessary.
 (defun parse-noun-phrase (token-list) 
   "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
@@ -133,6 +133,7 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 	     (values (append descriptors (list descriptor))
 		     token-list))))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~ Predicates ~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -153,6 +154,17 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
   (member string *adverbs* :test #'string-equal))
+
+;; Util
+(defun test-the-parser ()
+  "Runs a loop that asks for player input and returns whatever gets parsed. Quits on 'quit'."
+  (let ((current-input (prompt-user)))
+    (if (string-equal current-input "quit")
+	(format t "Bye bye!")
+	(progn 
+	  (let ((parse-tree (parse-string current-input)))
+	    (format t "~a" parse-tree))
+	  (test-the-parser)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Sexy Builder ~~~~~~~~~~~~~~;;
