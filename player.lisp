@@ -29,7 +29,11 @@
     :initarg :player-id
     :initform (incf *player-ids*)
     :reader player-id
-    :documentation "A unique player id.")))
+    :documentation "A unique player id.")
+   (socket
+    :initarg :socket
+    :accessor socket
+    :documentation "Current socket where the player resides.")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;================================= Player-related functions ===================================;;;
