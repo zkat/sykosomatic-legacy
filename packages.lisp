@@ -16,4 +16,4 @@
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 (defpackage #:sykosomatic
-  (:use #:cl))
+  (:use #:cl #:usocket #:cl-ppcre))

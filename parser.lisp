@@ -40,11 +40,11 @@
 ;
 (defun split-command-string (command-string)
   "Splits each COMMAND in COMMAND-STRING and puts it in a list of words-strings."
-  (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9!/@$%&']{1,}" command-string))
+  (all-matches-as-strings "[a-zA-Z0-9!/@$%&']{1,}" command-string))
 
 (defun split-off-chat-string (string)
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
-  (cl-ppcre:split "^+'| +'|\"" string :limit 2))
+  (split "^+'| +'|\"" string :limit 2))
 
 (defun format-chat-string (chat-string)
   "Adds a ['] to the beginning of the CHAT-STRING. Used to tell it apart from other parts of the sentence."
@@ -78,6 +78,15 @@
 ;;
 ;; !!! TODO - Add adverb support to the parser.
 ;
+(defun test-the-parser ()
+  (let ((current-input (prompt-user)))
+    (if (string-equal current-input "quit")
+	(format t "Bye bye!")
+	(progn 
+	  (let ((parse-tree (parse-string current-input)))
+	    (format t "~a" parse-tree))
+	  (test-the-parser)))))
+
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-command (string->token-list string)))
@@ -90,7 +99,10 @@
 	 (let ((verb (car token-list))
 	       (token-list (cdr token-list)))
 	   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
-	     (values (list verb noun-phrase nil nil) token-list))))
+	     (if (chat-string-p (car token-list))
+		 (let ((chat-string (car token-list)))
+		   (list verb noun-phrase nil chat-string))
+		 (list verb noun-phrase nil nil)))))
 	(t
 	 (format t "Unknown verb: '~a'" (car token-list)))))
 
@@ -111,7 +123,7 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   (cond ((or (preposition-p (car token-list))
 	     (null (car token-list))
 	     (chat-string-p (car token-list)))
-	 (values nil (cdr token-list)))
+	 (values nil token-list))
 	((or (preposition-p (cadr token-list))
 	     (chat-string-p (cadr token-list)))
 	 (values (list (car token-list)) (cdr token-list)))
@@ -158,13 +170,14 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   "Checks if STRING is a VERB. Returns a FUNCTION."
   (cdr (assoc string *verbs* :test #'string-equal)))
 
-;; TODO
-(defun parse-tree->sexp (tree) ;; Do I even need the player for this part? No, but I have to change a lot.
+(defun parse-tree->sexp (tree)
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
   (let ((verb (verb->function (car tree)))
 	(emote (car tree))
-	(noun-phrase (cadr tree)))
-    (list verb noun-phrase emote)))
+	(rest-of-sentence (cadr tree))
+	(chat-string (fourth tree))
+	(adverb (third tree)))
+    (list verb emote rest-of-sentence adverb chat-string)))
 
 (defun string->sexp (string)
   "Takes a STRING and turns it into a valid S-EXP to run."
