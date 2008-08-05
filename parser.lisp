@@ -177,8 +177,7 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 ;; ---------------Where noun-phrase is ((descriptors) &optional (descriptors))
 ;; ---------------------where descriptors is ("noun" &rest "adjectives, articles, etc")
 ;; -----------------------------------------------
-;; !!! TODO - make sure any changes to the parser get mirrored here.
-
+;
 (defun verb->function (string)
   "Checks if STRING is a VERB. Returns a FUNCTION."
   (cdr (assoc string *verbs* :test #'string-equal)))

@@ -42,7 +42,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;BRACE FOR LULZ!!!!11
+;
 (defgeneric obj->file (obj path)
   (:documentation "Saves OBJECT to a file within PATH."))
 
@@ -62,26 +62,30 @@
 	 collect (cl-store:restore file))))
 
 (defun save-room-ids ()
-  (cl-store:store *room-ids* (ensure-directories-exist
-			      (merge-pathnames
-			       "room-ids.id"
-			       *rooms-directory*))))
+  (cl-store:store *room-ids* 
+		  (ensure-directories-exist
+		   (merge-pathnames
+		    "room-ids.id"
+		    *rooms-directory*))))
 
 (defun save-player-ids ()
-  (cl-store:store *player-ids* (ensure-directories-exist
-			      (merge-pathnames
-			       "player-ids.id"
-			       *players-directory*))))
+  (cl-store:store *player-ids* 
+		  (ensure-directories-exist
+		   (merge-pathnames
+		    "player-ids.id"
+		    *players-directory*))))
 
 (defun load-room-ids ()
-  (setf *room-ids* (file->obj (merge-pathnames
-			       "room-ids.id"
-			       *rooms-directory*))))
+  (setf *room-ids* 
+	(file->obj (merge-pathnames
+		    "room-ids.id"
+		    *rooms-directory*))))
 
 (defun load-player-ids ()
-  (setf *player-ids* (file->obj (merge-pathnames
-			       "player-ids.id"
-			       *players-directory*))))
+  (setf *player-ids* 
+	(file->obj (merge-pathnames
+		    "player-ids.id"
+		    *players-directory*))))
 
 (defun save-players ()
   (obj-list->files-in-dir *players* *players-directory*))
