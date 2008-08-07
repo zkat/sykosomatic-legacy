@@ -26,6 +26,8 @@
   :components ((:file "packages")
 	       (:file "config"
 		      :depends-on ("packages"))
+	       (:file "db"
+		      :depends-on ("config"))
 	       (:file "classes"
 		      :depends-on ("packages"))
 	       (:file "player"
@@ -34,9 +36,6 @@
 	       (:file "map"
 		      :depends-on ("classes")
 		      :depends-on ("db"))
-	       (:file "db"
-		      :depends-on ("player")
-		      :depends-on ("map"))
 	       (:file "parser"
 		      :depends-on ("packages")
 		      :depends-on ("db"))
