@@ -15,8 +15,37 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+(in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;=========================================== Server ===========================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~~~ Class ~~~~~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+(defclass <server> ()
+  ((socket
+    :accessor server-socket
+    :initarg :server-socket)
+   (clients
+    :accessor clients
+    :initform nil)))
 
-;; !!! TODO
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~ Init/Destruct ~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+(defvar *default-server-address* "127.0.0.1")
+(defvar *current-server* nil)
+
+(defun start-server (&key (address *default-server-address*) port)
+  (let* ((socket (socket-listen address port :reuseaddress t))
+	 (server (make-instance '<server>
+				:server-socket socket)))
+    (setf *current-server* server)))
+
+(defun stop-server ()
+  (if (not *current-server*)
+      (format t "No server running.")
+      (socket-close (server-socket *current-server*))))

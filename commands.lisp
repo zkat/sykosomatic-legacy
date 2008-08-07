@@ -28,13 +28,16 @@
 ;; TODO - Keep an eye out for a possible defcommand macro.
 ;;
 ;; This is what all commands receive as argument:
-;; '(<player> noun-phrase emote-string)
-(defun pc-emote (&rest ast)
+;; (<player> (emote noun-phrase adverb emote-string))
+;
+
+;; !!! TODO - These no longer work. Fix them up so they can actually use the nice little tree we made.
+(defun pc-emote (player ast)
   "Emotes an EMOTE-STRING."
-  (let ((emote (third ast)))
+  (let ((emote (car ast)))
     (format t "You ~a." emote)))
 
-(defun pc-look (&rest ast)
+(defun pc-look (player &rest ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let ((player (first ast))
 	(noun-phrase (second ast)))
@@ -45,7 +48,7 @@
 	  (format t "~a" (desc target))
 	  (format t "~a" (desc current-room))))))
 
-(defun pc-examine (&rest ast)
+(defun pc-examine (player &rest ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let ((player (first ast))
 	(noun-phrase (second ast)))
@@ -61,7 +64,7 @@
 		 (format t "~a" (desc-long current-room)))))))
 
 
-(defun pc-direction-go (&rest ast)
+(defun pc-direction-go (player &rest ast)
   "Moves PLAYER in DIRECTION."
   (let ((player (car ast))
 	(direction (third ast)))
@@ -83,7 +86,7 @@
 		(format t "No exit in that direction.")))
 	  (format t "Player can't move. He isn't anywhere to begin with!")))))
 
-(defun pc-go (&rest ast)
+(defun pc-go (player &rest ast)
   "Moves PLAYER in DIRECTION."
   (let ((player (car ast))
 	(noun-phrase (cadr ast)))

@@ -37,7 +37,7 @@
 (defvar *verbs* nil)
 (defvar *adjectives* nil)
 (defvar *adverbs* nil)
-(defvar *pronouns* nil)
+(defvar *pronouns* '("me" "myself" "him" "her" "it" "them"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~~~~;;
@@ -99,8 +99,7 @@
 (defun load-rooms ()
   (setf *rooms* (files-in-path->obj-list *rooms-directory* "room")))
 
-;; yes. it's ugly. I know.
-(defun save-vocabulary () ;; this stuff could go in the parser.
+(defun save-vocabulary ()
   "Saves all the nice vocabulary words :)"
   (cl-store:store *articles* (ensure-directories-exist (merge-pathnames #P"articles.db" *vocab-directory*)))
   (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
@@ -109,7 +108,6 @@
   (cl-store:store *prepositions* (ensure-directories-exist (merge-pathnames #P"prepositions.db" *vocab-directory*)))
   (cl-store:store *pronouns* (ensure-directories-exist (merge-pathnames #P"pronouns.db" *vocab-directory*))))
 
-;; yes. Yes. I know.
 (defun load-vocabulary ()
   "Loads saved vocab files into their respective variables."
   (setf *articles* (cl-store:restore (merge-pathnames #P"articles.db" *vocab-directory*)))
@@ -124,14 +122,16 @@
   (save-player-ids)
   (save-rooms)
   (save-room-ids)
-  (save-vocabulary))
+  (save-vocabulary)
+  (format nil "I think everything got saved. Hopefully, it did..."))
 
 (defun load-everything ()
   (load-players)
   (load-player-ids)
   (load-rooms)
   (load-room-ids)
-  (load-vocabulary))
+  (load-vocabulary)
+  (format nil "Apparently, everything got loaded."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~ Utilities ~~~~~~~~~~~~~~~~~~~~;;

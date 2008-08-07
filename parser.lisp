@@ -101,10 +101,12 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 	   (let ((verb (car token-list))
 		 (token-list (cdr token-list)))
 	     (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
-	       (if (chat-string-p (car token-list))
-		   (let ((chat-string (car token-list)))
-		     (list verb noun-phrase adverb chat-string))
-		   (list verb noun-phrase adverb nil)))))
+	       (if (null token-list)
+		   (list verb noun-phrase adverb nil)
+		   (if (chat-string-p (car token-list))
+		       (let ((chat-string (car token-list)))
+			 (list verb noun-phrase adverb chat-string))
+		       (list verb noun-phrase adverb nil))))))
 	  (t
 	   (format t "Unknown verb: '~a'" (car token-list))))))
 
@@ -154,7 +156,7 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
  
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
-  (member string *adverbs* :test #'string-equal))
+  (find string *adverbs* :test #'string-equal))
 
 ;; Util
 (defun test-the-parser ()
@@ -178,13 +180,13 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 ;; ---------------------where descriptors is ("noun" &rest "adjectives, articles, etc")
 ;; -----------------------------------------------
 ;
-(defun verb->function (string)
+(defun string->function (string)
   "Checks if STRING is a VERB. Returns a FUNCTION."
   (cdr (assoc string *verbs* :test #'string-equal)))
 
 (defun parse-tree->sexp (tree)
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  (let ((verb (verb->function (car tree)))
+  (let ((verb (string->function (car tree)))
 	(emote (car tree))
 	(rest-of-sentence (cadr tree))
 	(chat-string (fourth tree))
@@ -201,6 +203,6 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 ;
 (defun execute-command (player string)
   "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
-  (let ((sexp (string->sexp string)))
+  (let ((sexp (list player (string->sexp string))))
     (if (functionp (car sexp))
-	(apply (car sexp) (cdr sexp)))))
+	(apply (car sexp) player (cdr sexp)))))
