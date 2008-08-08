@@ -30,22 +30,41 @@
     :initarg :server-socket)
    (clients
     :accessor clients
-    :initform nil)))
+    :initform nil)
+   (connection-thread
+    :accessor connection-thread
+    :initarg :connection-thread
+    :documentation "Thread that runs the function to connect new clients.")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~ Init/Destruct ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defvar *default-server-address* "127.0.0.1")
+(defvar *default-server-address* "0.0.0.0")
+(defvar *default-server-port* 4000)
 (defvar *current-server* nil)
 
-(defun start-server (&key (address *default-server-address*) port)
-  (let* ((socket (socket-listen address port :reuseaddress t))
+(defun start-server (&key (address *default-server-address*) (port *default-server-port*))
+  (format t "Starting server...~%")
+  (let* ((socket (usocket:socket-listen address port :reuse-address t))
 	 (server (make-instance '<server>
 				:server-socket socket)))
-    (setf *current-server* server)))
+    (setf *current-server* server)
+    (format t "Creating server connection thread.~%")
+    (setf (connection-thread *current-server*) 
+	  (bordeaux-threads:make-thread (lambda () (loop (connect-new-client))) :name "connector-thread"))
+    (format t "Server started successfully.~%")))
 
 (defun stop-server ()
   (if (not *current-server*)
       (format t "No server running.")
-      (socket-close (server-socket *current-server*))))
+      (progn
+	(loop for client in (clients *current-server*)
+	     do (usocket:socket-close (socket client)))
+	(setf (clients *current-server*) nil)
+	(if (and (connection-thread *current-server*)
+		 (bordeaux-threads:thread-alive-p (connection-thread *current-server*)))
+	    (bordeaux-threads:destroy-thread (connection-thread *current-server*))
+	    (format t "No thread running, skipping...~%"))
+	(usocket:socket-close (server-socket *current-server*))
+	(format t "Server stopped."))))

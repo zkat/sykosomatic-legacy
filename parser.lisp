@@ -1,5 +1,5 @@
 ;; Copyright 2008 Kat Marchan
- 
+
 ;; This file is part of sykosomatic
 
 ;; sykosomatic is free software: you can redistribute it and/or modify
@@ -31,20 +31,20 @@
 
 (defun preprocess-string (string)
   "Get rid of trailing whitespace"
-  (string-trim '(#\Space #\Tab #\Newline) string))
+  (string-trim '(#\Space #\Tab #\Newline #\Return) string))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Tokenizer ~~~~~~~~~~~~~~~~~::
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;String goes in, string-list goes out.
-;
+
 (defun split-command-string (command-string)
   "Splits each COMMAND in COMMAND-STRING and puts it in a list of words-strings."
-  (all-matches-as-strings "[a-zA-Z0-9!/@$%&']{1,}" command-string))
+  (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9]{1,}" command-string))
 
 (defun split-off-chat-string (string)
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
-  (split "^+'| +'|\"" string :limit 2))
+  (cl-ppcre:split "^+'| +'|\"" string :limit 2))
 
 (defun format-chat-string (chat-string)
   "Adds a ['] to the beginning of the CHAT-STRING. Used to tell it apart from other parts of the sentence."
@@ -54,7 +54,7 @@
 
 (defun string->token-list (string)
   "Converts a STRING into a LIST of TOKEN-STRINGS."
-  (let* ((com+chat (split-off-chat-string string))
+  (let* ((com+chat (split-off-chat-string (preprocess-string string)))
 	 (commands (split-command-string (car com+chat))))
     (if (cadr com+chat)
 	(let ((chat-string (format-chat-string (cadr com+chat))))
@@ -79,7 +79,7 @@
 ;
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
-  (parse-command (string->token-list string)))
+  (parse-sentence (string->token-list string)))
 
 (defun preparse-adverbs (token-list) ;The Final Solution to the Adverb problem.
   "Yoinks all the adverbs it recognizes out of a list.
@@ -92,7 +92,7 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 	    (values adverb token-list)))
       (values nil token-list)))
 
-(defun parse-command (token-list)
+(defun parse-sentence (token-list)
   "Uses a TOKEN-LIST to generate an AST"
   (multiple-value-bind (adverb token-list) (preparse-adverbs token-list)
     (cond ((chat-string-p (car token-list))
@@ -110,7 +110,7 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 	  (t
 	   (format t "Unknown verb: '~a'" (car token-list))))))
 
-(defun parse-noun-phrase (token-list) 
+(defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
   (multiple-value-bind (noun-group-1 token-list) (parse-noun-group token-list)
@@ -119,7 +119,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
 	  (multiple-value-bind (noun-group-2 token-list) (parse-noun-group (cdr token-list))
 	    (values (list noun-group-1 preposition noun-group-2) token-list)))
 	(values (list noun-group-1) token-list))))
-  
+
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP.
 MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
@@ -149,11 +149,11 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   "Is STRING a CHAT-STRING?"
   (if (not (null string))
       (char-equal #\' (char string 0))))
- 
+
 (defun preposition-p (string)
   "Is STRING a PREPOSITION?"
   (member string *prepositions* :test #'string-equal))
- 
+
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
   (find string *adverbs* :test #'string-equal))
@@ -164,7 +164,7 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   (let ((current-input (prompt-user)))
     (if (string-equal current-input "quit")
 	(format t "Bye bye!")
-	(progn 
+	(progn
 	  (let ((parse-tree (parse-string current-input)))
 	    (format t "~a" parse-tree))
 	  (test-the-parser)))))
