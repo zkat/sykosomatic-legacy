@@ -24,9 +24,11 @@
 ;;~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
+(defvar *account-ids* 0)
 (defvar *player-ids* 0)
 (defvar *room-ids* 0)
 
+(defvar *accounts* nil)
 (defvar *rooms* nil)
 (defvar *players* nil)
 
