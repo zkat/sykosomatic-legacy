@@ -45,31 +45,6 @@
     :accessor avatar
     :documentation "The character linked to this client session.")))
 
-(defclass <account> ()
-  ((username
-    :initarg :username
-    :reader username)
-   (password
-    :initarg :password
-    :accessor password)
-   (id
-    :initform (incf *account-ids*)
-    :reader id
-    :documentation "Unique account ID number.")
-   (avatars
-    :accessor avatars
-    :initform nil
-    :documentation "Characters belonging to this account.")
-   (client
-    :accessor client
-    :initform nil
-    :documentation "Client currently associated with this account.")    
-   (known-ips
-    :initarg :known-ips
-    :accessor know-ips
-    :initform nil
-    :documentation "All IPs this account has been known no use.")))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -94,7 +69,6 @@
   (format (usocket:socket-stream (socket client)) "~a~%" string)
   (force-output (usocket:socket-stream (socket client))))
 
-
 (defun prompt-client (client prompt-string)
   "Prompts a client for input"
   (let ((client-stream (usocket:socket-stream (socket client))))
@@ -114,7 +88,4 @@
 	     (send-to-client client "Please answer y or n.~%")
 	     (client-y-or-n-p client string))))))
 
-(defun login-to-account (client)
-  "Logs a user into their account"
-  (send-to-client "Welcome to SykoSoMaTIC Beta(tm)."))
   
