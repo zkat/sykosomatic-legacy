@@ -3,7 +3,9 @@ REQUIREMENTS
 
 * cl-store (http://common-lisp.net/project/cl-store/)
 * cl-ppcre (http://weitz.de/cl-ppcre/)
-* Probably SBCL. I haven't tested this on any other implementation.
+* bordeaux-threads (http://common-lisp.net/project/bordeaux-threads/)
+* usocket (http://common-lisp.net/project/usocket/)
+* SBCL, unless you feel adventurous. I'm not sure if it's compatible with anything else.
 
 INSTALLATION
 ------------
@@ -12,17 +14,16 @@ INSTALLATION
    A. With asdf-install:
       *CL-USER> (asdf-install:install :cl-store)
       *CL-USER> (asdf-install:install :cl-ppcre)
+      *etc..
    B. Manually
-      * download http://weitz.de/files/cl-ppcre.tar.gz
-       		http://common-lisp.net/project/cl-store/files/cl-store-latest.tgz
+      * download the tarballs for each dependency.
       * extract to ~/.sbcl/site/ (or whereven you put your sources)
       * expose relevant .asd files to Lisp.
    
 	See http://www.cliki.net/asdf for generic information on how to use
 	ASDF.
-	Basically, create symlinks to cl-store.asd and cl-ppcre.asd
-	inside your systems folder for your lisp (like
-	~/.sbcl/systems/)
+	Basically, create symlinks to the .asd files for each dep.
+	inside your systems folder for your lisp (like ~/.sbcl/systems/)
 
 2. Load up sykosomatic.
    A. In Slime with SBCL:
