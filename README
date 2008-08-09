@@ -15,6 +15,7 @@ INSTALLATION
       *CL-USER> (asdf-install:install :cl-store)
       *CL-USER> (asdf-install:install :cl-ppcre)
       *etc..
+
    B. Manually
       * download the tarballs for each dependency.
       * extract to ~/.sbcl/site/ (or whereven you put your sources)
@@ -39,3 +40,17 @@ INSTALLATION
 4. ???
 
 5. Happy Hacking!
+
+TESTING THE SERVER
+------------------
+The server runs on port 4000 by default, and will accept external connections by
+default. If you want to prevent those, start the server with :address "127.0.0.1".
+
+Telnet clients can connect with 'telnet <address> <port>', and the engine can currently
+handle all the garbage telnet likes sending (I think).
+Read through client.lisp to see what you can do to the poor victims.
+
+Logs are all tossed into ~/.sykosomatic/logs/sykosomatic.log right now. 
+
+Oh, and if you want to change any directories, read through config.lisp. You can set the
+base game directory there.
