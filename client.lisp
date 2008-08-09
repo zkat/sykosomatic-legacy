@@ -50,19 +50,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defun connect-new-client ()
+  "Connects a new client to the main server."
   (let ((socket (usocket:socket-accept (server-socket *current-server*))))
     (let ((client (make-instance '<client>
 				 :socket socket
 				 :ip (usocket:get-peer-address socket))))
       (format t "New client: ~a" (ip client))
       (push client (clients *current-server*)))))
- 
-(defun get-input-from-client (client)
-  (handler-case (read-line (usocket:socket-stream (socket client)))
-    (sb-int:stream-decoding-error () (send-to-client client "You sent junk. Try again."))))
 
-(defun broken-get-input-from-client (client)
-  (read-line (usocket:socket-stream (socket client))))
+(defun get-input-from-client (client)
+  "Grabs a line of input from a client. Takes care of stripping out any unwanted bytes."
+  (let* ((stream (usocket:socket-stream (socket client)))
+	 (collected-bytes (loop with b
+                              do (setf b (read-byte stream))
+			     until (= b (char-code #\Newline))
+			     unless (not (standard-char-p (code-char b)))
+			     collect (code-char b))))
+    (coerce collected-bytes 'string)))
 
 (defun send-to-client (client string)
   "Sends a given STRING to a particular client."
@@ -87,5 +91,3 @@
 	   (progn
 	     (send-to-client client "Please answer y or n.~%")
 	     (client-y-or-n-p client string))))))
-
-  
