@@ -16,13 +16,19 @@
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :sykosomatic)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;========================================= LOGGING FACILITY ===================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defun log-message (severity message)
+(defvar *log-lock* (bordeaux-threads:make-lock))
+
+(defun log-message (type message) 
+  "Logs a message into a log file"
+  ;; TODO - make this write to different files, depending on the type.
   (multiple-value-bind (second minute hour date month year) (get-decoded-time)
-    (with-open-file (s (ensure-directories-exist (merge-pathnames "sykosomatic.log" *log-directory*)) 
-		       :direction :output :if-exists :supersede)
-      (format s "[~d/~d/~d][~d:~d:~d]~a: ~a~%" year month date hour minute second severity message))))
+    (bordeaux-threads:with-lock-held (*log-lock*)
+      (with-open-file (s (ensure-directories-exist (merge-pathnames "sykosomatic.log" *log-directory*))
+			 :direction :output 
+			 :if-does-not-exist :create
+			 :if-exists :append)
+	(format s "[~d/~d/~d][~d:~d:~d] -- ~a: ~a~%" year month date hour minute second type message)))))
