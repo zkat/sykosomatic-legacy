@@ -57,9 +57,10 @@
 				 :socket socket
 				 :ip (usocket:get-peer-address socket))))
       (log-message :CLIENT (format nil "New client: ~a" (ip client)))
+      (send-to-client client (format nil "Hello. Welcome to SykoSoMaTIC.~%"))
       (push client (clients *current-server*)))))
 
-(defun get-input-from-client (client)
+(defun read-line-from-client (client)
   "Grabs a line of input from a client. Takes care of stripping out any unwanted bytes."
   (let* ((stream (usocket:socket-stream (socket client)))
 	 (collected-bytes (loop with b
@@ -69,10 +70,19 @@
 			     collect (code-char b))))
     (coerce collected-bytes 'string)))
 
-(defun send-to-client (client string)
+(defun write-to-all-clients (string)
+  "Sends a given string to all connected clients."
+  (loop for client in (clients *current-server*)
+       do (send-to-client client string)))
+
+(defun write-to-client (client string)
   "Sends a given STRING to a particular client."
-  (format (usocket:socket-stream (socket client)) "~a~%" string)
-  (force-output (usocket:socket-stream (socket client))))
+  (let* ((stream (usocket:socket-stream (socket client)))
+	 (bytes (loop for char across string
+			       collect (char-code char))))
+    (loop for byte in bytes
+       do (write-byte byte stream)
+       finally (finish-output stream))))
 
 (defun prompt-client (client prompt-string)
   "Prompts a client for input"

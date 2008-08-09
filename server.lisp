@@ -52,12 +52,11 @@
     (setf *current-server* server)
     (log-message :SERVER "Creating server connection thread.")
     (setf (connection-thread *current-server*) 
-	  (bordeaux-threads:make-thread (lambda () 
-					  (loop 
-					     (handler-case (connect-new-client)
-					       (sb-bsd-sockets:not-connected-error () 
-						 (log-message :HAX "Hax0r be sappin' mah unconnected socket."))))) 
-					:name "connector-thread"))
+	  (bordeaux-threads:make-thread 
+	   (lambda () (loop (handler-case (connect-new-client)
+			      (sb-bsd-sockets:not-connected-error () 
+				(log-message :HAX "Hax0r be sappin' mah unconnected socket."))))) 
+	   :name "connector-thread"))
     (log-message :SERVER "Server started successfully.")))
 
 (defun stop-server ()

@@ -31,4 +31,6 @@
 			 :direction :output 
 			 :if-does-not-exist :create
 			 :if-exists :append)
-	(format s "[~d/~d/~d][~d:~d:~d] -- ~a: ~a~%" year month date hour minute second type message)))))
+	(format s 
+		"[~4,'0D/~2,'0D/~2,'0D][~2,'0D:~2,'0D:~2,'0D] -- ~a: ~a~%" 
+		year month date hour minute second type message)))))
