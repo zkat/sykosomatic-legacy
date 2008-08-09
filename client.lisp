@@ -23,6 +23,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Class ~~~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
 (defclass <client> ()
   ((socket
     :initarg :socket
@@ -55,7 +56,7 @@
     (let ((client (make-instance '<client>
 				 :socket socket
 				 :ip (usocket:get-peer-address socket))))
-      (format t "New client: ~a" (ip client))
+      (log-message :CLIENT (format nil "New client: ~a" (ip client)))
       (push client (clients *current-server*)))))
 
 (defun get-input-from-client (client)
@@ -81,6 +82,7 @@
     (read-line client-stream)))
 
 (defun client-y-or-n-p (client string)
+  "y-or-n-p that sends the question over to the client."
   (send-to-client client string)
   (let ((answer (prompt-client client "(y or n)")))
     (cond ((string-equal "y" (char answer 0))

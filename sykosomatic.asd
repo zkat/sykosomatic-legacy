@@ -26,6 +26,8 @@
   :components ((:file "packages")
 	       (:file "config"
 		      :depends-on ("packages"))
+	       (:file "logger"
+		      :depends-on ("config"))
 	       (:file "db"
 		      :depends-on ("config"))
 	       (:file "classes"
