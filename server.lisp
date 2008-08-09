@@ -46,7 +46,7 @@
 
 (defun start-server (&key (address *default-server-address*) (port *default-server-port*))
   (format t "Starting server...~%")
-  (let* ((socket (usocket:socket-listen address port :reuse-address t))
+  (let* ((socket (usocket:socket-listen address port :reuse-address t :element-type '(unsigned-byte 8)))
 	 (server (make-instance '<server>
 				:server-socket socket)))
     (setf *current-server* server)

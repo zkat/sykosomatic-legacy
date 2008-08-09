@@ -56,3 +56,65 @@
 (defun login-to-account (client)
   "Logs a user into their account"
   (send-to-client "Welcome to SykoSoMaTIC Beta(tm)."))
+
+
+;; dropping these in real quick, then converting them.
+(defun start-client ()
+  (let ((username (prompt-read "Username: ")))
+    (if (player-exists? username)
+        (if (prompt-password (lookup-password username))
+	    username
+	    (error (format nil "Invalid authentication for user ~a." username)))
+        (when (y-or-n-p "You wish to be known as ~a?" username)
+          (make-new-player username)))))
+
+(defun make-new-player (username)
+  (format *query-io* "Welcome to BMUD new player.~%")
+  (format *query-io* "I'm going to need to ask you some questions to make your account.~%")
+  (multiple-value-bind (firstname lastname) (setup-name)
+    (let ((email (setup-email))
+	  (username (setup-username username))
+	  (password (setup-password)))
+      (values username password firstname lastname email))))
+
+(defun setup-name ()
+  "blegh. Cleaning up shittier code than mine :-\ "
+  (let ((firstname (prompt-read "Please enter your first name"))
+	(lastname (prompt-read "Please enter your first name")))
+    (if (y-or-n-p "Greetings ~a ~a. Is this name correct" firstname lastname)
+	(values firstname lastname)
+	(setup-name))))
+
+(defun setup-email ()
+  "cleaned-up e-mail setup without the suck."
+  (let ((email (prompt-read "Please enter your email address")))
+    (if (cl-ppcre:scan "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" email)
+	(if (y-or-n-p "Is the email address ~a correct?" email)
+	    email
+	    (setup-email))
+	(progn
+	  (format *query-io* "I'm sorry, ~a is not a valid email address.~%" email)	  
+	  (setup-email)))))
+
+(defun setup-username (username)
+  "Setup the user's username."
+  (format *query-io* "It seems that you chose username ~a.~%" username)
+  (if (y-or-n-p "Would you like to use this username?")
+      username
+      (let ((username (prompt-read "Please enter your desired username")))
+	(setup-username username))))
+
+(defun setup-password ()
+  "Allow the user to choose a password."
+  (let* ((password (prompt-read "Please choose a password"))
+	 (pass-confirm (prompt-read "Please retype the password")))
+    (if (equal password pass-confirm)
+	password
+	(progn
+	  (format *query-io* "~%Passwords did not match, trying again.~%")
+	  (setup-password)))))
+
+(defun prompt-password (correct-password)
+  (let ((password (prompt-read "Password")))
+    (if (equal (hash-password password) correct-password)
+	t)))
