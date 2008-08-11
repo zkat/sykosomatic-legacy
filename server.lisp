@@ -27,14 +27,18 @@
 (defclass <server> ()
   ((socket
     :accessor socket
-    :initarg :socket)
+    :initarg :socket
+    :initform nil
+    :documentation "Contains the server's usocket-listener.")
    (clients
     :accessor clients
-    :initform nil)
+    :initform nil
+    :documentation "List of connected clients.")
    (client-list-lock
     :accessor client-list-lock
     :initarg :client-list-lock
-    :initform (bordeaux-threads:make-lock "client-list-lock"))
+    :initform (bordeaux-threads:make-lock "client-list-lock")
+    :documentation "Locks access to the clients list.")
    (connection-thread
     :accessor connection-thread
     :initarg :connection-thread
@@ -63,27 +67,37 @@
 	   :name "connector-thread"))
     (log-message :SERVER "Server started successfully.")))
 
+(defun remove-all-clients ()
+  "Disconnects and removes all clients from the current server."
+  (log-message :SERVER "Disposing of clients.")
+  (handler-case
+      (apply #'disconnect-client (clients *server*))
+    (usocket:unknown-error () 
+      (log-message :SERVER 
+		   "An unknown error happened with USOCKET while trying to close all client sockets."))
+    (simple-error () 
+      (log-message :SERVER 
+		   "Got a simple error in stop-server. Probably has to do with disconnect-client.")))
+  (setf (clients *server*) nil)
+  (log-message :SERVER "Clients removed."))
+
+(defun destroy-connection-thread ()
+  "Destroys the server's connection thread, if it's running."
+  (if (and (connection-thread *server*)
+	   (bordeaux-threads:thread-alive-p (connection-thread *server*)))
+      (progn
+	(bordeaux-threads:destroy-thread (connection-thread *server*))
+	(log-message :SERVER "Connection thread successfully shut down."))
+      (log-message :SERVER "No thread running, skipping...")))
+
 (defun stop-server ()
+  "Stops the server, disconnecting everything."
   (if (not *server*)
       (log-message :SERVER "Tried to stop server, but no server running.")
       (progn
 	(log-message :SERVER "Stopping server...")
-	(log-message :SERVER "Disposing of clients.")
-	(write-to-all-clients "SERVER IS SHUTTING DOWN. HIT THE DECK!~%")
-	(handler-case
-	    (loop for client in (clients *server*)
-	       do (disconnect-client client))
-	  (usocket:unknown-error () 
-	    (log-message :SERVER 
-			 "An unknown error happened with USOCKET while trying to close all client sockets."))
-	  (simple-error () 
-	    (log-message :SERVER 
-			 "Got a simple error in stop-server. Probably has to do with disconnect-client.")))
-	(setf (clients *server*) nil)
-	(log-message :SERVER "Clients removed.")
-	(if (and (connection-thread *server*)
-		 (bordeaux-threads:thread-alive-p (connection-thread *server*)))
-	    (bordeaux-threads:destroy-thread (connection-thread *server*))
-	    (log-message :SERVER "No thread running, skipping..."))
+	(write-to-all-clients "~%SERVER IS SHUTTING DOWN. HIT THE DECK!~%")
+	(remove-all-clients)	
+	(destroy-connection-thread)
 	(usocket:socket-close (socket *server*))
 	(log-message :SERVER "Server stopped."))))
