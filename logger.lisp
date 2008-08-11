@@ -24,7 +24,7 @@
 
 (defun log-message (type message) 
   "Logs a message into a log file"
-  ;; TODO - make it so this function can take a format-string, and format-args.
+  ;; TODO - make it so this function can take a format-string, and format-args. ;Maybe this is good enough.
   ;; TODO - make this write to different files, depending on the type.
   (multiple-value-bind (second minute hour date month year) (get-decoded-time)
     (bordeaux-threads:with-lock-held (*log-lock*)
