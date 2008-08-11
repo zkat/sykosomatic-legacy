@@ -203,6 +203,6 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 ;
 (defun execute-command (player string)
   "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
-  (let ((sexp (list player (string->sexp string))))
+  (let ((sexp (string->sexp string)))
     (if (functionp (car sexp))
 	(apply (car sexp) player (cdr sexp)))))

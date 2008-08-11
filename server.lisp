@@ -53,33 +53,37 @@
 (defvar *server* nil)
 
 (defun start-server (&key (address *default-server-address*) (port *default-server-port*))
+  "Takes care of starting up the server."
   (log-message :SERVER "Starting server...")
-  (let* ((socket (usocket:socket-listen address port :reuse-address t :element-type '(unsigned-byte 8)))
+  (let* ((socket (usocket:socket-listen address port :reuse-address t :element-type '(:iso-8859-1)))
 	 (server (make-instance '<server>
 				:socket socket)))
     (setf *server* server)
     (log-message :SERVER "Creating server connection thread.")
-    (setf (connection-thread *server*) 
-	  (bordeaux-threads:make-thread 
+    (setf (connection-thread *server*)
+	  (bordeaux-threads:make-thread
 	   (lambda () (loop (handler-case (connect-new-client)
-			      (sb-bsd-sockets:not-connected-error () 
-				(log-message :HAX "Hax0r be sappin' mah unconnected socket."))))) 
+			      (sb-bsd-sockets:not-connected-error ()
+				(log-message :HAX "Hax0r be sappin' mah unconnected socket.(Human-speak: got a not-connected-error. Meh.)")))))
 	   :name "connector-thread"))
     (log-message :SERVER "Server started successfully.")))
 
 (defun remove-all-clients ()
   "Disconnects and removes all clients from the current server."
-  (log-message :SERVER "Disposing of clients.")
-  (handler-case
-      (apply #'disconnect-client (clients *server*))
-    (usocket:unknown-error () 
-      (log-message :SERVER 
-		   "An unknown error happened with USOCKET while trying to close all client sockets."))
-    (simple-error () 
-      (log-message :SERVER 
-		   "Got a simple error in stop-server. Probably has to do with disconnect-client.")))
-  (setf (clients *server*) nil)
-  (log-message :SERVER "Clients removed."))
+  (if (clients *server*)
+      (progn
+	(log-message :SERVER "Disposing of clients.")
+	(handler-case
+	    (apply #'disconnect-client (clients *server*))
+	  (usocket:unknown-error ()
+	    (log-message :SERVER
+			 "An unknown error happened with USOCKET while trying to close all client sockets."))
+	  (simple-error ()
+	    (log-message :SERVER
+			 "Got a simple error in stop-server. Probably has to do with disconnect-client.")))
+	(setf (clients *server*) nil)
+	(log-message :SERVER "Clients removed."))
+      (log-message :SERVER "No clients to remove. Continuing.")))
 
 (defun destroy-connection-thread ()
   "Destroys the server's connection thread, if it's running."
@@ -97,7 +101,7 @@
       (progn
 	(log-message :SERVER "Stopping server...")
 	(write-to-all-clients "~%SERVER IS SHUTTING DOWN. HIT THE DECK!~%")
-	(remove-all-clients)	
+	(remove-all-clients)
 	(destroy-connection-thread)
 	(usocket:socket-close (socket *server*))
 	(log-message :SERVER "Server stopped."))))

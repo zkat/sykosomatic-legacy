@@ -24,7 +24,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; TODO - Maybe add a defalias command? Maybe this should be done at a different level. I'll stick to go for now.
 ;; TODO - Keep an eye out for a possible defcommand macro.
 ;;
 ;; This is what all commands receive as argument:
@@ -37,7 +36,7 @@
   (let ((emote (car ast)))
     (format t "You ~a." emote)))
 
-(defun pc-look (player &rest ast)
+(defun pc-look (player ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let ((player (first ast))
 	(noun-phrase (second ast)))
@@ -48,7 +47,7 @@
 	  (format t "~a" (desc target))
 	  (format t "~a" (desc current-room))))))
 
-(defun pc-examine (player &rest ast)
+(defun pc-examine (player ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let ((player (first ast))
 	(noun-phrase (second ast)))
@@ -63,8 +62,7 @@
 		 (sleep 0.8)
 		 (format t "~a" (desc-long current-room)))))))
 
-
-(defun pc-direction-go (player &rest ast)
+(defun pc-direction-go (player ast)
   "Moves PLAYER in DIRECTION."
   (let ((player (car ast))
 	(direction (third ast)))
@@ -73,10 +71,10 @@
 	  (let ((exit (assoc direction
 			      (exits curr-room) :test #'string-equal)))
 	    (if exit
-		(let ((next-room 
+		(let ((next-room
 		       (next-room (cdr exit))))
-		  (if next-room 
-		      (progn 
+		  (if next-room
+		      (progn
 			(put-entity player next-room)
 			(format t "You begin to enter ~a." (name (cdr exit)))
 			(sleep 0.7) ;;removing while I test. This should go in later, though.
@@ -86,7 +84,7 @@
 		(format t "No exit in that direction.")))
 	  (format t "Player can't move. He isn't anywhere to begin with!")))))
 
-(defun pc-go (player &rest ast)
+(defun pc-go (player ast)
   "Moves PLAYER in DIRECTION."
   (let ((player (car ast))
 	(noun-phrase (cadr ast)))
@@ -96,13 +94,13 @@
 		 (exit (assoc direction
 			      (exits curr-room) :test #'string-equal)))
 	    (if exit
-		(let ((next-room (next-room 
+		(let ((next-room (next-room
 				  (cdr exit))))
-		  (if next-room 
-		      (progn 
+		  (if next-room
+		      (progn
 			(put-entity player next-room)
 			(format t "You begin to enter ~a." (name (cdr exit)))
-			(sleep 0.7) ;;removing while I test. This should go in later, though.
+			(sleep 0.7)
 			(format t "~%~a" (desc (location player)))
 			(sleep 0.7))
 		      (format t "There's nowhere to go through there.")))
@@ -114,7 +112,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defun refresh-verb (string function)
-  "Associates STRING with FUNCTION and adds it to *VERBS*, 
+  "Associates STRING with FUNCTION and adds it to *VERBS*,
 removing all previous associations with STRING"
   (remove-verb string)
   (add-verb string function))
@@ -126,8 +124,8 @@ removing all previous associations with STRING"
 (defun remove-verb (string)
   "Removes the VERB that corresponds to STRING from *VERBS*"
   (setf *verbs*
-	(delete 
-	 (assoc string *verbs* :test #'string-equal) 
+	(delete
+	 (assoc string *verbs* :test #'string-equal)
 	 *verbs*)))
 
 (defun add-emote (string)

@@ -67,7 +67,7 @@
 				 :socket socket
 				 :ip (usocket:get-peer-address socket))))
       (log-message :CLIENT (format nil "New client: ~a" (ip client)))
-      (write-to-client client "Hello. Welcome to SykoSoMaTIC.~%")
+      (write-to-client client "Hello. Welcome to SykoSoMaTIC.~%~%")
       (push client (clients *server*)))))
 
 (defun disconnect-client (client)
@@ -105,21 +105,19 @@
   "Grabs a line of input from a client. Takes care of stripping out any unwanted bytes."
   (handler-case
       (let* ((stream (usocket:socket-stream (socket client)))
-	     (collected-bytes (loop with b
-				 do (setf b (read-byte stream))
+	     (collected-bytes (loop for b = (read-byte stream)
 				 until (= b (char-code #\Newline))
 				 unless (not (standard-char-p (code-char b)))
 				 collect (code-char b))))
-	(progn 
-	  (update-activity client)
-	  (coerce collected-bytes 'string)))
-    (end-of-file () 
+	(update-activity client)
+	(coerce collected-bytes 'string))
+    (end-of-file ()
       (progn (log-message :CLIENT "End-of-file. Stream disconnected remotely.")
 	     (disconnect-client client)))))
 
-(defun prompt-client (client prompt-string)
+(defun prompt-client (client format-string &rest format-args)
   "Prompts a client for input"
-  (write-to-client client prompt-string)
+  (write-to-client client format-string format-args)
   (read-line-from-client client))
 
 (defun client-y-or-n-p (client string)
@@ -147,7 +145,7 @@
 (defun write-to-client (client format-string &rest format-args)
   "Sends a given STRING to a particular client."
   (let ((string (apply #'format nil format-string format-args)))
-    (handler-case 
+    (handler-case
 	(let* ((stream (usocket:socket-stream (socket client)))
 	       (bytes (loop for char across string
 			 collect (char-code char))))
