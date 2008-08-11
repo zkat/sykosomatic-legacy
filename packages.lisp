@@ -17,5 +17,5 @@
 
 (defpackage #:sykosomatic
   (:use :cl :cl-store)
-  (:import-from :usocket :socket-listen :socket-accept :socket-close :get-peer-address)
-  (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads))
+  (:import-from :usocket :socket-accept :socket-listen :socket-close :socket-stream :usocket :get-peer-address)
+  (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held))
