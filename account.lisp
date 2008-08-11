@@ -42,7 +42,12 @@
    (client
     :accessor client
     :initform nil
-    :documentation "Client currently associated with this account.")    
+    :documentation "Client currently associated with this account.")
+   (account-type
+    :accessor account-type
+    :initarg :account-type
+    :initform nil
+    :documentation "The type of account. Used to determine access levels.")
    (known-ips
     :initarg :known-ips
     :accessor know-ips
@@ -52,13 +57,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;        Login        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 (defun login-to-account (client)
   "Logs a user into their account"
-  (send-to-client "Welcome to SykoSoMaTIC Beta(tm)."))
+  (write-to-client "Welcome to SykoSoMaTIC Beta(tm)."))
 
-
-;; dropping these in real quick, then converting them.
+;; TODO
 (defun start-client ()
   (let ((username (prompt-read "Username: ")))
     (if (player-exists? username)
@@ -68,6 +76,16 @@
         (when (y-or-n-p "You wish to be known as ~a?" username)
           (make-new-player username)))))
 
+;; TODO
+(defun prompt-password (correct-password)
+  (let ((password (prompt-read "Password")))
+    (if (equal (hash-password password) correct-password)
+	t)))
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;   Account Creation  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;; TODO
 (defun make-new-player (username)
   (format *query-io* "Welcome to BMUD new player.~%")
   (format *query-io* "I'm going to need to ask you some questions to make your account.~%")
@@ -76,7 +94,7 @@
 	  (username (setup-username username))
 	  (password (setup-password)))
       (values username password firstname lastname email))))
-
+;; TODO
 (defun setup-name ()
   "blegh. Cleaning up shittier code than mine :-\ "
   (let ((firstname (prompt-read "Please enter your first name"))
@@ -84,7 +102,7 @@
     (if (y-or-n-p "Greetings ~a ~a. Is this name correct" firstname lastname)
 	(values firstname lastname)
 	(setup-name))))
-
+;; TODO
 (defun setup-email ()
   "cleaned-up e-mail setup without the suck."
   (let ((email (prompt-read "Please enter your email address")))
@@ -95,7 +113,7 @@
 	(progn
 	  (format *query-io* "I'm sorry, ~a is not a valid email address.~%" email)	  
 	  (setup-email)))))
-
+;; TODO
 (defun setup-username (username)
   "Setup the user's username."
   (format *query-io* "It seems that you chose username ~a.~%" username)
@@ -103,7 +121,7 @@
       username
       (let ((username (prompt-read "Please enter your desired username")))
 	(setup-username username))))
-
+;; TODO
 (defun setup-password ()
   "Allow the user to choose a password."
   (let* ((password (prompt-read "Please choose a password"))
@@ -114,7 +132,8 @@
 	  (format *query-io* "~%Passwords did not match, trying again.~%")
 	  (setup-password)))))
 
-(defun prompt-password (correct-password)
-  (let ((password (prompt-read "Password")))
-    (if (equal (hash-password password) correct-password)
-	t)))
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Account Management ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+

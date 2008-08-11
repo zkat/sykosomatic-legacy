@@ -26,11 +26,15 @@
 ;
 (defclass <server> ()
   ((socket
-    :accessor server-socket
-    :initarg :server-socket)
+    :accessor socket
+    :initarg :socket)
    (clients
     :accessor clients
     :initform nil)
+   (client-list-lock
+    :accessor client-list-lock
+    :initarg :client-list-lock
+    :initform (bordeaux-threads:make-lock "client-list-lock"))
    (connection-thread
     :accessor connection-thread
     :initarg :connection-thread
@@ -42,16 +46,16 @@
 ;
 (defvar *default-server-address* "0.0.0.0")
 (defvar *default-server-port* 4000)
-(defvar *current-server* nil)
+(defvar *server* nil)
 
 (defun start-server (&key (address *default-server-address*) (port *default-server-port*))
   (log-message :SERVER "Starting server...")
   (let* ((socket (usocket:socket-listen address port :reuse-address t :element-type '(unsigned-byte 8)))
 	 (server (make-instance '<server>
-				:server-socket socket)))
-    (setf *current-server* server)
+				:socket socket)))
+    (setf *server* server)
     (log-message :SERVER "Creating server connection thread.")
-    (setf (connection-thread *current-server*) 
+    (setf (connection-thread *server*) 
 	  (bordeaux-threads:make-thread 
 	   (lambda () (loop (handler-case (connect-new-client)
 			      (sb-bsd-sockets:not-connected-error () 
@@ -60,18 +64,26 @@
     (log-message :SERVER "Server started successfully.")))
 
 (defun stop-server ()
-  (if (not *current-server*)
+  (if (not *server*)
       (log-message :SERVER "Tried to stop server, but no server running.")
       (progn
 	(log-message :SERVER "Stopping server...")
 	(log-message :SERVER "Disposing of clients.")
-	(loop for client in (clients *current-server*)
-	     do (usocket:socket-close (socket client)))
-	(setf (clients *current-server*) nil)
+	(write-to-all-clients "SERVER IS SHUTTING DOWN. HIT THE DECK!~%")
+	(handler-case
+	    (loop for client in (clients *server*)
+	       do (disconnect-client client))
+	  (usocket:unknown-error () 
+	    (log-message :SERVER 
+			 "An unknown error happened with USOCKET while trying to close all client sockets."))
+	  (simple-error () 
+	    (log-message :SERVER 
+			 "Got a simple error in stop-server. Probably has to do with disconnect-client.")))
+	(setf (clients *server*) nil)
 	(log-message :SERVER "Clients removed.")
-	(if (and (connection-thread *current-server*)
-		 (bordeaux-threads:thread-alive-p (connection-thread *current-server*)))
-	    (bordeaux-threads:destroy-thread (connection-thread *current-server*))
+	(if (and (connection-thread *server*)
+		 (bordeaux-threads:thread-alive-p (connection-thread *server*)))
+	    (bordeaux-threads:destroy-thread (connection-thread *server*))
 	    (log-message :SERVER "No thread running, skipping..."))
-	(usocket:socket-close (server-socket *current-server*))
+	(usocket:socket-close (socket *server*))
 	(log-message :SERVER "Server stopped."))))

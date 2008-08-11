@@ -24,6 +24,7 @@
   :long-description "A heavily-extensible, simple, text-adventure engine."
   :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads)
   :components ((:file "packages")
+	       (:file "queue")
 	       (:file "config"
 		      :depends-on ("packages"))
 	       (:file "logger"
@@ -48,6 +49,10 @@
 	       (:file "game"
 		      :depends-on ("parser"))
 	       (:file "server"
-		      :depends-on ("game"))
+		      :depends-on ("game")
+		      :depends-on ("queue"))
 	       (:file "client"
-		      :depends-on ("game"))))
+		      :depends-on ("game")
+		      :depends-on ("queue"))
+	       (:file "account"
+		      :depends-on ("client"))))
