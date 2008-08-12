@@ -16,6 +16,5 @@
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 (defpackage #:sykosomatic
-  (:use :cl :cl-store)
-  (:import-from :usocket :socket-accept :socket-listen :socket-close :socket-stream :usocket :get-peer-address)
+  (:use :cl :cl-store :sb-bsd-sockets)
   (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held))
