@@ -22,14 +22,23 @@
 ;; !!! Working on parser... Expect breakage.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~~ EXECUTOR!! ~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+(defun execute-command (player string)
+  "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
+  (let ((sexp (string->sexp string)))
+    (if (functionp (car sexp))
+	(apply (car sexp) player (cdr sexp)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TODO - Keep an eye out for a possible defcommand macro.
 ;;
 ;; This is what all commands receive as argument:
-;; (<player> (emote noun-phrase adverb emote-string))
+;; (<player> (emote rest-of-predicate adverb emote-string))
 ;
-
 ;; !!! TODO - These no longer work. Fix them up so they can actually use the nice little tree we made.
 (defun pc-emote (player ast)
   "Emotes an EMOTE-STRING."
