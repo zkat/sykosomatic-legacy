@@ -100,15 +100,26 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 	  ((verb-p (car token-list))
 	   (let ((verb (car token-list))
 		 (token-list (cdr token-list)))
-	     (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
-	       (if (null token-list)
-		   (list verb noun-phrase adverb nil)
-		   (if (chat-string-p (car token-list))
-		       (let ((chat-string (car token-list)))
-			 (list verb noun-phrase adverb chat-string))
-		       (list verb noun-phrase adverb nil))))))
+	     (multiple-value-bind (rest-of-predicate token-list) (parse-rest-of-predicate token-list)
+	       (cond ((null token-list)
+		      (list verb rest-of-predicate adverb nil))
+		     ((chat-string-p (car token-list))
+		      (let ((chat-string (car token-list)))
+			(list verb rest-of-predicate adverb chat-string)))
+		     (t
+		      (list verb rest-of-predicate adverb nil))))))
 	  (t
 	   (format t "Unknown verb: '~a'" (car token-list))))))
+
+(defun parse-rest-of-predicate (token-list)
+  "Generates the REST-OF-PREDICATE list."
+  (multiple-value-bind (noun-phrase-1 token-list) (parse-noun-phrase token-list)
+    (if (preposition-p (car token-list))
+	(let ((preposition (car token-list))
+	      (token-list (cdr token-list)))
+	  (multiple-value-bind (noun-phrase-2 token-list) (parse-noun-phrase token-list)
+	    (values (list noun-phrase-1 preposition noun-phrase-2) token-list)))
+	(values (list noun-phrase-1 nil nil) token-list))))
 
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
