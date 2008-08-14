@@ -101,38 +101,18 @@
 (defun load-rooms ()
   (setf *rooms* (files-in-path->obj-list *rooms-directory* "room")))
 
-(defun save-vocabulary ()
-  "Saves all the nice vocabulary words :)"
-  (cl-store:store *articles* (ensure-directories-exist (merge-pathnames #P"articles.db" *vocab-directory*)))
-  (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
-  (cl-store:store *adjectives* (ensure-directories-exist (merge-pathnames #P"adjectives.db" *vocab-directory*)))
-  (cl-store:store *adverbs* (ensure-directories-exist (merge-pathnames #P"adverbs.db" *vocab-directory*)))
-  (cl-store:store *prepositions* (ensure-directories-exist (merge-pathnames #P"prepositions.db" *vocab-directory*)))
-  (cl-store:store *pronouns* (ensure-directories-exist (merge-pathnames #P"pronouns.db" *vocab-directory*))))
-
-(defun load-vocabulary ()
-  "Loads saved vocab files into their respective variables."
-  (setf *articles* (cl-store:restore (merge-pathnames #P"articles.db" *vocab-directory*)))
-  (setf *verbs* (cl-store:restore (merge-pathnames #P"verbs.db" *vocab-directory*)))
-  (setf *adjectives* (cl-store:restore (merge-pathnames #P"adjectives.db" *vocab-directory*)))
-  (setf *adverbs* (cl-store:restore (merge-pathnames #P"adverbs.db" *vocab-directory*)))
-  (setf *prepositions* (cl-store:restore (merge-pathnames #P"prepositions.db" *vocab-directory*)))
-  (setf *pronouns* (cl-store:restore (merge-pathnames #P"pronouns.db" *vocab-directory*))))
-
-(defun save-everything ()
+(defun save-objects ()
   (save-players)
   (save-player-ids)
   (save-rooms)
   (save-room-ids)
-  (save-vocabulary)
   (format nil "I think everything got saved. Hopefully, it did..."))
 
-(defun load-everything ()
+(defun load-objects ()
   (load-players)
   (load-player-ids)
   (load-rooms)
   (load-room-ids)
-  (load-vocabulary)
   (format nil "Apparently, everything got loaded."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
