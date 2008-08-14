@@ -20,6 +20,15 @@
 ;;;===========================================  Parser  =========================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
+;;; !!! NOTE: Players will want abbreviations... but do I really need to deviate from existing ones?
+;;;           example: >go 2 him --> approaches first PC
+;;;                    >smile w/ my teeth --> You smile with your teeth.
+;;;                    >smirk @ noobtard99 --> You smirk at NoobTard99
+;;;          This can be easily implemented by adding stuff to *prepositions*
+;;;          One potential problem is dealing with numerals properly, but this can be fixed if we just agree
+;;;          to require some symbol before number-qualifiers (like #). This should be thought about. 
+;;;          The exception may not be needed, since '2' is the only item that will actually be used.
+;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~ Pre-processing ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -40,7 +49,7 @@
 
 (defun split-command-string (command-string)
   "Splits each COMMAND in COMMAND-STRING and puts it in a list of words-strings."
-  (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9]{1,}" command-string))
+  (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9@#$^&*]{1,}" command-string))
 
 (defun split-off-chat-string (string)
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
@@ -81,13 +90,13 @@
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-sentence (string->token-list string)))
 
-(defun preparse-adverbs (token-list) ;The Final Solution to the Adverb problem.
+(defun preparse-adverbs (token-list) ;This is the worst way to handle this shit. Ever. Temporary. Very.
   "Yoinks all the adverbs it recognizes out of a list.
 MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of this evil."
   (if (> (length token-list) 1)
       (let ((adverb (find-if #'adverb-p token-list)))
 	(if adverb
-	    (let ((token-list (remove-if #'adverb-p token-list :count 1)))
+	    (let ((token-list (remove adverb token-list :test #'string-equal :count 1)))
 	      (values adverb token-list))
 	    (values adverb token-list)))
       (values nil token-list)))
@@ -147,11 +156,11 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 	     (values (append descriptors (list descriptor))
 		     token-list))))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~ Predicates ~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
+;!!! How many of these do I *absolutely* need?
 (defun verb-p (string)
   "Is STRING a VERB?"
   (assoc string *verbs* :test #'string-equal))
@@ -167,8 +176,8 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
-  (find string *adverbs* :test #'string-equal))
-
+  (gethash string *adverbs*))
+     
 ;; Util
 (defun test-the-parser ()
   "Runs a loop that asks for player input and returns whatever gets parsed. Quits on 'quit'."
@@ -181,8 +190,38 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 	  (test-the-parser)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defvar *articles* '("a" "an" "the" "ye")) ;;yes. It's an article.
+(defvar *prepositions* nil)
+(defvar *verbs* nil)
+(defvar *adjectives* nil)
+(defvar *adverbs* nil)
+(defvar *pronouns* '("me" "myself" "him" "her" "it" "them"))
+
+(defun save-vocabulary ()
+  "Saves all the nice vocabulary words :)"
+  (cl-store:store *articles* (ensure-directories-exist (merge-pathnames #P"articles.db" *vocab-directory*)))
+  (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (cl-store:store *adverbs* (ensure-directories-exist (merge-pathnames #P"adverbs.db" *vocab-directory*)))
+  (cl-store:store *prepositions* (ensure-directories-exist (merge-pathnames #P"prepositions.db" *vocab-directory*)))
+  (cl-store:store *pronouns* (ensure-directories-exist (merge-pathnames #P"pronouns.db" *vocab-directory*))))
+
+(defun load-vocabulary ()
+  "Loads saved vocab files into their respective variables."
+  (setf *articles* (cl-store:restore (merge-pathnames #P"articles.db" *vocab-directory*)))
+  (setf *verbs* (cl-store:restore (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (setf *adverbs* (cl-store:restore (merge-pathnames #P"adverbs.db" *vocab-directory*)))
+  (setf *prepositions* (cl-store:restore (merge-pathnames #P"prepositions.db" *vocab-directory*)))
+  (setf *pronouns* (cl-store:restore (merge-pathnames #P"pronouns.db" *vocab-directory*))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Sexy Builder ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; !!! Note: I could (should?) move this elsewhere.
+;;
 ;; AST goes in, sexp goes out. (it builds s-exps, so it's sexy)
 ;; -----------------------------------------------
 ;; Goal AST - (#'verb emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
@@ -207,13 +246,3 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 (defun string->sexp (string)
   "Takes a STRING and turns it into a valid S-EXP to run."
   (parse-tree->sexp (parse-string string)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~ EXECUTOR!! ~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-(defun execute-command (player string)
-  "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
-  (let ((sexp (string->sexp string)))
-    (if (functionp (car sexp))
-	(apply (car sexp) player (cdr sexp)))))

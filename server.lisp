@@ -55,7 +55,9 @@
 (defun start-server (&key (address *default-server-address*) (port *default-server-port*))
   "Takes care of starting up the server."
   (log-message :SERVER "Starting server...")
-  (let* ((socket (usocket:socket-listen address port :reuse-address t :element-type '(:iso-8859-1)))
+  ;; NOTE: Consider changing the byte stream here to :iso-8859-1, once usocket supports it. Change must be made
+  ;; in client.lisp as well (the reader/writer functions).
+  (let* ((socket (usocket:socket-listen address port :reuse-address t :element-type '(unsigned-byte 8))) 
 	 (server (make-instance '<server>
 				:socket socket)))
     (setf *server* server)

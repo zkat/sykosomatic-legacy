@@ -103,6 +103,7 @@
 ;
 (defun read-line-from-client (client)
   "Grabs a line of input from a client. Takes care of stripping out any unwanted bytes."
+  ;; NOTE: Once usocket supports :iso-8859-1 streams, this could be simplified.
   (handler-case
       (let* ((stream (usocket:socket-stream (socket client)))
 	     (collected-bytes (loop for b = (read-byte stream)
@@ -144,6 +145,7 @@
 
 (defun write-to-client (client format-string &rest format-args)
   "Sends a given STRING to a particular client."
+  ;; NOTE: Once usocket supports :iso-8859-1 streams, this could be simplified.
   (let ((string (apply #'format nil format-string format-args)))
     (handler-case
 	(let* ((stream (usocket:socket-stream (socket client)))
