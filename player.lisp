@@ -29,7 +29,12 @@
     :initarg :player-id
     :initform (incf *player-ids*)
     :reader player-id
-    :documentation "A unique player id.")))
+    :documentation "A unique player id.")
+   (current-client
+    :initarg :current-client
+    :initform nil
+    :accessor current-client
+    :documentation "The <client> currently associated with this <player>")))
    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;================================= Player-related functions ===================================;;;

@@ -97,28 +97,28 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
       (let ((adverb (find-if #'adverb-p token-list)))
 	(if adverb
 	    (let ((token-list (remove adverb token-list :test #'string-equal :count 1)))
-	      (values adverb token-list))
-	    (values adverb token-list)))
+	      (values (list adverb) token-list))
+	    (values (list adverb) token-list)))
       (values nil token-list)))
 
 (defun parse-sentence (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (multiple-value-bind (adverb token-list) (preparse-adverbs token-list)
+  (multiple-value-bind (adverbs token-list) (preparse-adverbs token-list)
     (cond ((chat-string-p (car token-list))
-	   (list "say" nil adverb (car token-list)))
+	   (list "say" nil adverbs (car token-list)))
 	  ((verb-p (car token-list))
 	   (let ((verb (car token-list))
 		 (token-list (cdr token-list)))
 	     (multiple-value-bind (rest-of-predicate token-list) (parse-rest-of-predicate token-list)
 	       (cond ((null token-list)
-		      (list verb rest-of-predicate adverb nil))
+		      (list verb rest-of-predicate adverbs nil))
 		     ((chat-string-p (car token-list))
 		      (let ((chat-string (car token-list)))
-			(list verb rest-of-predicate adverb chat-string)))
+			(list verb rest-of-predicate adverbs chat-string)))
 		     (t
-		      (list verb rest-of-predicate adverb nil))))))
+		      (list verb rest-of-predicate adverbs nil))))))
 	  (t
-	   (format t "Unknown verb: '~a'" (car token-list))))))
+	   (format t "Unknown verb: '~a'~%" (car token-list))))))
 
 (defun parse-rest-of-predicate (token-list)
   "Generates the REST-OF-PREDICATE list."
@@ -186,7 +186,7 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 	(format t "Bye bye!")
 	(progn
 	  (let ((parse-tree (parse-string current-input)))
-	    (format t "~a" parse-tree))
+	    (format t "~%AST Generated: ~A~%" parse-tree))
 	  (test-the-parser)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -195,9 +195,11 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 ;;
 (defvar *articles* '("a" "an" "the" "ye")) ;;yes. It's an article.
 (defvar *prepositions* nil)
-(defvar *verbs* nil)
+(defvar *verbs* nil
+  "This is a dotted list right now. The CAR is a string, CDR the function.")
 (defvar *adjectives* nil)
-(defvar *adverbs* nil)
+(defvar *adverbs* (make-hash-table)
+  "This contains a HASH TABLE of all available ADVERBS.")
 (defvar *pronouns* '("me" "myself" "him" "her" "it" "them"))
 
 (defun save-vocabulary ()
@@ -206,7 +208,8 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
   (cl-store:store *adverbs* (ensure-directories-exist (merge-pathnames #P"adverbs.db" *vocab-directory*)))
   (cl-store:store *prepositions* (ensure-directories-exist (merge-pathnames #P"prepositions.db" *vocab-directory*)))
-  (cl-store:store *pronouns* (ensure-directories-exist (merge-pathnames #P"pronouns.db" *vocab-directory*))))
+  (cl-store:store *pronouns* (ensure-directories-exist (merge-pathnames #P"pronouns.db" *vocab-directory*)))
+  (format t "Vocabulary saved."))
 
 (defun load-vocabulary ()
   "Loads saved vocab files into their respective variables."
@@ -214,35 +217,6 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   (setf *verbs* (cl-store:restore (merge-pathnames #P"verbs.db" *vocab-directory*)))
   (setf *adverbs* (cl-store:restore (merge-pathnames #P"adverbs.db" *vocab-directory*)))
   (setf *prepositions* (cl-store:restore (merge-pathnames #P"prepositions.db" *vocab-directory*)))
-  (setf *pronouns* (cl-store:restore (merge-pathnames #P"pronouns.db" *vocab-directory*))))
+  (setf *pronouns* (cl-store:restore (merge-pathnames #P"pronouns.db" *vocab-directory*)))
+  (format t "Vocabulary loaded."))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~ Sexy Builder ~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; !!! Note: I could (should?) move this elsewhere.
-;;
-;; AST goes in, sexp goes out. (it builds s-exps, so it's sexy)
-;; -----------------------------------------------
-;; Goal AST - (#'verb emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
-;; ----------Where rest-of-sentence is ((noun-phrase) &optional (noun-phrase))
-;; ---------------Where noun-phrase is ((descriptors) &optional (descriptors))
-;; ---------------------where descriptors is ("noun" &rest "adjectives, articles, etc")
-;; -----------------------------------------------
-;
-(defun string->function (string)
-  "Checks if STRING is a VERB. Returns a FUNCTION."
-  (cdr (assoc string *verbs* :test #'string-equal)))
-
-(defun parse-tree->sexp (tree)
-  "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  (let ((verb (string->function (car tree)))
-	(emote (car tree))
-	(rest-of-sentence (cadr tree))
-	(chat-string (fourth tree))
-	(adverb (third tree)))
-    (list verb emote rest-of-sentence adverb chat-string)))
-
-(defun string->sexp (string)
-  "Takes a STRING and turns it into a valid S-EXP to run."
-  (parse-tree->sexp (parse-string string)))
