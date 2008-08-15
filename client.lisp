@@ -103,7 +103,6 @@
 ;
 (defun read-line-from-client (client)
   "Grabs a line of input from a client. Takes care of stripping out any unwanted bytes."
-  ;; NOTE: Once usocket supports :iso-8859-1 streams, this could be simplified.
   (handler-case
       (let* ((stream (usocket:socket-stream (socket client)))
 	     (collected-bytes (loop for b = (read-byte stream)
@@ -141,11 +140,10 @@
 (defun write-to-all-clients (format-string &rest format-args)
   "Sends a given string to all connected clients."
   (with-accessors ((clients clients)) *server*
-    (mapcar #'(lambda (client) (write-to-client client format-string format-args)) clients)))
+     (mapcar #'(lambda (client) (apply #'write-to-client client format-string format-args)) clients)))
 
 (defun write-to-client (client format-string &rest format-args)
   "Sends a given STRING to a particular client."
-  ;; NOTE: Once usocket supports :iso-8859-1 streams, this could be simplified.
   (let ((string (apply #'format nil format-string format-args)))
     (handler-case
 	(let* ((stream (usocket:socket-stream (socket client)))
@@ -162,11 +160,15 @@
 ;;~~~~~~~~~~~~~~~~~~~~~~ Main ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+(defun client-echo-loop (client)
+  )
+
 (defun client-main (client)
   "Main function for clients."
-  ) ;;Keep it simple at first. Grab input, echo something back.
+;;Keep it simple at first. Grab input, echo something back.
 ;; Later on, allow clients to enter players, and run in the main player loop.
 ;; Then start getting fancy from there.
+  ) 
 
 (defun player-main (client)
   "Main function for playing a character. Subprocedure of client-main"

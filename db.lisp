@@ -34,13 +34,6 @@
 
 (defvar *objects* nil) ;this one's new!
 
-(defvar *articles* '("a" "an" "the" "ye")) ;;yes. It's an article.
-(defvar *prepositions* nil)
-(defvar *verbs* nil)
-(defvar *adjectives* nil)
-(defvar *adverbs* nil)
-(defvar *pronouns* '("me" "myself" "him" "her" "it" "them"))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
