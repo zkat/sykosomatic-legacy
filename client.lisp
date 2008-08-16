@@ -27,7 +27,7 @@
 (defclass <client> ()
   ((socket
     :initarg :socket
-    :reader socket
+    :accessor socket
     :initform nil
     :documentation "Socket belonging to this client.")
    (thread
@@ -60,6 +60,9 @@
 ;;~~~~~~~~~~~~~~~~~~~ Connection ~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+(define-condition client-disconnected-error (error)
+  ((text :initarg :text :reader text)))
+
 (defun connect-new-client ()
   "Connects a new client to the main server."
   (let ((socket (usocket:socket-accept (socket *server*))))
@@ -67,23 +70,26 @@
 				 :socket socket
 				 :ip (usocket:get-peer-address socket))))
       (log-message :CLIENT (format nil "New client: ~a" (ip client)))
-      (write-to-client client "Hello. Welcome to SykoSoMaTIC.~%~%")
+      (setf (thread client) 
+	    (bordeaux-threads:make-thread 
+	     (lambda () (handler-case 
+			    (client-main client)
+			  (client-disconnected-error ()
+			    (progn
+			       (log-message :CLIENT "Client disconnected. Terminating.")
+			       (disconnect-client client)))))
+			       :name "sykosomatic-client-main-thread"))
       (push client (clients *server*)))))
 
 (defun disconnect-client (client)
   "Disconnects the client and removes it from the current clients list."
-  (write-to-client client "Disconnecting you, buh-bye~%")
-  (with-accessors ((thread thread) (socket socket)) client
+  (with-accessors ((socket socket)) client
     (if socket
-	(usocket:socket-close socket)
+	(progn (if socket (usocket:socket-close socket))
+	       (setf socket nil))
 	(log-message :CLIENT-ERROR
-		     (format nil "Error while disconnecting client ~a: No socket to close." (ip client))))
-    (if thread
-	(bordeaux-threads:destroy-thread thread)
-	(log-message :CLIENT-ERROR
-		     (format nil "Error while disconnecting client ~a: No thread to destroy." (ip client)))))
-  (setf (clients *server*) (remove client (clients *server*))))
-
+		     (format nil "Error while disconnecting client ~a: No socket to close." (ip client))))))
+    
 (defun client-idle-time (client)
   "How long, in seconds, since activity was last received from client."
   (- (get-universal-time) (last-active client)))
@@ -102,7 +108,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 (defun read-line-from-client (client)
-  "Grabs a line of input from a client. Takes care of stripping out any unwanted bytes."
+  "Grabs a line of input from a client. Takes care of stripping out any unwanted bytes.
+Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
   (handler-case
       (let* ((stream (usocket:socket-stream (socket client)))
 	     (collected-bytes (loop for b = (read-byte stream)
@@ -112,8 +119,7 @@
 	(update-activity client)
 	(coerce collected-bytes 'string))
     (end-of-file ()
-      (progn (log-message :CLIENT "End-of-file. Stream disconnected remotely.")
-	     (disconnect-client client)))))
+      (error 'client-disconnected-error :text "End-of-file. Stream disconnected remotely."))))
 
 (defun prompt-client (client format-string &rest format-args)
   "Prompts a client for input"
@@ -145,31 +151,98 @@
 (defun write-to-client (client format-string &rest format-args)
   "Sends a given STRING to a particular client."
   (let ((string (apply #'format nil format-string format-args)))
-    (handler-case
-	(let* ((stream (usocket:socket-stream (socket client)))
-	       (bytes (loop for char across string
-			 collect (char-code char))))
-	  (loop for byte in bytes
-	     do (write-byte byte stream)
-	     finally (finish-output stream)))
-      (simple-error () (log-message :CLIENT "Couldn't write to client"))
-      (sb-int:simple-stream-error () (progn (log-message :CLIENT "Broken pipe, disconnecting client.")
-					    (disconnect-client client))))))
+    (if (socket client)
+	(handler-case
+	    (let* ((stream (usocket:socket-stream (socket client)))
+		   (bytes (loop for char across string
+			     collect (char-code char))))
+	      (loop for byte in bytes
+		 do (write-byte byte stream)
+		 finally (finish-output stream)))
+	  (sb-int:simple-stream-error () (error 'client-disconnected-error 
+						:text "Broken pipe. Can't write to client."))
+	  (simple-error () (error 'client-disconnected-error 
+				  :text "Got a simple error while trying to write to client. Assuming disconnecbtion.")))
+	(error 'client-disconnected-error :text "Can't write to client. There's no socket to write to."))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~~ Main ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defun client-echo-loop (client)
-  )
-
 (defun client-main (client)
   "Main function for clients."
 ;;Keep it simple at first. Grab input, echo something back.
 ;; Later on, allow clients to enter players, and run in the main player loop.
 ;; Then start getting fancy from there.
-  ) 
+  (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
+  (loop
+     (client-echo-input client)))
+
+;; Temporary
+(defun client-echo-input (client)
+  (let ((input (prompt-client client "~~> ")))
+    (if (string-equal input "quit")
+	(disconnect-client client)
+	(write-to-client client "You wrote: ~a~%~%" input))))
 
 (defun player-main (client)
   "Main function for playing a character. Subprocedure of client-main"
   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~ Stress-test ~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defvar *test-clients* nil)
+
+(defun spam-server-with-lots-of-clients (num-clients)
+  (dotimes (i num-clients)
+    (push (make-and-run-test-client) *test-clients*)))
+
+(defun kill-the-infidels ()
+  (loop
+     for client in *test-clients*
+     do (progn
+	  (bordeaux-threads:destroy-thread (thread client))
+	  (usocket:socket-close (socket client)))))
+
+(defclass <test-client> ()
+  ((thread
+    :accessor thread
+    :initarg :thread)
+   (socket
+    :accessor socket
+    :initarg :socket)))
+
+(defun make-and-run-test-client ()
+  (let ((test-client (make-instance '<test-client>
+			:socket (usocket:socket-connect 
+				 "dagon.ath.cx" 4000 
+				 :element-type '(unsigned-byte 8)))))
+    (setf (thread test-client)
+	  (bordeaux-threads:make-thread (lambda ()
+					  (spam-loop test-client))
+					:name "sykosomatic-test-client-thread"))
+    test-client))
+
+
+(defun write-to-server (client format-string &rest format-args)
+  (let ((string (apply #'format nil format-string format-args)))
+    (if (socket client)
+	(handler-case
+	    (let* ((stream (usocket:socket-stream (socket client)))
+		   (bytes (loop for char across string
+			     collect (char-code char))))
+	      (loop for byte in bytes
+		 do (write-byte byte stream)
+		 finally (finish-output stream)))
+	  (sb-int:simple-stream-error () (error 'client-disconnected-error 
+						:text "Broken pipe. Can't write to client."))
+	  (simple-error () (error 'client-disconnected-error 
+				  :text "Got a simple error while trying to write to client. Assuming disconnecbtion.")))
+	(error 'client-disconnected-error :text "Can't write to client. There's no socket to write to."))))
+
+(defun spam-loop (client)
+  (loop
+     (write-to-server client "lucy and the sky with diamonds lalalalalalallalalalalal")
+     (sleep 0.5)))
