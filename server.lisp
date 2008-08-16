@@ -69,31 +69,12 @@
 	   :name "sykosomatic-server-connection-thread"))
     (log-message :SERVER "Server started successfully.")))
 
-(defun remove-disconnected-clients ()
-  (if (clients *server*)
-      (loop 
-	 for client in (clients *server*)
-	 do (if (not (socket client))
-		(progn 
-		  (remove-client client))))))
-
-(defun remove-client (client)
-  "Removes client from the server's client-list."
-  (bordeaux-threads:with-lock-held ((client-list-lock *server*)) 
-    (setf (clients *server*)
-	  (remove client (clients *server*)))))
-
 (defun remove-all-clients ()
   "Disconnects and removes all clients from the current server."
   (if (clients *server*)
       (progn
 	(log-message :SERVER "Disposing of clients.")
-	(handler-case
-	    (mapcar #'disconnect-client (clients *server*))
-	  (usocket:unknown-error ()
-	    (log-message :SERVER
-			 "An unknown error happened with USOCKET while trying to close all client sockets.")))
-	(setf (clients *server*) nil)
+	(mapcar #'remove-client (clients *server*))
 	(log-message :SERVER "Clients removed."))
       (log-message :SERVER "No clients to remove. Continuing.")))
 
@@ -115,4 +96,5 @@
 	(remove-all-clients)
 	(destroy-connection-thread)
 	(usocket:socket-close (socket *server*))
+	(setf *server* nil)
 	(log-message :SERVER "Server stopped."))))

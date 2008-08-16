@@ -53,6 +53,7 @@
 		      :depends-on ("queue"))
 	       (:file "client"
 		      :depends-on ("game")
+		      :depends-on ("server")
 		      :depends-on ("queue"))
 	       (:file "account"
 		      :depends-on ("client"))))

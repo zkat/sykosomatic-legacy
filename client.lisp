@@ -77,19 +77,26 @@
 			  (client-disconnected-error ()
 			    (progn
 			       (log-message :CLIENT "Client disconnected. Terminating.")
-			       (disconnect-client client)))))
-			       :name "sykosomatic-client-main-thread"))
-      (push client (clients *server*)))))
+			       (remove-client client))))
+			       :name "sykosomatic-client-main-thread")))
+      (bordeaux-threads:with-lock-held ((client-list-lock *server*))
+	(push client (clients *server*))))))
 
 (defun disconnect-client (client)
   "Disconnects the client and removes it from the current clients list."
   (with-accessors ((socket socket)) client
     (if socket
-	(progn (if socket (usocket:socket-close socket))
-	       (setf socket nil))
-	(log-message :CLIENT-ERROR
-		     (format nil "Error while disconnecting client ~a: No socket to close." (ip client))))))
-    
+	(usocket:socket-close socket) ;;shutdown procedure should probably go here.
+	(log-message :CLIENT
+		     (format nil "Tried disconnecting client ~a, but nothing to disconnect." (ip client))))))
+
+(defun remove-client (client)
+  "Removes client from the server's client-list."
+  (disconnect-client client)
+  (bordeaux-threads:with-lock-held ((client-list-lock *server*)) 
+    (setf (clients *server*)
+	  (remove client (clients *server*)))))
+  
 (defun client-idle-time (client)
   "How long, in seconds, since activity was last received from client."
   (- (get-universal-time) (last-active client)))
@@ -195,6 +202,14 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
 ;;
 (defvar *test-clients* nil)
 
+(defclass <test-client> ()
+  ((thread
+    :accessor thread
+    :initarg :thread)
+   (socket
+    :accessor socket
+    :initarg :socket)))
+
 (defun spam-server-with-lots-of-clients (num-clients)
   (dotimes (i num-clients)
     (push (make-and-run-test-client) *test-clients*)))
@@ -205,14 +220,6 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
      do (progn
 	  (bordeaux-threads:destroy-thread (thread client))
 	  (usocket:socket-close (socket client)))))
-
-(defclass <test-client> ()
-  ((thread
-    :accessor thread
-    :initarg :thread)
-   (socket
-    :accessor socket
-    :initarg :socket)))
 
 (defun make-and-run-test-client ()
   (let ((test-client (make-instance '<test-client>
@@ -225,24 +232,7 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
 					:name "sykosomatic-test-client-thread"))
     test-client))
 
-
-(defun write-to-server (client format-string &rest format-args)
-  (let ((string (apply #'format nil format-string format-args)))
-    (if (socket client)
-	(handler-case
-	    (let* ((stream (usocket:socket-stream (socket client)))
-		   (bytes (loop for char across string
-			     collect (char-code char))))
-	      (loop for byte in bytes
-		 do (write-byte byte stream)
-		 finally (finish-output stream)))
-	  (sb-int:simple-stream-error () (error 'client-disconnected-error 
-						:text "Broken pipe. Can't write to client."))
-	  (simple-error () (error 'client-disconnected-error 
-				  :text "Got a simple error while trying to write to client. Assuming disconnecbtion.")))
-	(error 'client-disconnected-error :text "Can't write to client. There's no socket to write to."))))
-
 (defun spam-loop (client)
   (loop
-     (write-to-server client "lucy and the sky with diamonds lalalalalalallalalalalal")
+     (write-to-client client "lucy and the sky with diamonds lalalalalalallalalalalal")
      (sleep 0.5)))
