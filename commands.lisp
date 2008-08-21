@@ -62,18 +62,32 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defun write-to-player (player format-string &rest format-args)
+  "Sends output to a player."
+  (let ((player-client (current-client player)))
+    (apply #'write-to-client player-client format-string format-args)))
+
+(defun write-to-others-in-room (player format-string &rest format-args)
+  "Sends output to everyone in PLAYER'S room except to PLAYER."
+  ;; UNTESTED AS OF YET.
+  (let* ((players (get-players (location player)))
+	 (others (remove player players)))
+    (apply #'write-to-player others format-string format-args)))
+
+(defun disconnect-player (player)
+  "Disconnects the given player from the game."
+  (disconnect-client (current-client player)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~ Base Commands ~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; TODO - Keep an eye out for a possible defcommand macro.
 ;;
 ;; This is what all commands receive as argument:
 ;; (<player> (emote rest-of-predicate adverbs chat-string))
 ;
-(defun write-to-player (player format-string &rest format-args)
-  (let ((player-client (current-client player)))
-    (apply #'write-to-client player-client format-string format-args)))
-
-(defun disconnect-player (player)
-  (disconnect-client (current-client player)))
-
 (defun pc-emote (player ast)
   "Emotes an EMOTE-STRING."
   (let ((emote (car ast)))
@@ -82,7 +96,6 @@
 (defun pc-quit (player ast)
   "Takes care of quitting the game."
   (disconnect-player player))
-
 
 (defun pc-look (player ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"

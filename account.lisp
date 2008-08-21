@@ -62,31 +62,92 @@
 ;;        Login        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-(defun login-to-account (client)
+(defun get-account-by-name (username)
+  "Fetches an account using a username."
+  (find username *accounts* :key #'string-equal))
+
+(defun login-client (client)
   "Logs a user into their account"
-  (write-to-client "Welcome to SykoSoMaTIC Beta(tm)."))
+  (let ((account (validate-login client (prompt-username client))))
+    (if account
+	(progn 
+	  (setf (account client) account)
+	  (setf (client account) client)
+	  (pushnew (ip client) (know-ips account))
+	  (account-menu client)))))
 
-;; TODO
-(defun start-client ()
-  (let ((username (prompt-read "Username: ")))
-    (if (player-exists? username)
-        (if (prompt-password (lookup-password username))
-	    username
-	    (error (format nil "Invalid authentication for user ~a." username)))
-        (when (y-or-n-p "You wish to be known as ~a?" username)
-          (make-new-player username)))))
+(defun prompt-username (client)
+  "Prompts a client for a username, returns a valid account."
+  (let* ((account-name (prompt-client client "~%Username: "))
+	 (account (get-account-by-name account-name)))
+    (if account
+	account
+	(progn
+	  (write-to-client client "~&Invalid username, please try again.")
+	  (prompt-username client)))))
 
-;; TODO
-(defun prompt-password (correct-password)
-  (let ((password (prompt-read "Password")))
-    (if (equal (hash-password password) correct-password)
-	t)))
+(defun validate-login (client account)
+  "Prompts the user for a password, and validates the login."
+  (let ((password (prompt-client client "~&Password: ")))
+    (if (equal password (password account))
+	account
+	(validate-login client account))))
+
+(defun account-menu (client)
+  "Simple selection menu that new clients once they've logged into an account."
+  (write-to-client client "~&Choose your destiny: ~%")
+  (write-to-client client "-----------------------~%")
+  (write-to-client client "1. Create a new character~%")
+  (write-to-client client "2. Enter existing character~%")
+  (write-to-client client "-----------------------~%~%")
+  (let ((choice (prompt-client client "Your choice: ")))
+    (cond ((string-equal choice "1")
+	   (create-an-avatar client))
+	  ((string-equal choice "2")
+	   (choose-avatar client))
+	  (t
+	   (progn
+	     (write-to-client client "~&Invalid choice.")
+	     (account-menu client))))))
+
+(defun create-an-avatar (client)
+  "Takes user through the avatar-creation process."
+  (let ((account (account client)))
+    (let* ((avatar-name (prompt-client client "~&Choose a name for your character: "))
+	   (avatar (make-player 
+		    :name avatar-name
+		    :desc "generic description" 
+		    :desc-long "generic long-description")))
+      (pushnew avatar *players*)
+      (pushnew avatar (avatars account)))))
+
+(defun choose-avatar (client)
+  "Lets a player choose an existing avatar to play on."
+  (print-available-avatars client)
+  (let* ((avatars (avatars (account client)))
+	 (avatar-choice (prompt-client client "~%~%Choose your destiny: "))
+	 (avatar (find avatar-choice avatars :test #'string-equal)))
+    (if avatar
+	(progn
+	  (setf (avatar client) avatar)
+	  (gameplay-main-loop client))
+	(progn
+	  (write-to-client client "~&No such character, please try again.~%")
+	  (choose-avatar client)))))
+
+(defun print-available-avatars (client)
+  "Prints a list of available avatars."
+  (let ((avatars (avatars (account client))))
+    (write-to-client client "~%Characters:~%-----------~%~%")
+    (loop for avatar in avatars
+       do (write-to-client client "~&~a~&" (name avatar)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;   Account Creation  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;; TODO
-(defun make-new-player (username)
+(defun setup-account (username)
   (format *query-io* "Welcome to BMUD new player.~%")
   (format *query-io* "I'm going to need to ask you some questions to make your account.~%")
   (multiple-value-bind (firstname lastname) (setup-name)
