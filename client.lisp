@@ -86,6 +86,7 @@
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
 	(push client (clients *server*))))))
 
+;; FIXME: This is working from within the client-thread. Meaning: It can't destroy the thread. This causes problems.
 (defun disconnect-client (client)
   "Disconnects the client and removes it from the current clients list."
   (with-accessors ((socket socket)) client
@@ -174,7 +175,8 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
 						:text "Broken pipe. Can't write to client."))
 	  (simple-error () (error 'client-disconnected-error 
 				  :text "Got a simple error while trying to write to client. Assuming disconnecbtion.")))
-	(error 'client-disconnected-error :text "Can't write to client. There's no socket to write to."))))
+	(error 'client-disconnected-error 
+	       :text "Can't write to client. There's no socket to write to."))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~~~~~ Main ~~~~~~~~~~~~~~~~~~;;
@@ -187,7 +189,7 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
 ;; Then start getting fancy from there.
   (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
   (loop
-     (client-echo-input client)))
+     (client-echo-ast client)))
 
 ;; Temporary
 (defun client-echo-input (client)
@@ -196,9 +198,15 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
 	(disconnect-client client)
 	(write-to-client client "You wrote: ~a~%~%" input))))
 
-(defun player-main (client)
+(defun client-echo-ast (client)
+  (let ((input (prompt-client client "~~> ")))
+    (if (string-equal input "quit")
+	(disconnect-client client)
+	(write-to-client client "Parsed AST: ~a~%~%" (parse-string input)))))
+
+(defun player-main-loop (client)
   "Main function for playing a character. Subprocedure of client-main"
-  )
+  t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~ Stress-test ~~~~~~~~~~~~~~~~;;

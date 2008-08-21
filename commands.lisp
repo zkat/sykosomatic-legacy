@@ -38,12 +38,15 @@
 
 (defun parse-tree->sexp (player tree)
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  (let ((verb (string->function (car tree)))
-	(emote (car tree))
-	(rest-of-sentence (cadr tree))
-	(chat-string (fourth tree))
-	(adverb (third tree)))
-    (list verb player (list emote rest-of-sentence adverb chat-string))))
+  (if (listp tree)
+      (let ((verb (string->function (car tree)))
+	    (emote (car tree))
+	    (rest-of-sentence (cadr tree))
+	    (chat-string (fourth tree))
+	    (adverb (third tree)))
+	(list verb player (list emote rest-of-sentence adverb chat-string)))
+      ;; if it's not a list, it's an error from the parser. Spit that out, instead.
+      (write-to-client (client player) "~&~a~&" tree)))
 
 (defun string->sexp (player string)
   "Takes a STRING and turns it into a valid S-EXP to run."

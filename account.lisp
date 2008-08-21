@@ -130,7 +130,7 @@
     (if avatar
 	(progn
 	  (setf (avatar client) avatar)
-	  (gameplay-main-loop client))
+	  (player-main-loop client))
 	(progn
 	  (write-to-client client "~&No such character, please try again.~%")
 	  (choose-avatar client)))))
