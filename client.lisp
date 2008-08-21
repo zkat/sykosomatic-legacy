@@ -20,6 +20,10 @@
 ;;;========================================== Client ============================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;; NOTE: This whole thing should be ported to use asynchronous i/o. This'll probably happen after prototyping.
+;;       The changes shouldn't be too big. The thread should be removed from <client>, the read and write
+;;       functions should be fixed up, and so should connect-new-client. That -should- be all that needs fixed.
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Class ~~~~~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

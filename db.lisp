@@ -28,9 +28,12 @@
 (defvar *player-ids* 0)
 (defvar *room-ids* 0)
 
-(defvar *accounts* nil)
-(defvar *rooms* nil)
-(defvar *players* nil)
+(defvar *accounts* (make-hash-table :test #'equalp)
+  "Hash table holding all existing accounts.")
+(defvar *rooms* nil
+  "Cons list of available rooms. Rooms are also linked as a graph.")
+(defvar *players* nil
+  "Cons list of existing players. Nice as a backup of the ones existing in accounts.")
 
 (defvar *objects* nil) ;this one's new!
 
@@ -57,6 +60,7 @@
 	 collect (cl-store:restore file))))
 
 (defun save-room-ids ()
+  "Saves the current highest room-id."
   (cl-store:store *room-ids* 
 		  (ensure-directories-exist
 		   (merge-pathnames
@@ -64,6 +68,7 @@
 		    *rooms-directory*))))
 
 (defun save-player-ids ()
+  "Saves the current highes player-id."
   (cl-store:store *player-ids* 
 		  (ensure-directories-exist
 		   (merge-pathnames
@@ -71,12 +76,14 @@
 		    *players-directory*))))
 
 (defun load-room-ids ()
+  "Loads the highest room-id."
   (setf *room-ids* 
 	(file->obj (merge-pathnames
 		    "room-ids.id"
 		    *rooms-directory*))))
 
 (defun load-player-ids ()
+  "Loads the highest player-id."
   (setf *player-ids* 
 	(file->obj (merge-pathnames
 		    "player-ids.id"
@@ -99,14 +106,14 @@
   (save-player-ids)
   (save-rooms)
   (save-room-ids)
-  (format nil "I think everything got saved. Hopefully, it did..."))
+  (format t "I think everything got saved. Hopefully, it did..."))
 
 (defun load-objects ()
   (load-players)
   (load-player-ids)
   (load-rooms)
   (load-room-ids)
-  (format nil "Apparently, everything got loaded."))
+  (format t "Apparently, everything got loaded."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~ Utilities ~~~~~~~~~~~~~~~~~~~~;;
@@ -120,14 +127,16 @@
 
 (defun set-room-id-to-highest ()
   (setf *room-ids* (apply #'max (loop for room in *rooms*
-       collect (room-id room)))))
+				   collect (room-id room)))))
 
 (defun generate-test-players (num-players)
   "Returns a LIST containing NUM-PLAYERS instances of <player>."
-  (loop for i upto (1- num-players)
-       collect (new-player)))
+  (loop 
+     for i upto (1- num-players)
+     collect (new-player)))
 
 (defun generate-test-rooms (num-rooms)
-    "Returns a LIST containing NUM-ROOMS instances of <room>."
-  (loop for i upto (1- num-rooms)
-       collect (new-room)))
+  "Returns a LIST containing NUM-ROOMS instances of <room>."
+  (loop
+     for i upto (1- num-rooms)
+     collect (new-room)))
