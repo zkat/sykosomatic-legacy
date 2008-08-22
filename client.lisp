@@ -86,7 +86,7 @@
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
 	(push client (clients *server*))))))
 
-;; FIXME: This is working from within the client-thread. Meaning: It can't destroy the thread. This causes problems.
+;; FIXME: This is working from within the client-thread. Meaning: It can't destroy the thread.
 (defun disconnect-client (client)
   "Disconnects the client and removes it from the current clients list."
   (with-accessors ((socket socket)) client
@@ -131,7 +131,10 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
 	(update-activity client)
 	(coerce collected-bytes 'string))
     (end-of-file ()
-      (error 'client-disconnected-error :text "End-of-file. Stream disconnected remotely."))))
+      (error 'client-disconnected-error :text "End-of-file. Stream disconnected remotely."))
+    (simple-error () (error 'client-disconnected-error 
+			    :text "Got a simple error while trying to write to client.
+Assuming disconnection."))))
 
 (defun prompt-client (client format-string &rest format-args)
   "Prompts a client for input"
@@ -174,7 +177,7 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
 	  (sb-int:simple-stream-error () (error 'client-disconnected-error 
 						:text "Broken pipe. Can't write to client."))
 	  (simple-error () (error 'client-disconnected-error 
-				  :text "Got a simple error while trying to write to client. Assuming disconnecbtion.")))
+				  :text "Got a simple error while trying to write to client. Assuming disconnection.")))
 	(error 'client-disconnected-error 
 	       :text "Can't write to client. There's no socket to write to."))))
 
