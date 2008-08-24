@@ -101,6 +101,11 @@
     (format t "~a is in ~a" entity (name loc))
     loc))
 
+(defun get-players (room)
+  "Fetches a list of players currently in ROOM."
+  (with-accessors ((contents contents)) room
+    (mapcar #'player-p contents)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~ Manipulation ~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -21,7 +21,7 @@
 (require 'asdf)
 (require 'xmls)
 
-(defconstant *required-room-elements* '("name" "desc" "desc-long"))
+(defconstant +required-room-elements+ '("name" "desc" "desc-long"))
 
 (defun load-roomlist (filename)
   (with-open-file (s filename :direction :input)
@@ -29,11 +29,10 @@
 
 (defun save-room (room-node stream)
   (let ((children (cddr room-node)))
-    (if (subsetp *required-room-elements* (mapcar #'car children) :test #'equal)
+    (if (subsetp +required-room-elements+ (mapcar #'car children) :test #'equal)
 	(format stream "(make-room ~:{~12T:~A ~*~S~%~})~%" children)
-      (error "The room contains: ~S,
-but is missing one of these required elements: ~S"
-	     children *required-room-elements*))))
+	(error "The room contains: ~S, but is missing one of these required elements: ~S"
+	       children +required-room-elements+))))
 
 (defun save-roomlist (roomlist-xml-node stream)
   (mapc (lambda (room) (save-room room stream))

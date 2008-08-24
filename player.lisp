@@ -30,11 +30,12 @@
     :initform (incf *player-ids*)
     :reader player-id
     :documentation "A unique player id.")
-   (socket
-    :initarg :socket
-    :accessor socket
-    :documentation "Current socket where the player resides.")))
-
+   (current-client
+    :initarg :current-client
+    :initform nil
+    :accessor current-client
+    :documentation "The <client> currently associated with this <player>")))
+   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;================================= Player-related functions ===================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -61,6 +62,15 @@
 		     collect line))))
     (loop for player in players
 	 collect (eval player))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;~~~~~~~~~~~~~~~~~~~~~~ Info ~~~~~~~~~~~~~~~~~~;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+(defun player-p (obj)
+  "Returns T if a given OBJ is an instance of <PLAYER>."
+  (eq (class-name (class-of obj))
+      '<player>))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~;;
