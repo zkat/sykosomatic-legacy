@@ -3,7 +3,9 @@ REQUIREMENTS
 
 * cl-store (http://common-lisp.net/project/cl-store/)
 * cl-ppcre (http://weitz.de/cl-ppcre/)
-* Probably SBCL. I haven't tested this on any other implementation.
+* bordeaux-threads (http://common-lisp.net/project/bordeaux-threads/)
+* usocket (http://common-lisp.net/project/usocket/)
+* SBCL, unless you feel adventurous. I'm not sure if it's compatible with anything else.
 
 INSTALLATION
 ------------
@@ -12,17 +14,17 @@ INSTALLATION
    A. With asdf-install:
       *CL-USER> (asdf-install:install :cl-store)
       *CL-USER> (asdf-install:install :cl-ppcre)
+      *etc..
+
    B. Manually
-      * download http://weitz.de/files/cl-ppcre.tar.gz
-       		http://common-lisp.net/project/cl-store/files/cl-store-latest.tgz
+      * download the tarballs for each dependency.
       * extract to ~/.sbcl/site/ (or whereven you put your sources)
       * expose relevant .asd files to Lisp.
    
 	See http://www.cliki.net/asdf for generic information on how to use
 	ASDF.
-	Basically, create symlinks to cl-store.asd and cl-ppcre.asd
-	inside your systems folder for your lisp (like
-	~/.sbcl/systems/)
+	Basically, create symlinks to the .asd files for each dep.
+	inside your systems folder for your lisp (like ~/.sbcl/systems/)
 
 2. Load up sykosomatic.
    A. In Slime with SBCL:
@@ -38,3 +40,17 @@ INSTALLATION
 4. ???
 
 5. Happy Hacking!
+
+TESTING THE SERVER
+------------------
+The server runs on port 4000 by default, and will accept external connections by
+default. If you want to prevent those, start the server with :address "127.0.0.1".
+
+Telnet clients can connect with 'telnet <address> <port>', and the engine can currently
+handle all the garbage telnet likes sending (I think).
+Read through client.lisp to see what you can do to the poor victims.
+
+Logs are all tossed into ~/.sykosomatic/logs/sykosomatic.log right now. 
+
+Oh, and if you want to change any directories, read through config.lisp. You can set the
+base game directory there.

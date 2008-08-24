@@ -1,5 +1,5 @@
 ;; Copyright 2008 Kat Marchan
- 
+
 ;; This file is part of sykosomatic
 
 ;; sykosomatic is free software: you can redistribute it and/or modify
@@ -20,6 +20,15 @@
 ;;;===========================================  Parser  =========================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
+;;; !!! NOTE: Players will want abbreviations... but do I really need to deviate from existing ones?
+;;;           example: >go 2 him --> approaches first PC
+;;;                    >smile w/ my teeth --> You smile with your teeth.
+;;;                    >smirk @ noobtard99 --> You smirk at NoobTard99
+;;;          This can be easily implemented by adding stuff to *prepositions*
+;;;          One potential problem is dealing with numerals properly, but this can be fixed if we just agree
+;;;          to require some symbol before number-qualifiers (like #). This should be thought about. 
+;;;          The exception may not be needed, since '2' is the only item that will actually be used.
+;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~ Pre-processing ~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,20 +40,20 @@
 
 (defun preprocess-string (string)
   "Get rid of trailing whitespace"
-  (string-trim '(#\Space #\Tab #\Newline) string))
+  (string-trim '(#\Space #\Tab #\Newline #\Return) string))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~~~~~~~~~~~ Tokenizer ~~~~~~~~~~~~~~~~~::
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;String goes in, string-list goes out.
-;
+
 (defun split-command-string (command-string)
   "Splits each COMMAND in COMMAND-STRING and puts it in a list of words-strings."
-  (all-matches-as-strings "[a-zA-Z0-9!/@$%&']{1,}" command-string))
+  (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9@#$^&*]{1,}" command-string))
 
 (defun split-off-chat-string (string)
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
-  (split "^+'| +'|\"" string :limit 2))
+  (cl-ppcre:split "^+'| +'|\"" string :limit 2))
 
 (defun format-chat-string (chat-string)
   "Adds a ['] to the beginning of the CHAT-STRING. Used to tell it apart from other parts of the sentence."
@@ -54,7 +63,7 @@
 
 (defun string->token-list (string)
   "Converts a STRING into a LIST of TOKEN-STRINGS."
-  (let* ((com+chat (split-off-chat-string string))
+  (let* ((com+chat (split-off-chat-string (preprocess-string string)))
 	 (commands (split-command-string (car com+chat))))
     (if (cadr com+chat)
 	(let ((chat-string (format-chat-string (cadr com+chat))))
@@ -79,36 +88,49 @@
 ;
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
-  (parse-command (string->token-list string)))
+  (parse-sentence (string->token-list string)))
 
-(defun preparse-adverbs (token-list) ;The Final Solution to the Adverb problem.
+(defun preparse-adverbs (token-list) ;This is the worst way to handle this shit. Ever. Temporary. Very.
   "Yoinks all the adverbs it recognizes out of a list.
 MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of this evil."
   (if (> (length token-list) 1)
       (let ((adverb (find-if #'adverb-p token-list)))
 	(if adverb
-	    (let ((token-list (remove-if #'adverb-p token-list :count 1)))
-	      (values adverb token-list))
-	    (values adverb token-list)))
+	    (let ((token-list (remove adverb token-list :test #'string-equal :count 1)))
+	      (values (list adverb) token-list))
+	    (values (list adverb) token-list)))
       (values nil token-list)))
 
-(defun parse-command (token-list)
+(defun parse-sentence (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (multiple-value-bind (adverb token-list) (preparse-adverbs token-list)
+  (multiple-value-bind (adverbs token-list) (preparse-adverbs token-list)
     (cond ((chat-string-p (car token-list))
-	   (list "say" nil adverb (car token-list)))
+	   (list "say" nil adverbs (car token-list)))
 	  ((verb-p (car token-list))
 	   (let ((verb (car token-list))
 		 (token-list (cdr token-list)))
-	     (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
-	       (if (chat-string-p (car token-list))
-		   (let ((chat-string (car token-list)))
-		     (list verb noun-phrase adverb chat-string))
-		   (list verb noun-phrase adverb nil)))))
+	     (multiple-value-bind (rest-of-predicate token-list) (parse-rest-of-predicate token-list)
+	       (cond ((null token-list)
+		      (list verb rest-of-predicate adverbs nil))
+		     ((chat-string-p (car token-list))
+		      (let ((chat-string (car token-list)))
+			(list verb rest-of-predicate adverbs chat-string)))
+		     (t
+		      (list verb rest-of-predicate adverbs nil))))))
 	  (t
-	   (format t "Unknown verb: '~a'" (car token-list))))))
+	   (format nil "Unknown verb: '~a'~%" (car token-list))))))
 
-(defun parse-noun-phrase (token-list) 
+(defun parse-rest-of-predicate (token-list)
+  "Generates the REST-OF-PREDICATE list."
+  (multiple-value-bind (noun-phrase-1 token-list) (parse-noun-phrase token-list)
+    (if (preposition-p (car token-list))
+	(let ((preposition (car token-list))
+	      (token-list (cdr token-list)))
+	  (multiple-value-bind (noun-phrase-2 token-list) (parse-noun-phrase token-list)
+	    (values (list noun-phrase-1 preposition noun-phrase-2) token-list)))
+	(values (list noun-phrase-1 nil nil) token-list))))
+
+(defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
   (multiple-value-bind (noun-group-1 token-list) (parse-noun-group token-list)
@@ -117,7 +139,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
 	  (multiple-value-bind (noun-group-2 token-list) (parse-noun-group (cdr token-list))
 	    (values (list noun-group-1 preposition noun-group-2) token-list)))
 	(values (list noun-group-1) token-list))))
-  
+
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP.
 MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
@@ -134,11 +156,11 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 	     (values (append descriptors (list descriptor))
 		     token-list))))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;~~~~~~~~ Predicates ~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
+;!!! How many of these do I *absolutely* need?
 (defun verb-p (string)
   "Is STRING a VERB?"
   (assoc string *verbs* :test #'string-equal))
@@ -147,60 +169,54 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   "Is STRING a CHAT-STRING?"
   (if (not (null string))
       (char-equal #\' (char string 0))))
- 
+
 (defun preposition-p (string)
   "Is STRING a PREPOSITION?"
   (member string *prepositions* :test #'string-equal))
- 
+
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
-  (member string *adverbs* :test #'string-equal))
-
+  (gethash string *adverbs*))
+     
 ;; Util
 (defun test-the-parser ()
   "Runs a loop that asks for player input and returns whatever gets parsed. Quits on 'quit'."
   (let ((current-input (prompt-user)))
     (if (string-equal current-input "quit")
 	(format t "Bye bye!")
-	(progn 
+	(progn
 	  (let ((parse-tree (parse-string current-input)))
-	    (format t "~a" parse-tree))
+	    (format t "~%AST Generated: ~A~%" parse-tree))
 	  (test-the-parser)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~ Sexy Builder ~~~~~~~~~~~~~~;;
+;;~~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; AST goes in, sexp goes out. (it builds s-exps, so it's sexy)
-;; -----------------------------------------------
-;; Goal AST - (#'verb emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
-;; ----------Where rest-of-sentence is ((noun-phrase) &optional (noun-phrase))
-;; ---------------Where noun-phrase is ((descriptors) &optional (descriptors))
-;; ---------------------where descriptors is ("noun" &rest "adjectives, articles, etc")
-;; -----------------------------------------------
-;
-(defun verb->function (string)
-  "Checks if STRING is a VERB. Returns a FUNCTION."
-  (cdr (assoc string *verbs* :test #'string-equal)))
+;;
+(defvar *articles* '("a" "an" "the" "ye")) ;;yes. It's an article.
+(defvar *prepositions* nil)
+(defvar *verbs* nil
+  "This is a dotted list right now. The CAR is a string, CDR the function.")
+(defvar *adjectives* nil)
+(defvar *adverbs* (make-hash-table)
+  "This contains a HASH TABLE of all available ADVERBS.")
+(defvar *pronouns* '("me" "myself" "him" "her" "it" "them"))
 
-(defun parse-tree->sexp (tree)
-  "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  (let ((verb (verb->function (car tree)))
-	(emote (car tree))
-	(rest-of-sentence (cadr tree))
-	(chat-string (fourth tree))
-	(adverb (third tree)))
-    (list verb emote rest-of-sentence adverb chat-string)))
+(defun save-vocabulary ()
+  "Saves all the nice vocabulary words :)"
+  (cl-store:store *articles* (ensure-directories-exist (merge-pathnames #P"articles.db" *vocab-directory*)))
+  (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (cl-store:store *adverbs* (ensure-directories-exist (merge-pathnames #P"adverbs.db" *vocab-directory*)))
+  (cl-store:store *prepositions* (ensure-directories-exist (merge-pathnames #P"prepositions.db" *vocab-directory*)))
+  (cl-store:store *pronouns* (ensure-directories-exist (merge-pathnames #P"pronouns.db" *vocab-directory*)))
+  (format t "Vocabulary saved."))
 
-(defun string->sexp (string)
-  "Takes a STRING and turns it into a valid S-EXP to run."
-  (parse-tree->sexp (parse-string string)))
+(defun load-vocabulary ()
+  "Loads saved vocab files into their respective variables."
+  (setf *articles* (cl-store:restore (merge-pathnames #P"articles.db" *vocab-directory*)))
+  (setf *verbs* (cl-store:restore (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (setf *adverbs* (cl-store:restore (merge-pathnames #P"adverbs.db" *vocab-directory*)))
+  (setf *prepositions* (cl-store:restore (merge-pathnames #P"prepositions.db" *vocab-directory*)))
+  (setf *pronouns* (cl-store:restore (merge-pathnames #P"pronouns.db" *vocab-directory*)))
+  (format t "Vocabulary loaded."))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~ EXECUTOR!! ~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-(defun execute-command (player string)
-  "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
-  (let ((sexp (string->sexp string)))
-    (if (functionp (car sexp))
-	(apply (car sexp) (cdr sexp)))))
