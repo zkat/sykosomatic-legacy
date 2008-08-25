@@ -15,12 +15,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; classes.lisp
+;;
+;; This file contains some basic, general classes that don't particularly go anywhere else (yet)
+;;
+(in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;=====================================  Other classes  ========================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
-(in-package #:sykosomatic)
-
+;;
 ;;Master game object. Contains base capabilities of all other objects in the game.
 (defclass <game-object> ()
   ((name

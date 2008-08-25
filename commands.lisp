@@ -15,6 +15,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; commands.lisp
+;;
+;; Currently, it's an amalgamation of a sort of binder, vocabulary handler, and several player
+;; functions, along with commands to execute them. Very nasty stuff.
+;;
 (in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;======================================  User Commands  =======================================;;;

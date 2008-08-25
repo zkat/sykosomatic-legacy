@@ -15,6 +15,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; parser.lisp
+;;
+;; Cleans up and parses a string, generating an abstract syntax tree. Needs access to
+;; a list of verbs and adverbs in order to generate the tree accurately.
+;; Also has some functions for saving/loading some vocabulary.
+;;
 (in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;===========================================  Parser  =========================================;;;

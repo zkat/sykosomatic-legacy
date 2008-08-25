@@ -15,6 +15,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; event-queue.lisp
+;;
+;; Implementation of a time-based event queue. It handles events depending on their execution
+;; time. It's a min-priority queue, so the event with the lowest time until execution (which
+;; can, and often will be, negative), is at the top of the queue.
+;;
 (in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;======================================= Event Queue ==========================================;;;
