@@ -15,9 +15,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; room.lisp
+;;
+;; Contains the <room> and <door> classes. Also holds functions that handle room generation from
+;; file, saving/loading of rooms, setting of exits, getting of information about contents of room
+;; (like who the players are within the room), and getting the location of an <entity>
+;;
 (in-package :sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;========================================== Map classes =======================================;;;
+;;;========================================== Room classes ======================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defclass <room> (<game-object>)
@@ -64,11 +70,11 @@
     :documentation "Room object this exit points to")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;==================================== Map-related Functions ===================================;;;
+;;;==================================== Room-related Functions ===================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~ Map Generation ~~~~~~~~~~~~~~~;;
+;;~~~~~~~~~~~~~~~ Room Generation ~~~~~~~~~~~~~~~;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ;;There is a semi-dupe of this called new-player

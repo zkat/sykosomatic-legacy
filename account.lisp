@@ -15,6 +15,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; account.lisp
+;;
+;; This file contains the <account> class, meant to hold some basic information about user accounts 
+;; like login/pass, characters available, and the client currently connected to the account. This 
+;; file also contains the functions that handle user login, account creation, and account management.
+;;
 (in-package :sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;=========================================== Accounts =========================================;;;

@@ -15,6 +15,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; game.lisp
+;;
+;; This was a basic main function when sykosomatic was still single-player. This needs to
+;; be reworked a bit, I think.
+;;
 (in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;============================================== Game ==========================================;;;
