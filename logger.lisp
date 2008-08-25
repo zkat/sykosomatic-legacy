@@ -15,6 +15,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; logger.lisp
+;;
+;; contains a function that can be called from anywhere (even threads), and writes messages
+;; to a log file in the .sykosomatic directory.
+;;
 (in-package :sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;========================================= LOGGING FACILITY ===================================;;;

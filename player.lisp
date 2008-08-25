@@ -15,6 +15,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; player.lisp
+;;
+;; Holds the <player> class. Also contains some functions for character loading/saving.
+;; Some management functions exist, too, but those could be moved out.
+;;
 (in-package :sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;====================================== Player class ==========================================;;;

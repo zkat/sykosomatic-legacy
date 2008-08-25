@@ -15,6 +15,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; client.lisp
+;;
+;; Contains the <client> class, and the client handling code, which includes connecting and
+;; disconnecting from the server, handling input/output for clients, and running the client
+;; main function (which runs in a thread). There's also some stress-test code at the bottom.
+;;
 (in-package :sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;========================================== Client ============================================;;;
