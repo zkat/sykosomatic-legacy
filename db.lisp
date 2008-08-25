@@ -15,6 +15,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; db.lisp
+;;
+;; Contains global variables for various things, including ID numbers, lists of existing
+;; rooms, players, accounts, etc. Also contains functions for saving/loading these objects.
+;;
 (in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;========================================== Database ==========================================;;;

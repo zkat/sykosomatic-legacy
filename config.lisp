@@ -15,6 +15,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; config.lisp
+;;
+;; Configuration file. Contains variables that handle configuration-related things. Right now,
+;; it's just directories to which things are saved. It is recommended that only *game-directory*
+;; be changed, if possible. By default, the game data directory is saved to .sykosomatic, in the
+;; user's home directory.
+;;
 (in-package :sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Values ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;;;

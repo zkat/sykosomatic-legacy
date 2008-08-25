@@ -15,14 +15,19 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
+;; queue.lisp
+;;
 ;; Thread-safe queues. Taken from Monster Mountain's, since they're quite nice.
-
+;;
 (in-package #:sykosomatic)
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;========================================= Queue ================================================;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 (defclass queue ()
   ((contents :accessor queue-contents :initform ())
    (lock :reader queue-lock :initform (bordeaux-threads:make-lock))
-   (condition :reader queue-condition :initform (bordeaux-threads:make-condition-variable))))
+   (condition :reader queue-condition :initform (bordeaux-threads:make-condition-variable))))]
 
 (defun %queue-empty-p (queue)
   (null (queue-contents queue)))
