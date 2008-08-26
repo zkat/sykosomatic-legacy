@@ -36,7 +36,7 @@
 	       (:file "player"
 		      :depends-on ("classes")
 		      :depends-on ("db"))
-	       (:file "map"
+	       (:file "room"
 		      :depends-on ("classes")
 		      :depends-on ("db"))
 	       (:file "parser"
@@ -45,7 +45,7 @@
 	       (:file "commands"
 		      :depends-on ("db")
 		      :depends-on ("player")
-		      :depends-on ("map"))
+		      :depends-on ("room"))
 	       (:file "game"
 		      :depends-on ("parser"))
 	       (:file "server"

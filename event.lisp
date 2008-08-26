@@ -15,28 +15,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; event-queue.lisp
+;; event.lisp
 ;;
-;; Implementation of a time-based event queue. It handles events depending on their execution
-;; time. It's a min-priority queue, so the event with the lowest time until execution (which
-;; can, and often will be, negative), is at the top of the queue.
+;; Contains the event class, and the code to handle the events directly. For
+;; stuff related to the event queue, refer to event-queue.lisp
 ;;
 (in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;======================================= Event Queue ==========================================;;;
+;;;============================================ Event ===========================================;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
-(defclass <eq-node> ()
-    ((left-child
-      :initarg :lc
-      :initform nil
-      :accessor lc)
-     (right-child
-      :initarg :rc
-      :initform nil
-      :accessor rc)
-     (event
-      :initarg :event
-      :initform (error "Must supply an event.")
-      :accessor event
-      :documentation "Takes an <event> object.")))

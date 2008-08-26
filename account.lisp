@@ -72,6 +72,7 @@
   "Fetches an account using a username."
   (find username *accounts* :key #'string-equal))
 
+;;Note: (if .. (progn ..)) should be replaced by (when .. forms*)
 (defun login-client (client)
   "Logs a user into their account"
   (let ((account (validate-login client (prompt-username client))))
