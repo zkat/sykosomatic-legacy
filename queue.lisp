@@ -17,7 +17,7 @@
 
 ;; queue.lisp
 ;;
-;; Thread-safe queues. Taken from Monster Mountain's, since they're quite nice.
+;; Thread-safe queues. Taken from Monster Mountain's (with permission), since they're quite nice.
 ;;
 (in-package #:sykosomatic)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
