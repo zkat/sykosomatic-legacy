@@ -20,8 +20,33 @@
 ;; Contains the event class, and the code to handle the events directly. For
 ;; stuff related to the event queue, refer to event-queue.lisp
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;============================================ Event ===========================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;;
+;;; Event class
+;;;
+
+(defclass <event> ()
+  ((payload
+    :initarg :payload
+    :accessor payload
+    :documentation "A function (lambda), that contains the code to be executed.")
+   (exec-time
+    :initarg :exec-time
+    :initform (get-universal-time)
+    :accessor exec-time
+    :documentation "The delay, in seconds, until this event is supposed to fire.")))
+
+(defun make-event (payload &key (delay 0))
+  (make-instance '<event> 
+		 :payload payload 
+		 :exec-time (+ (get-universal-time) delay)))
+
+;;;
+;;; Event processing
+;;;
+
+(defun execute-event (event)
+  "Executes an event."
+  (funcall (payload event)))
