@@ -19,15 +19,22 @@
 ;;
 ;; Thread-safe queues. Taken from Monster Mountain's (with permission), since they're quite nice.
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;========================================= Queue ================================================;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+
+;;;
+;;; Queue
+;;;
 (defclass queue ()
-  ((contents :accessor queue-contents :initform ())
-   (lock :reader queue-lock :initform (bordeaux-threads:make-lock))
-   (condition :reader queue-condition :initform (bordeaux-threads:make-condition-variable))))]
+  ((contents 
+    :accessor queue-contents 
+    :initform nil)
+   (lock 
+    :reader queue-lock 
+    :initform (bordeaux-threads:make-lock))
+   (condition 
+    :reader queue-condition 
+    :initform (bordeaux-threads:make-condition-variable))))
 
 (defun %queue-empty-p (queue)
   (null (queue-contents queue)))
