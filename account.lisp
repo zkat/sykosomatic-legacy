@@ -21,15 +21,12 @@
 ;; like login/pass, characters available, and the client currently connected to the account. This 
 ;; file also contains the functions that handle user login, account creation, and account management.
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;=========================================== Accounts =========================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;==================== Class ===================;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+
+;;;
+;;; Account class
+;;;
 (defclass <account> ()
   ((username
     :initarg :username
@@ -60,14 +57,15 @@
     :initform nil
     :documentation "All IPs this account has been known no use.")))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;        Login        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+;; TODO
+;; (defun make-account ()
+;;   )
+
+
+;;;
+;;; Account Login
+;;;
+
 (defun get-account-by-name (username)
   "Fetches an account using a username."
   (find username *accounts* :key #'string-equal))
@@ -149,10 +147,11 @@
     (loop for avatar in avatars
        do (write-to-client client "~&~a~&" (name avatar)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;   Account Creation  ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+
+;;;
+;;; Account Creation
+;;;
+
 ;; TODO
 (defun setup-account (username)
   (format *query-io* "Welcome to BMUD new player.~%")
@@ -200,8 +199,7 @@
 	  (format *query-io* "~%Passwords did not match, trying again.~%")
 	  (setup-password)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;  Account Management ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+;;;
+;;; Account Management
+;;;
 

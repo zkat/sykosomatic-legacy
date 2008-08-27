@@ -21,11 +21,13 @@
 ;; file, saving/loading of rooms, setting of exits, getting of information about contents of room
 ;; (like who the players are within the room), and getting the location of an <entity>
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;========================================== Room classes ======================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+
+;;;
+;;; Room-related classes
+;;;
+
 (defclass <room> (<game-object>)
   ((name
     :initform "A room without a name")
@@ -50,6 +52,9 @@
     :accessor exits
     :documentation "Contains an assoc list of <exit> objects that refer to the next room.")))
 
+(defmacro make-room (&key name desc desc-long features)
+  `(make-instance '<room> :name ,name :desc ,desc :desc-long ,desc-long :features ,features))
+
 (defclass <door> (<game-object>)
   ((name
     :initform "A door")
@@ -69,14 +74,10 @@
     :accessor next-room
     :documentation "Room object this exit points to")))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;==================================== Room-related Functions ===================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~ Room Generation ~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+;;;
+;;; Room generation
+;;;
+
 ;;There is a semi-dupe of this called new-player
 (defun new-room ()
   "Returns a new ROOM after initializing the <ROOM> object"
@@ -84,9 +85,6 @@
     (with-accessors ((name name)) room
       (setf name (format nil "Room #~a" (room-id room))))
     room))
-
-(defmacro make-room (&key name desc desc-long features)
-  `(make-instance '<room> :name ,name :desc ,desc :desc-long ,desc-long :features ,features))
 
 (defun make-rooms-from-file (file)
   "Generates a room from a raw text FILE."
@@ -97,25 +95,25 @@
     (loop for room in rooms
 	 collect (eval room))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~~~~ Info ~~~~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-(defun whereis (entity)
+;;;
+;;; Info
+;;;
+
+(defun whereis (entity) ;does this belong here?
   "Pretty-prints the NAME of the LOCATION of the ENTITY"
   (let ((loc (location entity)) (entity (name entity)))
     (format t "~a is in ~a" entity (name loc))
     loc))
 
-(defun get-players (room)
+(defun get-players (room) ;what about this?...
   "Fetches a list of players currently in ROOM."
   (with-accessors ((contents contents)) room
     (mapcar #'player-p contents)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~ Manipulation ~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+;;;
+;;; Room manipulation
+;;;
+
 (defun set-exit (from-room to-room direction)
   "Creates an EXIT that leads FROM-ROOM TO-ROOM in DIRECTION. NOT REFLEXIVE."
   (if (not (assoc direction (exits from-room) :test #'string-equal))
@@ -140,10 +138,10 @@
     (pushnew entity (contents new-room))
     (setf (contents old-room) (remove entity (contents old-room)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~~ Load/Save ~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+;;;
+;;; Load/Save
+;;;
+
 (defmethod obj->file ((room <room>) path)
   (cl-store:store room (ensure-directories-exist
 			(merge-pathnames

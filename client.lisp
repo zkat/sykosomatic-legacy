@@ -21,19 +21,16 @@
 ;; disconnecting from the server, handling input/output for clients, and running the client
 ;; main function (which runs in a thread). There's also some stress-test code at the bottom.
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;========================================== Client ============================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; NOTE: This whole thing should be ported to use asynchronous i/o. This'll probably happen after prototyping.
-;;       The changes shouldn't be too big. The thread should be removed from <client>, the read and write
-;;       functions should be fixed up, and so should connect-new-client. That -should- be all that needs fixed.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~ Class ~~~~~~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+
+;; Note: After much consideration, it turns out this is the best approach. Async i/o is too
+;;       much trouble to bother with, and can cause a bunch of its own problems.
+
+;;;
+;;; Client Class
+;;;
+
 (defclass <client> ()
   ((socket
     :initarg :socket
@@ -66,10 +63,14 @@
     :initform nil
     :documentation "The character linked to this client session.")))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~~ Connection ~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+;; TODO
+;; (defun make-client ()
+;;   )
+
+;;;
+;;; Connection
+;;;
+
 (define-condition client-disconnected-error (error)
   ((text :initarg :text :reader text)))
 
@@ -118,14 +119,12 @@
   (with-accessors ((activity last-active)) client
     (setf activity (get-universal-time))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~ Client I/O ~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;
-;;        Input       ;;
-;;;;;;;;;;;;;;;;;;;;;;;;
-;
+;;;
+;;; Client i/o
+;;;
+
+;;; Input
+
 (defun read-line-from-client (client)
   "Grabs a line of input from a client. Takes care of stripping out any unwanted bytes.
 Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
@@ -161,10 +160,8 @@ Assuming disconnection."))))
 	     (write-to-client client "Please answer y or n.~%")
 	     (client-y-or-n-p client string))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;        Output       ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+;;; Output
+
 (defun write-to-all-clients (format-string &rest format-args)
   "Sends a given string to all connected clients."
   (with-accessors ((clients clients)) *server*
@@ -188,10 +185,10 @@ Assuming disconnection."))))
 	(error 'client-disconnected-error 
 	       :text "Can't write to client. There's no socket to write to."))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~~~~~ Main ~~~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+;;;
+;;; Client main
+;;;
+
 (defun client-main (client)
   "Main function for clients."
 ;;Keep it simple at first. Grab input, echo something back.
@@ -218,10 +215,9 @@ Assuming disconnection."))))
   "Main function for playing a character. Subprocedure of client-main"
   t)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~ Stress-test ~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+;;;
+;;; Evil stress-test of doom
+;;;
 (defvar *test-clients* nil)
 
 (defclass <test-client> ()

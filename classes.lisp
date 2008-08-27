@@ -19,13 +19,14 @@
 ;;
 ;; This file contains some basic, general classes that don't particularly go anywhere else (yet)
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;=====================================  Other classes  ========================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;;
+;;; General Classes
+;;;
+
 ;;
-;;Master game object. Contains base capabilities of all other objects in the game.
 (defclass <game-object> ()
   ((name
     :initarg :name
@@ -52,7 +53,8 @@
    (features
     :initarg :features
     :accessor features
-    :documentation "A list of OBJECTS that add more little details, all targetable :3")))
+    :documentation "A list of OBJECTS that add more little details, all targetable :3"))
+  (:documentation "Master game object. Contains base capabilities of all other objects in the game."))
 
 ;; 'stuff'
 (defclass <entity> (<game-object>)
@@ -69,9 +71,10 @@
    (hp
     :initarg :hp
     :initform 1 ;;everything should start with 1hp, if it's an entity. (= 0 DEATH)
-    :accessor hp)))
+    :accessor hp))
+  (:documentation "'Stuff' in general."))
 
-(defclass <item> (<entity>) ;; Think about this one some more.
+(defclass <item> (<entity>)
   ((equippable
     :initarg :equip-p
     :initform nil
@@ -85,9 +88,9 @@
    (effects
     :initarg :effects
     :accessor effects
-    :documentation "Any special effects of the item")))
+    :documentation "Any special effects of the item"))
+  (:documentation "Master class for items."))
 
-;; Living things
 (defclass <mobile> (<entity>)
   ((species
     :initarg :species
@@ -110,4 +113,5 @@
     :initarg :inventory
     :initform nil
     :accessor inventory
-    :documentation "A list of items in the player's possession")))
+    :documentation "A list of items in the player's possession"))
+  (:documentation "Living things."))
