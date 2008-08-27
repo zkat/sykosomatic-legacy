@@ -99,9 +99,13 @@
   "Disconnects the client and removes it from the current clients list."
   (with-accessors ((socket socket)) client
     (if socket
-	(usocket:socket-close socket) ;;shutdown procedure should probably go here.
+	(progn
+	  (enqueue (client-cleanup-queue *server*) thread)
+	  (usocket:socket-close socket))
 	(log-message :CLIENT
-		     (format nil "Tried disconnecting client ~a, but nothing to disconnect." (ip client))))))
+		     (format nil 
+			     "Tried disconnecting client ~a, but nothing to disconnect." 
+			     (ip client))))))
 
 (defun remove-client (client)
   "Removes client from the server's client-list."

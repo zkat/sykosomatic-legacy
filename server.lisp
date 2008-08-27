@@ -42,6 +42,10 @@
     :initarg :client-list-lock
     :initform (bordeaux-threads:make-lock "client-list-lock")
     :documentation "Locks access to the clients list.")
+   (client-cleanup-queue
+    :accessor client-cleanup-queue
+    :initform (make-empty-queue)
+    :documentation "A queue of client threads that need to be killed.")
    (connection-thread
     :accessor connection-thread
     :initarg :connection-thread
@@ -55,6 +59,8 @@
 (defvar *default-server-address* "0.0.0.0")
 (defvar *default-server-port* 4000)
 (defvar *server* nil)
+
+;;; Start
 
 (defun start-server (&key (address *default-server-address*) (port *default-server-port*))
   "Takes care of starting up the server."
@@ -73,23 +79,7 @@
 	   :name "sykosomatic-server-connection-thread"))
     (log-message :SERVER "Server started successfully.")))
 
-(defun remove-all-clients ()
-  "Disconnects and removes all clients from the current server."
-  (if (clients *server*)
-      (progn
-	(log-message :SERVER "Disposing of clients.")
-	(mapcar #'remove-client (clients *server*))
-	(log-message :SERVER "Clients removed."))
-      (log-message :SERVER "No clients to remove. Continuing.")))
-
-(defun destroy-connection-thread ()
-  "Destroys the server's connection thread, if it's running."
-  (if (and (connection-thread *server*)
-	   (bordeaux-threads:thread-alive-p (connection-thread *server*)))
-      (progn
-	(bordeaux-threads:destroy-thread (connection-thread *server*))
-	(log-message :SERVER "Connection thread successfully shut down."))
-      (log-message :SERVER "No thread running, skipping...")))
+;;; Stop
 
 (defun stop-server ()
   "Stops the server, disconnecting everything."
@@ -102,3 +92,30 @@
 	(usocket:socket-close (socket *server*))
 	(setf *server* nil)
 	(log-message :SERVER "Server stopped."))))
+
+(defun cleanup-threads (&optional (server *server*))
+  "Destroys threads that are queue for destruction. Removes them from that queue."
+  (log-message :SERVER "Cleaning up disconnected client threads.")
+  (loop for thread = (dequeue (client-cleanup-queue server) nil)
+       unless (not thread)
+       do (bordeaux-threads:destroy-thread thread)))
+
+(defun remove-all-clients ()
+  "Disconnects and removes all clients from the current server."
+  (if (clients *server*)
+      (progn
+	(log-message :SERVER "Disposing of clients.")
+	(mapcar #'remove-client (clients *server*))
+	(cleanup-threads)
+	(log-message :SERVER "Clients removed."))
+      (log-message :SERVER "No clients to remove. Continuing.")))
+
+(defun destroy-connection-thread ()
+  "Destroys the server's connection thread, if it's running."
+  (if (and (connection-thread *server*)
+	   (bordeaux-threads:thread-alive-p (connection-thread *server*)))
+      (progn
+	(bordeaux-threads:destroy-thread (connection-thread *server*))
+	(log-message :SERVER "Connection thread successfully shut down."))
+      (log-message :SERVER "No thread running, skipping...")))
+
