@@ -93,11 +93,9 @@
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
 	(push client (clients *server*))))))
 
-
-;; FIXME: This is working from within the client-thread. Meaning: It can't destroy the thread.
 (defun disconnect-client (client)
   "Disconnects the client and removes it from the current clients list."
-  (with-accessors ((socket socket)) client
+  (with-accessors ((socket socket) (thread thread)) client
     (if socket
 	(progn
 	  (enqueue (client-cleanup-queue *server*) thread)
