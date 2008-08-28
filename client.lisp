@@ -156,7 +156,7 @@ Assuming disconnection."))))
   (write-to-client client format-string format-args)
   (if (queue-empty-p (read-lines client))
       (setf (client-continuation client) function)
-      (funcall function (dequeue (read-lines client)))))
+      (funcall function (read-line-from-client client))))
 
 (defun/cc client-y-or-n-p (client string)
   "y-or-n-p that sends the question over to the client."
