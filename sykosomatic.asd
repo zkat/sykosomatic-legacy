@@ -22,7 +22,7 @@
   :maintainer "Kat M <zkat@gmail.com>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, text-adventure engine."
-  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads)
+  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:xmls)
   :components ((:file "packages")
 	       (:file "queue")
 	       (:file "config"
@@ -56,4 +56,6 @@
 		      :depends-on ("server")
 		      :depends-on ("queue"))
 	       (:file "account"
-		      :depends-on ("client"))))
+		      :depends-on ("client"))
+	       (:file "xml-import"
+		      :depends-on ("classes"))))
