@@ -80,10 +80,12 @@
        do
 	 (bordeaux-threads:with-recursive-lock-held ((client-list-lock server))
 	   (loop for client in (clients server)
+		 for stream = (usocket:socket-stream (socket client))
 	      do
 		(handler-case 
 		    (progn
-		      (when (listen (usocket:socket-stream (socket client)))
+		      (when (and (open-stream-p stream)
+				 (listen stream))
 			(update-activity client)
 			(maybe-read-line-from-client client))
 		      (funcall (client-step client)))
