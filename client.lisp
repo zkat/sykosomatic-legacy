@@ -153,9 +153,10 @@ Assuming disconnection."))))
   (dequeue (read-lines client)))
 
 (defun prompt-client-continuation (client function format-string &rest format-args)
-  (prog1 nil
-    (write-to-client client format-string format-args)
-    (setf (client-continuation client) function)))
+  (write-to-client client format-string format-args)
+  (if (queue-empty-p (read-lines client))
+      (setf (client-continuation client) function)
+      (funcall function (dequeue (read-lines client)))))
 
 (defun/cc client-y-or-n-p (client string)
   "y-or-n-p that sends the question over to the client."
