@@ -37,11 +37,6 @@
     :accessor socket
     :initform nil
     :documentation "Socket belonging to this client.")
-   (thread
-    :initarg :thread
-    :accessor thread
-    :initform nil
-    :documentation "Thread where everything related to this client resides.")
    (ip
     :initarg :ip
     :reader ip
@@ -52,6 +47,18 @@
     :initform (get-universal-time)
     :accessor last-active
     :documentation "Time when last input was received from client.")
+   (client-continuation
+    :initform nil
+    :accessor client-continuation)
+   (client-step
+    :initform nil
+    :accessor client-step)
+   (partial-line
+    :initform nil
+    :accessor partial-line)
+   (read-lines
+    :initform (make-empty-queue)
+    :accessor read-lines)
    (account
     :initarg :account
     :accessor account
@@ -80,25 +87,16 @@
     (let ((client (make-instance '<client>
 				 :socket socket
 				 :ip (usocket:get-peer-address socket))))
+      (client-init client)
       (log-message :CLIENT (format nil "New client: ~a" (ip client)))
-      (setf (thread client) 
-	    (bordeaux-threads:make-thread 
-	     (lambda () (handler-case 
-			    (client-main client)
-			  (client-disconnected-error ()
-			    (progn
-			       (log-message :CLIENT "Client disconnected. Terminating.")
-			       (remove-client client))))
-			       :name "sykosomatic-client-main-thread")))
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
 	(push client (clients *server*))))))
 
 (defun disconnect-client (client)
   "Disconnects the client and removes it from the current clients list."
-  (with-accessors ((socket socket) (thread thread)) client
+  (with-accessors ((socket socket)) client
     (if socket
 	(progn
-	  (enqueue (client-cleanup-queue *server*) thread)
 	  (usocket:socket-close socket))
 	(log-message :CLIENT
 		     (format nil 
@@ -108,7 +106,7 @@
 (defun remove-client (client)
   "Removes client from the server's client-list."
   (disconnect-client client)
-  (bordeaux-threads:with-lock-held ((client-list-lock *server*)) 
+  (bordeaux-threads:with-recursive-lock-held ((client-list-lock *server*)) 
     (setf (clients *server*)
 	  (remove client (clients *server*)))))
   
@@ -127,40 +125,52 @@
 
 ;;; Input
 
-(defun read-line-from-client (client)
+(defun maybe-read-line-from-client (client)
   "Grabs a line of input from a client. Takes care of stripping out any unwanted bytes.
 Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
   (handler-case
-      (let* ((stream (usocket:socket-stream (socket client)))
-	     (collected-bytes (loop for b = (read-byte stream)
-				 until (= b (char-code #\Newline))
-				 unless (not (standard-char-p (code-char b)))
-				 collect (code-char b))))
-	(update-activity client)
-	(coerce collected-bytes 'string))
+      (let ((stream (usocket:socket-stream (socket client))))
+	(loop for b = (when (listen stream)
+			(read-byte stream))
+	   do
+	   (cond ((null b)
+		  (return))
+		 ((= b #.(char-code #\Newline))
+		  (enqueue (read-lines client) (coerce
+						(nreverse (partial-line client))
+						'string))
+		  (setf (partial-line client) nil)
+		  (return))
+		 ((standard-char-p (code-char b))
+		  (push (code-char b) (partial-line client))))))
     (end-of-file ()
       (error 'client-disconnected-error :text "End-of-file. Stream disconnected remotely."))
     (simple-error () (error 'client-disconnected-error 
 			    :text "Got a simple error while trying to write to client.
 Assuming disconnection."))))
 
-(defun prompt-client (client format-string &rest format-args)
-  "Prompts a client for input"
-  (write-to-client client format-string format-args)
-  (read-line-from-client client))
+(defun read-line-from-client (client)
+  (dequeue (read-lines client)))
 
-(defun client-y-or-n-p (client string)
+(defun prompt-client-continuation (client function format-string &rest format-args)
+  (prog1 nil
+    (write-to-client client format-string format-args)
+    (setf (client-continuation client) function)))
+
+(defun/cc client-y-or-n-p (client string)
   "y-or-n-p that sends the question over to the client."
   (write-to-client client string)
-  (let ((answer (prompt-client client "(y or n)")))
-    (cond ((string-equal "y" (char answer 0))
-	   t)
-	  ((string-equal "n" (char answer 0))
-	   nil)
-	  (t
-	   (progn
-	     (write-to-client client "Please answer y or n.~%")
-	     (client-y-or-n-p client string))))))
+  (let ((answer (let/cc k
+		  (prompt-client-continuation client k "(y or n)"))))
+    (when answer
+      (cond ((string-equal "y" (char answer 0))
+	     t)
+	    ((string-equal "n" (char answer 0))
+	     nil)
+	    (t
+	     (progn
+	       (write-to-client client "Please answer y or n.~%")
+	       (client-y-or-n-p client string)))))))
 
 ;;; Output
 
@@ -191,27 +201,39 @@ Assuming disconnection."))))
 ;;; Client main
 ;;;
 
-(defun client-main (client)
+
+(defun client-init (client)
   "Main function for clients."
 ;;Keep it simple at first. Grab input, echo something back.
 ;; Later on, allow clients to enter players, and run in the main player loop.
 ;; Then start getting fancy from there.
   (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
-  (loop
-     (client-echo-ast client)))
+  (setf (client-step client) (lambda ()
+			       (if (client-continuation client)
+				   (unless (queue-empty-p (read-lines client))
+				     (funcall (client-continuation client) (read-line-from-client client))
+				     (setf (client-continuation client) nil))
+				   (client-echo-ast client)))))
 
 ;; Temporary
-(defun client-echo-input (client)
-  (let ((input (prompt-client client "~~> ")))
-    (if (string-equal input "quit")
-	(disconnect-client client)
-	(write-to-client client "You wrote: ~a~%~%" input))))
 
-(defun client-echo-ast (client)
-  (let ((input (prompt-client client "~~> ")))
-    (if (string-equal input "quit")
-	(disconnect-client client)
-	(write-to-client client "Parsed AST: ~a~%~%" (parse-string input)))))
+;;; can macroify the pattern (let ((input (let/cc...))) (when input ...))
+
+(defun/cc client-echo-input (client)
+  (let ((input (let/cc k
+		 (prompt-client-continuation k client "~~> "))))
+    (when input
+     (if (string-equal input "quit")
+	 (disconnect-client client)
+	 (write-to-client client "You wrote: ~a~%~%" input)))))
+
+(defun/cc client-echo-ast (client)
+  (let ((input (let/cc k
+		 (prompt-client-continuation client k "~~> "))))
+    (when input
+     (if (string-equal input "quit")
+	 (disconnect-client client)
+	 (write-to-client client "Parsed AST: ~a~%~%" (parse-string input))))))
 
 (defun player-main-loop (client)
   "Main function for playing a character. Subprocedure of client-main"
@@ -223,12 +245,10 @@ Assuming disconnection."))))
 (defvar *test-clients* nil)
 
 (defclass <test-client> ()
-  ((thread
-    :accessor thread
-    :initarg :thread)
-   (socket
+  ((socket
     :accessor socket
-    :initarg :socket)))
+    :initarg :socket)
+   (client-step :accessor client-step)))
 
 (defun spam-server-with-lots-of-clients (num-clients)
   (dotimes (i num-clients)
@@ -238,21 +258,17 @@ Assuming disconnection."))))
   (loop
      for client in *test-clients*
      do (progn
-	  (bordeaux-threads:destroy-thread (thread client))
 	  (usocket:socket-close (socket client)))))
 
 (defun make-and-run-test-client ()
   (let ((test-client (make-instance '<test-client>
 			:socket (usocket:socket-connect 
-				 "dagon.ath.cx" 4000 
+				 "localhost" 4000 
 				 :element-type '(unsigned-byte 8)))))
-    (setf (thread test-client)
-	  (bordeaux-threads:make-thread (lambda ()
-					  (spam-loop test-client))
-					:name "sykosomatic-test-client-thread"))
+    (setf (client-step test-client)
+	  (lambda ()
+	    (spam-loop-step test-client)))
     test-client))
 
-(defun spam-loop (client)
-  (loop
-     (write-to-client client "lucy and the sky with diamonds lalalalalalallalalalalal")
-     (sleep 0.5)))
+(defun spam-loop-step (client)
+  (write-to-client client "lucy and the sky with diamonds lalalalalalallalalalalal"))
