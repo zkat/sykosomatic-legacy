@@ -83,13 +83,14 @@
 	      do
 		(handler-case 
 		    (progn
-		      (maybe-read-line-from-client client)
+		      (when (listen (usocket:socket-stream (socket client)))
+			(update-activity client)
+			(maybe-read-line-from-client client))
 		      (funcall (client-step client)))
 		  (client-disconnected-error ()
 		    (progn
 		      (log-message :CLIENT "Client disconnected. Terminating.")
-		      (remove-client client))))
-		))
+		      (remove-client client))))))
 	 (let ((next-tick (+ (last-tick-time server)
 			     (/ internal-time-units-per-second (ticks-per-second server))))
 	       (now (get-internal-real-time)))
