@@ -162,15 +162,14 @@ Assuming disconnection."))))
   (write-to-client client string)
   (let ((answer (let/cc k
 		  (prompt-client-continuation client k "(y or n)"))))
-    (when answer
-      (cond ((string-equal "y" (char answer 0))
-	     t)
-	    ((string-equal "n" (char answer 0))
-	     nil)
-	    (t
-	     (progn
-	       (write-to-client client "Please answer y or n.~%")
-	       (client-y-or-n-p client string)))))))
+    (cond ((string-equal "y" (char answer 0))
+	   t)
+	  ((string-equal "n" (char answer 0))
+	   nil)
+	  (t
+	   (progn
+	     (write-to-client client "Please answer y or n.~%")
+	     (client-y-or-n-p client string))))))
 
 ;;; Output
 
@@ -217,23 +216,20 @@ Assuming disconnection."))))
 
 ;; Temporary
 
-;;; can macroify the pattern (let ((input (let/cc...))) (when input ...))
 
 (defun/cc client-echo-input (client)
   (let ((input (let/cc k
 		 (prompt-client-continuation k client "~~> "))))
-    (when input
-     (if (string-equal input "quit")
-	 (disconnect-client client)
-	 (write-to-client client "You wrote: ~a~%~%" input)))))
+    (if (string-equal input "quit")
+	(disconnect-client client)
+	(write-to-client client "You wrote: ~a~%~%" input))))
 
 (defun/cc client-echo-ast (client)
   (let ((input (let/cc k
 		 (prompt-client-continuation client k "~~> "))))
-    (when input
-     (if (string-equal input "quit")
-	 (disconnect-client client)
-	 (write-to-client client "Parsed AST: ~a~%~%" (parse-string input))))))
+    (if (string-equal input "quit")
+	(disconnect-client client)
+	(write-to-client client "Parsed AST: ~a~%~%" (parse-string input)))))
 
 (defun player-main-loop (client)
   "Main function for playing a character. Subprocedure of client-main"
