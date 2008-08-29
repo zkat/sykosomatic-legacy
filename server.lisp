@@ -43,7 +43,7 @@
    (client-list-lock
     :accessor client-list-lock
     :initarg :client-list-lock
-    :initform (bordeaux-threads:make-lock "client-list-lock")
+    :initform (bordeaux-threads:make-recursive-lock "client-list-lock")
     :documentation "Locks access to the clients list.")
    (client-cleanup-queue
     :accessor client-cleanup-queue
