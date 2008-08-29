@@ -124,7 +124,7 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 		     (t
 		      (list verb rest-of-predicate adverbs nil))))))
 	  (t
-	   (format nil "Unknown verb: '~a'~%" (car token-list))))))
+	   (format nil "Unknown verb: '~a'" (car token-list))))))
 
 (defun parse-rest-of-predicate (token-list)
   "Generates the REST-OF-PREDICATE list."
