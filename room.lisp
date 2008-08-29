@@ -52,8 +52,8 @@
     :accessor exits
     :documentation "Contains an assoc list of <exit> objects that refer to the next room.")))
 
-(defmacro make-room (&key name desc desc-long features)
-  `(make-instance '<room> :name ,name :desc ,desc :desc-long ,desc-long :features ,features))
+(defun make-room (&key name desc desc-long features)
+  (make-instance '<room> :name name :desc desc :desc-long desc-long :features features))
 
 (defclass <door> (<game-object>)
   ((name
@@ -74,6 +74,10 @@
     :accessor next-room
     :documentation "Room object this exit points to")))
 
+(defun make-door (&key name desc desc-long features next-room)
+  (make-instance '<door> 
+		 :name name :desc desc :desc-long desc-long 
+		 :features features :next-room next-room))
 ;;;
 ;;; Room generation
 ;;;
@@ -81,7 +85,7 @@
 ;;There is a semi-dupe of this called new-player
 (defun new-room ()
   "Returns a new ROOM after initializing the <ROOM> object"
-  (let ((room (make-instance '<room>)))
+  (let ((room (make-room)))
     (with-accessors ((name name)) room
       (setf name (format nil "Room #~a" (room-id room))))
     room))
@@ -117,12 +121,14 @@
 (defun set-exit (from-room to-room direction)
   "Creates an EXIT that leads FROM-ROOM TO-ROOM in DIRECTION. NOT REFLEXIVE."
   (if (not (assoc direction (exits from-room) :test #'string-equal))
-      (let ((door (make-instance '<door> :next-room to-room)))
+      (let ((door (make-door :next-room to-room)))
 	(pushnew (cons direction door) (exits from-room)))
       (let ((door (cdr (assoc direction (exits from-room) :test #'string-equal))))
 	(setf (next-room door) to-room))))
 
-;; TODO
+;; TODO - Although I don't think I can/should do this is a sane manner, because of how
+;;        sykosomatic handles directional movement.
+;;
 ;; (defun reflexive-set-exit (from-room to-room direction)
 ;;   "Manages exit creation. Mirrors the creation in the other room."
 ;;   nil)

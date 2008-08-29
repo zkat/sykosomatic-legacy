@@ -33,9 +33,6 @@
 		      :depends-on ("config"))
 	       (:file "classes"
 		      :depends-on ("packages"))
-	       (:file "player"
-		      :depends-on ("classes")
-		      :depends-on ("db"))
 	       (:file "room"
 		      :depends-on ("classes")
 		      :depends-on ("db"))
@@ -55,5 +52,9 @@
 		      :depends-on ("game")
 		      :depends-on ("server")
 		      :depends-on ("queue"))
+	       (:file "player"
+		      :depends-on ("classes")
+		      :depends-on ("db")
+		      :depends-on ("client"))
 	       (:file "account"
 		      :depends-on ("client"))))
