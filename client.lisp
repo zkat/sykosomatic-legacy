@@ -172,6 +172,10 @@ Assuming disconnection."))))
 	     (write-to-client client "Please answer y or n.~%")
 	     (client-y-or-n-p client string))))))
 
+;; test client-y-or-n-p by printing the return value to the console when it's received
+(defun/cc print-client-y-or-n-p (client string)
+  (print (client-y-or-n-p client string)))
+
 ;;; Output
 
 (defun write-to-all-clients (format-string &rest format-args)
