@@ -68,7 +68,10 @@
     :initarg :avatar
     :accessor avatar
     :initform nil
-    :documentation "The character linked to this client session.")))
+    :documentation "The character linked to this client session."))
+  (:documentation "Contains basic information about the current client like the connected socket,
+the client's IP address, last activity time, associated account (if any), and associated avatar (if 
+any). Also contains several slots that handle asynchronous client i/o."))
 
 ;; TODO
 ;; (defun make-client ()
@@ -79,7 +82,8 @@
 ;;;
 
 (define-condition client-disconnected-error (error)
-  ((text :initarg :text :reader text)))
+  ((text :initarg :text :reader text))
+  (:documentation "Called whenever it's assumed that the client is disconnected."))
 
 (defun connect-new-client ()
   "Connects a new client to the main server."
@@ -150,9 +154,11 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
 Assuming disconnection."))))
 
 (defun read-line-from-client (client)
+  "Reads a single line of input from a client (delimited by a newline)."
   (dequeue (read-lines client)))
 
 (defun prompt-client-continuation (client function format-string &rest format-args)
+  "Continuation used for prompting a client for input."
   (write-to-client client format-string format-args)
   (if (queue-empty-p (read-lines client))
       (setf (client-continuation client) function)
@@ -207,7 +213,7 @@ Assuming disconnection."))))
 ;;Keep it simple at first. Grab input, echo something back.
 ;; Later on, allow clients to enter players, and run in the main player loop.
 ;; Then start getting fancy from there.
-  (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
+  (write-to-client client "Hello, welcome to SykoSoMaTIC~%~%")
   (setf (client-step client) (lambda ()
 			       (if (client-continuation client)
 				   (unless (queue-empty-p (read-lines client))
@@ -219,6 +225,7 @@ Assuming disconnection."))))
 
 
 (defun/cc client-echo-input (client)
+  "Prompts client for input, and echoes back whatever client wrote."
   (let ((input (let/cc k
 		 (prompt-client-continuation k client "~~> "))))
     (if (string-equal input "quit")
@@ -226,11 +233,12 @@ Assuming disconnection."))))
 	(write-to-client client "You wrote: ~a~%~%" input))))
 
 (defun/cc client-echo-ast (client)
+  "Prompts client for input and sends the client the AST the parser generated based on input."
   (let ((input (let/cc k
 		 (prompt-client-continuation client k "~~> "))))
     (if (string-equal input "quit")
 	(disconnect-client client)
-	(write-to-client client "Parsed AST: ~a~%~%" (parse-string input)))))
+	(write-to-client client "Parsed AST: ~a~%~&" (parse-string input)))))
 
 (defun player-main-loop (client)
   "Main function for playing a character. Subprocedure of client-main"
@@ -239,6 +247,7 @@ Assuming disconnection."))))
 ;;;
 ;;; Evil stress-test of doom
 ;;;
+
 (defvar *test-clients* nil)
 
 (defclass <test-client> ()
@@ -268,4 +277,4 @@ Assuming disconnection."))))
     test-client))
 
 (defun spam-loop-step (client)
-  (write-to-client client "look with my eyes at the noob with the funny hat 'hahaha noob"))
+  (write-to-client client "look with my eyes at the guy with the funny hat 'hahaha noob"))
