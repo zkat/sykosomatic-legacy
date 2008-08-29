@@ -205,6 +205,16 @@ Assuming disconnection."))))
 ;;; Client main
 ;;;
 
+(defun make-client-step-with-continuations (client function)
+  "Wrap some CPS transformed function of one argument (client) handling client IO with continuation handler."
+  (lambda ()
+    (if (client-continuation client)
+	(unless (queue-empty-p (read-lines client))
+	  (let ((client-continuation (client-continuation client)))
+	    (setf (client-continuation client) nil)
+	    (funcall client-continuation (read-line-from-client client))))
+	(funcall function client))))
+
 
 (defun client-init (client)
   "Main function for clients."
@@ -212,13 +222,7 @@ Assuming disconnection."))))
 ;; Later on, allow clients to enter players, and run in the main player loop.
 ;; Then start getting fancy from there.
   (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
-  (setf (client-step client) (lambda ()
-			       (if (client-continuation client)
-				   (unless (queue-empty-p (read-lines client))
-				     (let ((client-continuation (client-continuation client)))
-				       (setf (client-continuation client) nil)
-				       (funcall client-continuation (read-line-from-client client))))
-				   (client-echo-ast client)))))
+  (setf (client-step client) (make-client-step-with-continuations client #'client-echo-ast)))
 
 ;; Temporary
 
