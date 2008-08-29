@@ -43,15 +43,15 @@
     :documentation "The <client> currently associated with this <player>")))
 
 ;; TODO - Why is this a macro?...
-(defmacro make-player (&key name desc desc-long features) 
-  `(make-instance '<player> :name ,name :desc ,desc :desc-long ,desc-long :features ,features))   
+(defun make-player (&key name desc desc-long features) 
+  (make-instance '<player> :name name :desc desc :desc-long desc-long :features features))
 
 ;;;
 ;;; Player generation
 ;;;
 (defun new-player ()
   "RETURNS a new PLAYER after initializing the <player> object"
-  (let ((player (make-instance '<player>)))
+  (let ((player (make-player)))
     (with-accessors ((name name)) player
       (setf name (format nil "Player~d" (player-id player))))
     player))
@@ -73,6 +73,26 @@
   "Returns T if a given OBJ is an instance of <PLAYER>."
   (eq (class-name (class-of obj))
       '<player>))
+
+;;;
+;;; Player functions
+;;;
+
+(defun write-to-player (player format-string &rest format-args)
+  "Sends output to a player."
+  (let ((player-client (current-client player)))
+    (apply #'write-to-client player-client format-string format-args)))
+
+(defun write-to-others-in-room (player format-string &rest format-args)
+  "Sends output to everyone in PLAYER'S room except to PLAYER."
+  ;; UNTESTED AS OF YET.
+  (let* ((players (get-players (location player)))
+	 (others (remove player players)))
+    (apply #'write-to-player others format-string format-args)))
+
+(defun disconnect-player (player)
+  "Disconnects the given player from the game."
+  (disconnect-client (current-client player)))
 
 ;;;
 ;;; Load/Save
