@@ -17,5 +17,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defpackage #:sykosomatic
-  (:use :cl :cl-store)
+  (:use :cl :cl-store :cl-cont)
   (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held))

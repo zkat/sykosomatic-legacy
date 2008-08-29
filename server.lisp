@@ -28,7 +28,10 @@
 ;;;
 
 (defclass <server> ()
-  ((socket
+  ((stop-server-p
+    :accessor stop-server-p
+    :initform nil)
+   (socket
     :accessor socket
     :initarg :socket
     :initform nil
@@ -49,16 +52,54 @@
    (connection-thread
     :accessor connection-thread
     :initarg :connection-thread
-    :documentation "Thread that runs the function to connect new clients.")))
+    :documentation "Thread that runs the function to connect new clients.")
+   (clients-thread
+    :accessor clients-thread)
+   (ticks-per-second
+    :initform 30
+    :accessor ticks-per-second)
+   (last-tick-time
+    :initform (get-internal-real-time)
+    :accessor last-tick-time)))
 
 
 ;;;
 ;;; Init/Destruct
 ;;;
 
-(defvar *default-server-address* "0.0.0.0")
+(defvar *default-server-address* "localhost")
 (defvar *default-server-port* 4000)
 (defvar *server* nil)
+
+;;; Clients thread
+
+(defun make-clients-thread (server)
+  (lambda ()
+    (loop
+       until (stop-server-p server)
+       do
+	 (bordeaux-threads:with-recursive-lock-held ((client-list-lock server))
+	   (loop for client in (clients server)
+		 for stream = (usocket:socket-stream (socket client))
+	      do
+		(handler-case 
+		    (progn
+		      (when (and (open-stream-p stream)
+				 (listen stream))
+			(update-activity client)
+			(maybe-read-line-from-client client))
+		      (funcall (client-step client)))
+		  (client-disconnected-error ()
+		    (progn
+		      (log-message :CLIENT "Client disconnected. Terminating.")
+		      (remove-client client))))))
+	 (let ((next-tick (+ (last-tick-time server)
+			     (/ internal-time-units-per-second (ticks-per-second server))))
+	       (now (get-internal-real-time)))
+	   (setf (last-tick-time server) now)
+	   (when (> next-tick now)
+	     (sleep (/ (- next-tick now)
+		       internal-time-units-per-second)))))))
 
 ;;; Start
 
@@ -77,6 +118,8 @@
 			   (sb-bsd-sockets:not-connected-error ()
 			     (log-message :HAX "Got a not-connected-error. Meh.")))))
 	   :name "sykosomatic-server-connection-thread"))
+    (setf (clients-thread *server*)
+	  (bordeaux-threads:make-thread (make-clients-thread *server*)))
     (log-message :SERVER "Server started successfully.")))
 
 ;;; Stop
@@ -86,6 +129,7 @@
   (if (not *server*)
       (log-message :SERVER "Tried to stop server, but no server running.")
       (progn
+	(setf (stop-server-p *server*) t)
 	(log-message :SERVER "Stopping server...")
 	(remove-all-clients)
 	(destroy-connection-thread)
@@ -93,20 +137,12 @@
 	(setf *server* nil)
 	(log-message :SERVER "Server stopped."))))
 
-(defun cleanup-threads (&optional (server *server*))
-  "Destroys threads that are queue for destruction. Removes them from that queue."
-  (log-message :SERVER "Cleaning up disconnected client threads.")
-  (loop for thread = (dequeue (client-cleanup-queue server) nil)
-       unless (not thread)
-       do (bordeaux-threads:destroy-thread thread)))
-
 (defun remove-all-clients ()
   "Disconnects and removes all clients from the current server."
   (if (clients *server*)
       (progn
 	(log-message :SERVER "Disposing of clients.")
 	(mapcar #'remove-client (clients *server*))
-	(cleanup-threads)
 	(log-message :SERVER "Clients removed."))
       (log-message :SERVER "No clients to remove. Continuing.")))
 
@@ -118,4 +154,3 @@
 	(bordeaux-threads:destroy-thread (connection-thread *server*))
 	(log-message :SERVER "Connection thread successfully shut down."))
       (log-message :SERVER "No thread running, skipping...")))
-
