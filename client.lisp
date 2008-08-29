@@ -215,8 +215,9 @@ Assuming disconnection."))))
   (setf (client-step client) (lambda ()
 			       (if (client-continuation client)
 				   (unless (queue-empty-p (read-lines client))
-				     (funcall (client-continuation client) (read-line-from-client client))
-				     (setf (client-continuation client) nil))
+				     (let ((client-continuation (client-continuation client)))
+				       (setf (client-continuation client) nil)
+				       (funcall client-continuation (read-line-from-client client))))
 				   (client-echo-ast client)))))
 
 ;; Temporary
