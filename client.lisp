@@ -152,17 +152,17 @@ Assuming disconnection."))))
 (defun read-line-from-client (client)
   (dequeue (read-lines client)))
 
-(defun prompt-client-continuation (client function format-string &rest format-args)
+(defun/cc prompt-client (client format-string &rest format-args)
   (write-to-client client format-string format-args)
   (if (queue-empty-p (read-lines client))
-      (setf (client-continuation client) function)
-      (funcall function (read-line-from-client client))))
+      (let/cc k
+	(setf (client-continuation client) k))
+      (read-line-from-client client)))
 
 (defun/cc client-y-or-n-p (client string)
   "y-or-n-p that sends the question over to the client."
   (write-to-client client string)
-  (let ((answer (let/cc k
-		  (prompt-client-continuation client k "(y or n)"))))
+  (let ((answer (prompt-client client "(y or n)")))
     (cond ((string-equal "y" (char answer 0))
 	   t)
 	  ((string-equal "n" (char answer 0))
@@ -219,15 +219,13 @@ Assuming disconnection."))))
 
 
 (defun/cc client-echo-input (client)
-  (let ((input (let/cc k
-		 (prompt-client-continuation k client "~~> "))))
+  (let ((input (prompt-client client "~~> ")))
     (if (string-equal input "quit")
 	(disconnect-client client)
 	(write-to-client client "You wrote: ~a~%~%" input))))
 
 (defun/cc client-echo-ast (client)
-  (let ((input (let/cc k
-		 (prompt-client-continuation client k "~~> "))))
+  (let ((input (prompt-client client "~~> ")))
     (if (string-equal input "quit")
 	(disconnect-client client)
 	(write-to-client client "Parsed AST: ~a~%~%" (parse-string input)))))
