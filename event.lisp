@@ -47,6 +47,9 @@
 ;;; Event processing
 ;;;
 
+;; (defun process-event ()
+ 
+;; )
 (defun execute-event (event)
   "Executes an event."
   (funcall (payload event)))

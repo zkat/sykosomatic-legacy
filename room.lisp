@@ -39,15 +39,7 @@
 ;;;
 
 (defclass <room> (<game-object>)
-  ((name
-    :initform "A room without a name")
-   (desc
-    :initform "A room without a description"
-    :documentation "A description of this room, in string format")
-   (desc-long
-    :initform "A room without a long description"
-    :documentation "Long, detailed description of the room")
-   (contents
+  ((contents
     :initarg :contents
     :initform nil
     :accessor contents
@@ -62,16 +54,14 @@
     :accessor exits
     :documentation "Contains an assoc list of <exit> objects that refer to the next room.")))
 
-(defun make-room (&key name desc desc-long features)
+(defun make-room (&key (name "NoRoomName") (desc "") (desc-long "") features)
   "Simple constructor function for creating a room."
   (make-instance '<room> 
 		 :name name :desc desc 
 		 :desc-long desc-long :features features))
 
 (defclass <door> (<game-object>)
-  ((name
-    :initform "A door")
-   (open-p
+  ((open-p
     :initarg :open-p
     :initform t
     :accessor open-p
@@ -87,30 +77,23 @@
     :accessor next-room
     :documentation "Room object this exit points to")))
 
-(defun make-door (&key name desc desc-long features next-room)
+(defun make-door (&key (name "door") (desc "") (desc-long "") features next-room)
+  "Standard constructor for <door> objects."
   (make-instance '<door> 
 		 :name name :desc desc :desc-long desc-long 
 		 :features features :next-room next-room))
+
 ;;;
 ;;; Room generation
 ;;;
 
-;;There is a semi-dupe of this called new-player
-(defun new-room ()
-  "Returns a new ROOM after initializing the <ROOM> object"
-  (let ((room (make-room)))
-    (setf (name room)
-	    (format nil "Room #~a" (room-id room)))
-    room))
-
 (defun make-rooms-from-file (file)
-  "Generates a room from a raw text FILE."
+  "Generates rooms from a raw text FILE. Returns a list with all the generated rooms."
   (let ((rooms (with-open-file (in file)
 		  (loop for line = (read in nil)
 		     while line
 		     collect line))))
-    (loop for room in rooms
-	 collect (eval room))))
+    (mapcar #'eval rooms)))
 
 ;;;
 ;;; Info
@@ -122,33 +105,14 @@
 ;;; Room manipulation
 ;;;
 
+;; NOTE: There should be something like a reflexive set-exit.
 (defun set-exit (from-room to-room direction)
-  "Creates an EXIT that leads FROM-ROOM TO-ROOM in DIRECTION. NOT REFLEXIVE."
+  ;;FIXME: This is still doing too much.
+  "Checks if there is already an EXIT in DIRECTION, then creates an exit leading to TO-ROOM."
   (if (assoc direction (exits from-room) :test #'string-equal)
-      ;; just change the room the existing exit goes to..
-      (let ((door (cdr (assoc direction (exits from-room) :test #'string-equal))))
-	(setf (next-room door) to-room))
-      ;; else, make a brand-new exit.
+      (error "Room already exists in that direction.")
       (let ((door (make-door :next-room to-room)))
 	(pushnew (cons direction door) (exits from-room)))))
-
-;; TODO - Although I don't think I can/should do this is a sane manner, because of how
-;;        sykosomatic handles directional movement.
-;;
-;; (defun reflexive-set-exit (from-room to-room direction)
-;;   "Manages exit creation. Mirrors the creation in the other room."
-;;   nil)
-
-(defgeneric put-entity (entity room)
-  (:documentation "Changes where ENTITY is, taking care of any room-contents juggling."))
-
-(defmethod put-entity ((entity <entity>) room) ; This should also make sure that the room where
-  "Sets the LOCATION of ENTITY to ROOM."       ; <entity> currently resides has its CONTENTS
-  (let ((old-room (location entity))
-	(new-room room))
-    (setf (location entity) new-room)
-    (pushnew entity (contents new-room))
-    (setf (contents old-room) (remove entity (contents old-room)))))
 
 ;;;
 ;;; Load/Save
@@ -163,26 +127,36 @@
 			 path))))
 
 (defun save-rooms ()
+  "Saves all rooms in *rooms* to individual files in *rooms-directory*"
   (obj-list->files-in-dir *rooms* *rooms-directory*))
 
 ;;; Loading
 
 (defun restore-max-room-id ()
-  "Loads the highest room-id."
+  "Loads the highest room-id. Uses existing rooms to find it."
   (setf *max-room-id*
 	(apply #'max
 	       (mapcar #'room-id *rooms*))))
 
 (defun load-rooms ()
-  (setf *rooms* (files-in-path->obj-list *rooms-directory* "room")))
+  "Loads saved rooms into the *rooms* list."
+  (setf *rooms* (files-in-path->obj-list *rooms-directory* "room"))
+  (restore-max-room-id))
 
 ;;; Testing
 
-(defun reset-room-ids ()
-  (setf *room-ids* 0))
+(defun new-test-room ()
+  "Returns a new ROOM with its room-id in its name."
+  (let ((room (make-room)))
+    (setf (name room) (format nil "Room #~a" (room-id room)))
+    room))
+
+(defun reset-max-room-id ()
+  "Sets the highest room-id to 0."
+  (setf *max-room-id* 0))
 
 (defun generate-test-rooms (num-rooms)
-  "Returns a LIST containing NUM-ROOMS instances of <room>."
+  "Returns a LIST containing NUM-ROOMS generic instances of <room>."
   (loop
      for i upto (1- num-rooms)
      collect (new-room)))
