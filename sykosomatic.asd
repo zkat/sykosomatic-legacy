@@ -21,39 +21,43 @@
   :version "nil"
   :maintainer "Kat M <zkat@gmail.com>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
-  :long-description "A heavily-extensible, simple, text-adventure engine."
+  :long-description "A heavily-extensible, simple, powerful text-adventure engine."
   :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:cl-cont)
   :components ((:file "packages")
 	       (:file "queue")
+	       (:file "event")
+	       (:file "event-queue")
 	       (:file "config"
 		      :depends-on ("packages"))
+	       ;;server/client
 	       (:file "logger"
 		      :depends-on ("config"))
-	       (:file "db"
-		      :depends-on ("config"))
-	       (:file "classes"
-		      :depends-on ("packages"))
-	       (:file "player"
-		      :depends-on ("classes")
-		      :depends-on ("db"))
-	       (:file "room"
-		      :depends-on ("classes")
-		      :depends-on ("db"))
-	       (:file "parser"
-		      :depends-on ("packages")
-		      :depends-on ("db"))
-	       (:file "commands"
-		      :depends-on ("db")
-		      :depends-on ("player")
-		      :depends-on ("room"))
-	       (:file "game"
-		      :depends-on ("parser"))
 	       (:file "server"
-		      :depends-on ("game")
 		      :depends-on ("queue"))
 	       (:file "client"
-		      :depends-on ("game")
-		      :depends-on ("server")
-		      :depends-on ("queue"))
+		      :depends-on ("server" "queue" "event-queue"))
 	       (:file "account"
-		      :depends-on ("client"))))
+		      :depends-on ("client"))
+	       ;;game-object stuff
+	       (:file "game-object"
+		      :depends-on ("config"))
+	       (:file "mobile"
+		      :depends-on ("game-object"))
+	       (:file "item"
+		      :depends-on ("game-object"))
+	       (:file "room"
+		      :depends-on ("game-object"))
+	       (:file "player"
+		      :depends-on ("mobile" "client"))
+	       ;;parser/vocab stuff
+	       (:file "vocabulary"
+		      :depends-on ("config"))
+	       (:file "parser"
+		      :depends-on ("vocabulary"))
+	       (:file "binder"
+		      :depends-on ("parser" "game-object" "player" "room"))
+	       (:file "commands"
+		      :depends-on ("binder"))
+	       ;; main?
+	       (:file "game"
+		      :depends-on ("commands"))))

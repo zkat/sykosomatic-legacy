@@ -24,6 +24,16 @@
 (in-package :sykosomatic)
 
 ;;;
+;;; Player vars
+;;;
+
+(defvar *players* nil
+  "List of existing players. Nice as a backup of the ones existing in accounts.")
+
+(defvar *max-player-id* 0
+  "Contains the highest available player-id")
+
+;;;
 ;;; Player class
 ;;;
 (defclass <player> (<mobile>)
@@ -33,7 +43,7 @@
     :initform "This is a player. It is quite handsome. ;)")
    (player-id
     :initarg :player-id
-    :initform (incf *player-ids*)
+    :initform (incf *max-player-id*)
     :reader player-id
     :documentation "A unique player id.")
    (current-client
@@ -42,16 +52,18 @@
     :accessor current-client
     :documentation "The <client> currently associated with this <player>")))
 
-;; TODO - Why is this a macro?...
-(defmacro make-player (&key name desc desc-long features) 
-  `(make-instance '<player> :name ,name :desc ,desc :desc-long ,desc-long :features ,features))   
+(defun make-player (&key name desc desc-long features)
+  "Constructor function to create a player."
+  (make-instance '<player> 
+		 :name name :desc desc 
+		 :desc-long desc-long :features features))
 
 ;;;
 ;;; Player generation
 ;;;
 (defun new-player ()
   "RETURNS a new PLAYER after initializing the <player> object"
-  (let ((player (make-instance '<player>)))
+  (let ((player (make-player)))
     (with-accessors ((name name)) player
       (setf name (format nil "Player~d" (player-id player))))
     player))
@@ -74,12 +86,68 @@
   (eq (class-name (class-of obj))
       '<player>))
 
+(defun whereis (entity) ;does this belong here?
+  "Pretty-prints the NAME of the LOCATION of the ENTITY"
+  (let ((loc (location entity)) (entity (name entity)))
+    (format t "~a is in ~a" entity (name loc))
+    loc))
+
+(defun get-players (room) ;what about this?...
+  "Fetches a list of players currently in ROOM."
+  (with-accessors ((contents contents)) room
+    (mapcar #'player-p contents)))
+
+;;;
+;;; Player functions
+;;;
+(defun write-to-player (player format-string &rest format-args)
+  "Sends output to a player."
+  (let ((player-client (current-client player)))
+    (apply #'write-to-client player-client format-string format-args)))
+
+(defun write-to-others-in-room (player format-string &rest format-args)
+  "Sends output to everyone in PLAYER'S room except to PLAYER."
+  ;; UNTESTED AS OF YET.
+  (let* ((all-players (get-players (location player)))
+	 (others (remove player all-players)))
+    (apply #'write-to-player others format-string format-args)))
+
+(defun disconnect-player (player)
+  "Disconnects the given player from the game."
+  (disconnect-client (current-client player))
+  (setf (current-client player) nil))
+
 ;;;
 ;;; Load/Save
 ;;;
 
+;;; Save
 (defmethod obj->file ((player <player>) path)
   (cl-store:store player (ensure-directories-exist
 			  (merge-pathnames
 			   (format nil "player-~a.player" (player-id player))
 			   path))))
+
+(defun save-players ()
+  (obj-list->files-in-dir *players* *players-directory*))
+
+;;; Load
+(defun restore-max-player-id ()
+  "Loads the highest player-id."
+  (setf *max-player-id* 
+	(apply #'max 
+	       (mapcar #'player-id *players*))))
+
+(defun load-players ()
+  (setf *players* (files-in-path->obj-list *players-directory* "player")))
+
+;;; Testing
+
+(defun reset-player-ids ()
+  (setf *player-ids* 0))
+
+(defun generate-test-players (num-players)
+  "Returns a LIST containing NUM-PLAYERS instances of <player>."
+  (loop 
+     for i upto (1- num-players)
+     collect (new-player)))
