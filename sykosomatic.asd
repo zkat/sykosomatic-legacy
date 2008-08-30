@@ -29,31 +29,35 @@
 	       (:file "event-queue")
 	       (:file "config"
 		      :depends-on ("packages"))
-	       (:file "vocabulary"
-		      :depends-on ("config"))
+	       ;;server/client
 	       (:file "logger"
 		      :depends-on ("config"))
+	       (:file "server"
+		      :depends-on ("queue"))
+	       (:file "client"
+		      :depends-on ("server" "queue" "event-queue"))
+	       (:file "account"
+		      :depends-on ("client"))
+	       ;;game-object stuff
 	       (:file "game-object"
 		      :depends-on ("config"))
 	       (:file "mobile"
 		      :depends-on ("game-object"))
 	       (:file "item"
 		      :depends-on ("game-object"))
-	       (:file "parser"
-		      :depends-on ("packages" "vocabulary"))
-	       (:file "binder"
-		      :depends-on ("db" "player" "room" "parser"))
-	       (:file "commands"
-		      :depends-on ("binder"))
-	       (:file "game"
-		      :depends-on ("commands"))
-	       (:file "server"
-		      :depends-on ("queue"))
-	       (:file "client"
-		      :depends-on ("server" "queue" "event-queue"))
 	       (:file "room"
 		      :depends-on ("game-object"))
 	       (:file "player"
 		      :depends-on ("mobile" "client"))
-	       (:file "account"
-		      :depends-on ("client"))))
+	       ;;parser/vocab stuff
+	       (:file "vocabulary"
+		      :depends-on ("config"))
+	       (:file "parser"
+		      :depends-on ("vocabulary"))
+	       (:file "binder"
+		      :depends-on ("parser" "game-object" "player" "room"))
+	       (:file "commands"
+		      :depends-on ("binder"))
+	       ;; main?
+	       (:file "game"
+		      :depends-on ("commands"))))
