@@ -15,18 +15,17 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; classes.lisp
+;; game-object.lisp
 ;;
-;; This file contains some basic, general classes that don't particularly go anywhere else (yet)
+;; Contains the base game-object class, and some relevant low-level functions
+;; for dealing with objects.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
 
 ;;;
-;;; General Classes
+;;; Base Game Object
 ;;;
-
-;;
 (defclass <game-object> ()
   ((name
     :initarg :name
@@ -56,7 +55,7 @@
     :documentation "A list of OBJECTS that add more little details, all targetable :3"))
   (:documentation "Master game object. Contains base capabilities of all other objects in the game."))
 
-;; 'stuff'
+;; putting this here for now. It could go into its own little file eventually
 (defclass <entity> (<game-object>)
   ((location
     :initarg :location
@@ -74,44 +73,43 @@
     :accessor hp))
   (:documentation "'Stuff' in general."))
 
-(defclass <item> (<entity>)
-  ((equippable
-    :initarg :equip-p
-    :initform nil
-    :accessor equip-p
-    :documentation "Can item be equipped?")
-   (moveable
-    :initarg :moveable
-    :initform t
-    :accessor moveable-p
-    :documentation "Is this object movable? If nil, player cannot pick up")
-   (effects
-    :initarg :effects
-    :accessor effects
-    :documentation "Any special effects of the item"))
-  (:documentation "Master class for items."))
+;;;
+;;; Load/Save
+;;;
 
-(defclass <mobile> (<entity>)
-  ((species
-    :initarg :species
-    :accessor species
-    :documentation "Mobile's species")
-   (killcount
-    :initform 0
-    :documentation "MURDER! DESTROY! BARSH!")
-   (level
-    :initarg :level
-    :initform 1
-    :accessor level
-    :documentation "Power level (must be less than 9000)")
-   (skills
-    :initarg :skills
-    :initform nil
-    :accessor skills
-    :documentation "A list of skills belonging to mobile")
-   (inventory
-    :initarg :inventory
-    :initform nil
-    :accessor inventory
-    :documentation "A list of items in the player's possession"))
-  (:documentation "Living things."))
+;;; Save
+
+(defgeneric obj->file (obj path)
+  (:documentation "Saves OBJECT to a file within PATH."))
+
+(defun obj-list->files-in-dir (obj-list path)
+  "Saves all OBJECTS in OBJECT-LIST into files within PATH"
+  (loop for obj in obj-list
+       do (obj->file obj path)))
+
+(defun save-objects ()
+  (save-players)
+  (save-player-ids)
+  (save-rooms)
+  (save-room-ids)
+  (format t "I think everything got saved. Hopefully, it did..."))
+
+;;; Load
+
+(defun file->obj (filepath)
+  "Takes the FILEPATH of a file, returns the OBJECT it represents."
+  (cl-store:restore filepath))
+
+(defun files-in-path->obj-list (path file-extension)
+  "Takes -all- files in PATH and collects them into a LIST of OBJECTS."
+  (let ((files (directory (merge-pathnames (format nil "*.~a" file-extension) path))))
+    (loop for file in files
+	 collect (cl-store:restore file))))
+
+(defun load-objects ()
+  (load-players)
+  (load-player-ids)
+  (load-rooms)
+  (load-room-ids)
+  (format t "Apparently, everything got loaded."))
+

@@ -25,6 +25,15 @@
 (in-package :sykosomatic)
 
 ;;;
+;;; Account vars
+;;;
+
+(defvar *accounts* (make-hash-table :test #'equalp)
+  "Hash table holding all existing accounts.")
+
+(defvar *max-account-id* 0)
+
+;;;
 ;;; Account class
 ;;;
 (defclass <account> ()
@@ -57,10 +66,9 @@
     :initform nil
     :documentation "All IPs this account has been known no use.")))
 
-;; TODO
-;; (defun make-account ()
-;;   )
-
+(defun make-account (&key username password)
+  "Generic constructor"
+  (make-instance '<account> :username username :password password))
 
 ;;;
 ;;; Account Login
@@ -90,7 +98,7 @@
 	(progn
 	  (write-to-client client "~&Invalid username, please try again.")
 	  (prompt-username client)))))
-
+ 
 (defun validate-login (client account)
   "Prompts the user for a password, and validates the login."
   (let ((password (prompt-client client "~&Password: ")))

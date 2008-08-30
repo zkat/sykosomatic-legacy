@@ -183,7 +183,7 @@ Assuming disconnection."))))
 (defun write-to-all-clients (format-string &rest format-args)
   "Sends a given string to all connected clients."
   (with-accessors ((clients clients)) *server*
-     (mapcar #'(lambda (client) (apply #'write-to-client client format-string format-args)) clients)))
+    (mapcar #'(lambda (client) (apply #'write-to-client client format-string format-args)) clients)))
 
 (defun write-to-client (client format-string &rest format-args)
   "Sends a given STRING to a particular client."
@@ -207,7 +207,6 @@ Assuming disconnection."))))
 ;;; Client main
 ;;;
 
-
 (defun client-init (client)
   "Main function for clients."
 ;;Keep it simple at first. Grab input, echo something back.
@@ -222,7 +221,6 @@ Assuming disconnection."))))
 				   (client-echo-ast client)))))
 
 ;; Temporary
-
 
 (defun/cc client-echo-input (client)
   "Prompts client for input, and echoes back whatever client wrote."
@@ -239,10 +237,6 @@ Assuming disconnection."))))
     (if (string-equal input "quit")
 	(disconnect-client client)
 	(write-to-client client "Parsed AST: ~a~%~&" (parse-string input)))))
-
-(defun player-main-loop (client)
-  "Main function for playing a character. Subprocedure of client-main"
-  t)
 
 ;;;
 ;;; Evil stress-test of doom
