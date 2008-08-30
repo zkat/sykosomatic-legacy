@@ -21,40 +21,39 @@
   :version "nil"
   :maintainer "Kat M <zkat@gmail.com>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
-  :long-description "A heavily-extensible, simple, text-adventure engine."
+  :long-description "A heavily-extensible, simple, powerful text-adventure engine."
   :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:cl-cont)
   :components ((:file "packages")
 	       (:file "queue")
+	       (:file "event")
+	       (:file "event-queue")
 	       (:file "config"
 		      :depends-on ("packages"))
+	       (:file "vocabulary"
+		      :depends-on ("config"))
 	       (:file "logger"
 		      :depends-on ("config"))
-	       (:file "db"
+	       (:file "game-object"
 		      :depends-on ("config"))
-	       (:file "classes"
-		      :depends-on ("packages"))
-	       (:file "room"
-		      :depends-on ("classes")
-		      :depends-on ("db"))
+	       (:file "mobile"
+		      :depends-on ("game-object"))
+	       (:file "item"
+		      :depends-on ("game-object"))
 	       (:file "parser"
-		      :depends-on ("packages")
-		      :depends-on ("db"))
+		      :depends-on ("packages" "vocabulary"))
+	       (:file "binder"
+		      :depends-on ("db" "player" "room" "parser"))
 	       (:file "commands"
-		      :depends-on ("db")
-		      :depends-on ("player")
-		      :depends-on ("room"))
+		      :depends-on ("binder"))
 	       (:file "game"
-		      :depends-on ("parser"))
+		      :depends-on ("commands"))
 	       (:file "server"
-		      :depends-on ("game")
 		      :depends-on ("queue"))
 	       (:file "client"
-		      :depends-on ("game")
-		      :depends-on ("server")
-		      :depends-on ("queue"))
+		      :depends-on ("server" "queue" "event-queue"))
+	       (:file "room"
+		      :depends-on ("game-object"))
 	       (:file "player"
-		      :depends-on ("classes")
-		      :depends-on ("db")
-		      :depends-on ("client"))
+		      :depends-on ("mobile" "client"))
 	       (:file "account"
 		      :depends-on ("client"))))

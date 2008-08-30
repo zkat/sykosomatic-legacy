@@ -25,6 +25,16 @@
 (in-package :sykosomatic)
 
 ;;;
+;;; Room vars
+;;;
+
+(defvar *rooms* nil
+  "List of available rooms. Rooms are also linked as a graph.")
+
+(defvar *max-room-id* 0
+  "Highest available room-id")
+
+;;;
 ;;; Room-related classes
 ;;;
 
@@ -43,7 +53,7 @@
     :accessor contents
     :documentation "All contents of this room, including entities")
    (room-id
-    :initform (incf *room-ids*)
+    :initform (incf *max-room-id*)
     :reader room-id
     :documentation "Universal room ID number")
    (exits
@@ -53,7 +63,10 @@
     :documentation "Contains an assoc list of <exit> objects that refer to the next room.")))
 
 (defun make-room (&key name desc desc-long features)
-  (make-instance '<room> :name name :desc desc :desc-long desc-long :features features))
+  "Simple constructor function for creating a room."
+  (make-instance '<room> 
+		 :name name :desc desc 
+		 :desc-long desc-long :features features))
 
 (defclass <door> (<game-object>)
   ((name
@@ -86,8 +99,8 @@
 (defun new-room ()
   "Returns a new ROOM after initializing the <ROOM> object"
   (let ((room (make-room)))
-    (with-accessors ((name name)) room
-      (setf name (format nil "Room #~a" (room-id room))))
+    (setf (name room)
+	    (format nil "Room #~a" (room-id room)))
     room))
 
 (defun make-rooms-from-file (file)
@@ -103,16 +116,7 @@
 ;;; Info
 ;;;
 
-(defun whereis (entity) ;does this belong here?
-  "Pretty-prints the NAME of the LOCATION of the ENTITY"
-  (let ((loc (location entity)) (entity (name entity)))
-    (format t "~a is in ~a" entity (name loc))
-    loc))
-
-(defun get-players (room) ;what about this?...
-  "Fetches a list of players currently in ROOM."
-  (with-accessors ((contents contents)) room
-    (mapcar #'player-p contents)))
+; functions that grab info specifically about a room go here.
 
 ;;;
 ;;; Room manipulation
@@ -120,11 +124,13 @@
 
 (defun set-exit (from-room to-room direction)
   "Creates an EXIT that leads FROM-ROOM TO-ROOM in DIRECTION. NOT REFLEXIVE."
-  (if (not (assoc direction (exits from-room) :test #'string-equal))
-      (let ((door (make-door :next-room to-room)))
-	(pushnew (cons direction door) (exits from-room)))
+  (if (assoc direction (exits from-room) :test #'string-equal)
+      ;; just change the room the existing exit goes to..
       (let ((door (cdr (assoc direction (exits from-room) :test #'string-equal))))
-	(setf (next-room door) to-room))))
+	(setf (next-room door) to-room))
+      ;; else, make a brand-new exit.
+      (let ((door (make-door :next-room to-room)))
+	(pushnew (cons direction door) (exits from-room)))))
 
 ;; TODO - Although I don't think I can/should do this is a sane manner, because of how
 ;;        sykosomatic handles directional movement.
@@ -148,8 +154,35 @@
 ;;; Load/Save
 ;;;
 
+;;; Saving
+
 (defmethod obj->file ((room <room>) path)
   (cl-store:store room (ensure-directories-exist
 			(merge-pathnames
 			 (format nil "room-~a.room" (room-id room))
 			 path))))
+
+(defun save-rooms ()
+  (obj-list->files-in-dir *rooms* *rooms-directory*))
+
+;;; Loading
+
+(defun restore-max-room-id ()
+  "Loads the highest room-id."
+  (setf *max-room-id*
+	(apply #'max
+	       (mapcar #'room-id *rooms*))))
+
+(defun load-rooms ()
+  (setf *rooms* (files-in-path->obj-list *rooms-directory* "room")))
+
+;;; Testing
+
+(defun reset-room-ids ()
+  (setf *room-ids* 0))
+
+(defun generate-test-rooms (num-rooms)
+  "Returns a LIST containing NUM-ROOMS instances of <room>."
+  (loop
+     for i upto (1- num-rooms)
+     collect (new-room)))
