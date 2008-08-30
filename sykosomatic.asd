@@ -41,10 +41,12 @@
 	       ;;game-object stuff
 	       (:file "game-object"
 		      :depends-on ("config"))
+	       (:file "entity"
+		      :depends-on ("game-object"))
 	       (:file "mobile"
-		      :depends-on ("game-object"))
+		      :depends-on ("entity"))
 	       (:file "item"
-		      :depends-on ("game-object"))
+		      :depends-on ("entity"))
 	       (:file "room"
 		      :depends-on ("game-object"))
 	       (:file "player"

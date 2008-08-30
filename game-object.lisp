@@ -55,24 +55,6 @@
     :documentation "A list of OBJECTS that add more little details, all targetable :3"))
   (:documentation "Master game object. Contains base capabilities of all other objects in the game."))
 
-;; putting this here for now. It could go into its own little file eventually
-(defclass <entity> (<game-object>)
-  ((location
-    :initarg :location
-    :initform nil
-    :accessor location
-    :documentation "Current location of the entity -- <room> object.")
-   (invul-p
-    :initarg invul-p
-    :initform nil
-    :accessor invul-p
-    :documentation "Can entity take damage?")
-   (hp
-    :initarg :hp
-    :initform 1 ;;everything should start with 1hp, if it's an entity. (= 0 DEATH)
-    :accessor hp))
-  (:documentation "'Stuff' in general."))
-
 ;;;
 ;;; Load/Save
 ;;;

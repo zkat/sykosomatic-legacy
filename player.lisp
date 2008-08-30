@@ -86,13 +86,7 @@
   (eq (class-name (class-of obj))
       '<player>))
 
-(defun whereis (entity) ;does this belong here?
-  "Pretty-prints the NAME of the LOCATION of the ENTITY"
-  (let ((loc (location entity)) (entity (name entity)))
-    (format t "~a is in ~a" entity (name loc))
-    loc))
-
-(defun get-players (room) ;what about this?...
+(defun get-players (room)
   "Fetches a list of players currently in ROOM."
   (with-accessors ((contents contents)) room
     (mapcar #'player-p contents)))
@@ -100,6 +94,7 @@
 ;;;
 ;;; Player functions
 ;;;
+
 (defun write-to-player (player format-string &rest format-args)
   "Sends output to a player."
   (let ((player-client (current-client player)))
