@@ -78,6 +78,9 @@
 
 ;;; Load
 
+;; NOTE: It's alright for now, but we should, at some point, assert that the objects being
+;;       loaded are of the appropriate type. This can be a vulnerability.
+
 (defun file->obj (filepath)
   "Takes the FILEPATH of a file, returns the OBJECT it represents."
   (cl-store:restore filepath))
