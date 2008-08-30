@@ -15,10 +15,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; game-object.lisp
+;; entity.lisp
 ;;
-;; Contains the base game-object class, and some relevant low-level functions
-;; for dealing with objects.
+;; Contains stuff related to the <entity> class, which is essentially one of two main forks of
+;; <game-object> (the other being <room>). Stuff that inherits <entity> includes mobiles, items, etc
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
