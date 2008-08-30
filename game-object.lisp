@@ -29,15 +29,17 @@
 (defclass <game-object> ()
   ((name
     :initarg :name
-    :initform nil
+    :initform ""
     :accessor name
     :documentation "Base name for the object")
    (desc
     :initarg :desc
+    :initform ""
     :accessor desc
     :documentation "A description of the object")
    (desc-long
     :initarg :desc-long
+    :initform ""
     :accessor desc-long
     :documentation "Long, detailed description of the object")
    (tags ;;not used in anything yet, but nifty idea
@@ -48,9 +50,10 @@
    (prox
     :initarg :prox
     :accessor prox
-    :documentation "Object that this object is approximate to")
+    :documentation "Object that this object is close to")
    (features
     :initarg :features
+    :initform nil
     :accessor features
     :documentation "A list of OBJECTS that add more little details, all targetable :3"))
   (:documentation "Master game object. Contains base capabilities of all other objects in the game."))

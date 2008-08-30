@@ -19,6 +19,7 @@
 ;;
 ;; Contains stuff related to the <entity> class, which is essentially one of two main forks of
 ;; <game-object> (the other being <room>). Stuff that inherits <entity> includes mobiles, items, etc
+;; One special characteristic of entities is that they are meant to be contents of rooms.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
@@ -52,3 +53,19 @@
   (let ((loc (location entity)) (entity (name entity)))
     (format t "~a is in ~a" entity (name loc))
     loc))
+
+;;;
+;;; Entity manipulation
+;;;
+
+(defgeneric put-entity (entity room)
+  (:documentation "Changes where ENTITY is, taking care of any room-contents juggling."))
+
+(defmethod put-entity ((entity <entity>) room) ; This should also make sure that the room where
+  "Sets the LOCATION of ENTITY to ROOM."       ; <entity> currently resides has its CONTENTS
+  (let ((old-room (location entity))
+	(new-room room))
+    (setf (location entity) new-room)
+    (pushnew entity (contents new-room))
+    (setf (contents old-room) (remove entity (contents old-room)))))
+
