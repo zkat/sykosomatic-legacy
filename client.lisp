@@ -68,7 +68,10 @@
     :initarg :avatar
     :accessor avatar
     :initform nil
-    :documentation "The character linked to this client session.")))
+    :documentation "The character linked to this client session."))
+  (:documentation "Contains basic information about the current client like the connected socket,
+the client's IP address, last activity time, associated account (if any), and associated avatar (if 
+any). Also contains several slots that handle asynchronous client i/o."))
 
 ;; TODO
 ;; (defun make-client ()
@@ -79,7 +82,8 @@
 ;;;
 
 (define-condition client-disconnected-error (error)
-  ((text :initarg :text :reader text)))
+  ((text :initarg :text :reader text))
+  (:documentation "Called whenever it's assumed that the client is disconnected."))
 
 (defun connect-new-client ()
   "Connects a new client to the main server."
@@ -150,9 +154,11 @@ Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
 Assuming disconnection."))))
 
 (defun read-line-from-client (client)
+  "Reads a single line of input from a client (delimited by a newline)."
   (dequeue (read-lines client)))
 
-(defun/cc prompt-client (client format-string &rest format-args)
+(defun prompt-client-continuation (client function format-string &rest format-args)
+  "Continuation used for prompting a client for input."
   (write-to-client client format-string format-args)
   (if (queue-empty-p (read-lines client))
       (let/cc k
@@ -162,7 +168,8 @@ Assuming disconnection."))))
 (defun/cc client-y-or-n-p (client string)
   "y-or-n-p that sends the question over to the client."
   (write-to-client client string)
-  (let ((answer (prompt-client client "(y or n)")))
+  (let ((answer (let/cc k
+		  (prompt-client-continuation client k "(y or n)"))))
     (cond ((string-equal "y" (char answer 0))
 	   t)
 	  ((string-equal "n" (char answer 0))
@@ -181,7 +188,7 @@ Assuming disconnection."))))
 (defun write-to-all-clients (format-string &rest format-args)
   "Sends a given string to all connected clients."
   (with-accessors ((clients clients)) *server*
-     (mapcar #'(lambda (client) (apply #'write-to-client client format-string format-args)) clients)))
+    (mapcar #'(lambda (client) (apply #'write-to-client client format-string format-args)) clients)))
 
 (defun write-to-client (client format-string &rest format-args)
   "Sends a given STRING to a particular client."
@@ -226,26 +233,24 @@ Assuming disconnection."))))
 
 ;; Temporary
 
-
 (defun/cc client-echo-input (client)
+  "Prompts client for input, and echoes back whatever client wrote."
   (let ((input (prompt-client client "~~> ")))
     (if (string-equal input "quit")
 	(disconnect-client client)
 	(write-to-client client "You wrote: ~a~%~%" input))))
 
 (defun/cc client-echo-ast (client)
+  "Prompts client for input and sends the client the AST the parser generated based on input."
   (let ((input (prompt-client client "~~> ")))
     (if (string-equal input "quit")
 	(disconnect-client client)
-	(write-to-client client "Parsed AST: ~a~%~%" (parse-string input)))))
-
-(defun player-main-loop (client)
-  "Main function for playing a character. Subprocedure of client-main"
-  t)
+	(write-to-client client "Parsed AST: ~a~%~&" (parse-string input)))))
 
 ;;;
 ;;; Evil stress-test of doom
 ;;;
+
 (defvar *test-clients* nil)
 
 (defclass <test-client> ()
@@ -258,7 +263,7 @@ Assuming disconnection."))))
   (dotimes (i num-clients)
     (push (make-and-run-test-client) *test-clients*)))
 
-(defun kill-the-infidels ()
+(defun kill-the-infidels () ;; this breaks the server. keep away!
   (loop
      for client in *test-clients*
      do (progn
@@ -275,4 +280,4 @@ Assuming disconnection."))))
     test-client))
 
 (defun spam-loop-step (client)
-  (write-to-client client "lucy and the sky with diamonds lalalalalalallalalalalal"))
+  (write-to-client client "look with my eyes at the guy with the funny hat 'hahaha noob"))
