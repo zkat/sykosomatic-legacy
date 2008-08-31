@@ -157,9 +157,10 @@ Assuming disconnection."))))
   "Reads a single line of input from a client (delimited by a newline)."
   (dequeue (read-lines client)))
 
-(defun prompt-client-continuation (client function format-string &rest format-args)
+(defun/cc prompt-client (client format-string &rest format-args)
   "Continuation used for prompting a client for input."
-  (write-to-client client format-string format-args)
+  (when format-string 
+    (write-to-client client format-string format-args))
   (if (queue-empty-p (read-lines client))
       (let/cc k
 	(setf (client-continuation client) k))
@@ -168,8 +169,7 @@ Assuming disconnection."))))
 (defun/cc client-y-or-n-p (client string)
   "y-or-n-p that sends the question over to the client."
   (write-to-client client string)
-  (let ((answer (let/cc k
-		  (prompt-client-continuation client k "(y or n)"))))
+  (let ((answer (prompt-client client "(y or n)")))
     (cond ((string-equal "y" (char answer 0))
 	   t)
 	  ((string-equal "n" (char answer 0))

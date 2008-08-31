@@ -44,7 +44,7 @@
     :initarg :password
     :accessor password)
    (id
-    :initform (incf *account-ids*)
+    :initform (incf *max-account-id*)
     :reader id
     :documentation "Unique account ID number.")
    (avatars

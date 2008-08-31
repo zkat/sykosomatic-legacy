@@ -17,7 +17,6 @@
 	       (:file "logger" :depends-on ("config"))
 	       (:file "server" :depends-on ("queue"))
 	       (:file "client" :depends-on ("server" "queue" "event-queue"))
-	       (:file "account" :depends-on ("client"))
 	       ;;game-object stuff
 	       (:file "game-object" :depends-on ("config"))
 	       (:file "room" :depends-on ("game-object"))
@@ -29,4 +28,8 @@
 	       (:file "vocabulary" :depends-on ("config"))
 	       (:file "parser" :depends-on ("vocabulary"))
 	       (:file "binder" :depends-on ("parser" "game-object" "player" "room"))
-	       (:file "commands" :depends-on ("binder"))))
+	       (:file "commands" :depends-on ("binder"))
+	       ;; other stuff
+	       (:file "account" :depends-on ("client" "player"))))
+
+
