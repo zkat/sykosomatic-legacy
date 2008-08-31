@@ -43,6 +43,9 @@
    (password
     :initarg :password
     :accessor password)
+   (email
+    :initarg :email
+    :accessor email)
    (id
     :initform (incf *max-account-id*)
     :reader id
@@ -66,9 +69,9 @@
     :initform nil
     :documentation "All IPs this account has been known no use.")))
 
-(defun make-account (&key username password)
+(defun make-account (&key username password email)
   "Generic constructor"
-  (make-instance '<account> :username username :password password))
+  (make-instance '<account> :username username :password password :email email))
 
 ;;;
 ;;; Account Login
@@ -78,16 +81,14 @@
   "Fetches an account using a username."
   (find username *accounts* :key #'string-equal))
 
-;;Note: (if .. (progn ..)) should be replaced by (when .. forms*)
 (defun login-client (client)
   "Logs a user into their account"
   (let ((account (validate-login client (prompt-username client))))
-    (if account
-	(progn 
-	  (setf (account client) account)
-	  (setf (client account) client)
-	  (pushnew (ip client) (know-ips account))
-	  (account-menu client)))))
+    (when account
+      (setf (account client) account)
+      (setf (client account) client)
+      (pushnew (ip client) (know-ips account))
+      (account-menu client))))
 
 (defun prompt-username (client)
   "Prompts a client for a username, returns a valid account."
@@ -114,39 +115,37 @@
   (write-to-client client "2. Enter existing character~%")
   (write-to-client client "-----------------------~%~%")
   (let ((choice (prompt-client client "Your choice: ")))
-    (cond ((string-equal choice "1")
+    (cond ((equal choice "1")
 	   (create-an-avatar client))
-	  ((string-equal choice "2")
+	  ((equal choice "2")
 	   (choose-avatar client))
 	  (t
-	   (progn
-	     (write-to-client client "~&Invalid choice.")
-	     (account-menu client))))))
+	   (write-to-client client "~&Invalid choice.")
+	   (account-menu client)))))
 
 (defun create-an-avatar (client)
   "Takes user through the avatar-creation process."
   (let ((account (account client)))
     (let* ((avatar-name (prompt-client client "~&Choose a name for your character: "))
 	   (avatar (make-player 
-		    :name avatar-name
-		    :desc "generic description" 
-		    :desc-long "generic long-description")))
+		    :name avatar-name)))
       (pushnew avatar *players*)
       (pushnew avatar (avatars account)))))
 
-(defun choose-avatar (client)
-  "Lets a player choose an existing avatar to play on."
-  (print-available-avatars client)
-  (let* ((avatars (avatars (account client)))
-	 (avatar-choice (prompt-client client "~%~%Choose your destiny: "))
-	 (avatar (find avatar-choice avatars :test #'string-equal)))
-    (if avatar
-	(progn
-	  (setf (avatar client) avatar)
-	  (player-main-loop client))
-	(progn
-	  (write-to-client client "~&No such character, please try again.~%")
-	  (choose-avatar client)))))
+;; TODO - player-main-loop thing is borked.
+;; (defun choose-avatar (client)
+;;   "Lets a player choose an existing avatar to play on."
+;;   (print-available-avatars client)
+;;   (let* ((avatars (avatars (account client)))
+;; 	 (avatar-choice (prompt-client client "~%~%Choose your destiny: "))
+;; 	 (avatar (find avatar-choice avatars :test #'string-equal)))
+;;     (if avatar
+;; 	(progn
+;; 	  (setf (avatar client) avatar)
+;; 	  (player-main-loop client))
+;; 	(progn
+;; 	  (write-to-client client "~&No such character, please try again.~%")
+;; 	  (choose-avatar client)))))
 
 (defun print-available-avatars (client)
   "Prints a list of available avatars."
@@ -160,52 +159,58 @@
 ;;; Account Creation
 ;;;
 
-;; TODO
-(defun setup-account (username)
-  (format *query-io* "Welcome to BMUD new player.~%")
-  (format *query-io* "I'm going to need to ask you some questions to make your account.~%")
-  (multiple-value-bind (firstname lastname) (setup-name)
-    (let ((email (setup-email))
-	  (username (setup-username username))
-	  (password (setup-password)))
-      (values username password firstname lastname email))))
-;; TODO
-(defun setup-name ()
-  "blegh. Cleaning up shittier code than mine :-\ "
-  (let ((firstname (prompt-read "Please enter your first name"))
-	(lastname (prompt-read "Please enter your first name")))
-    (if (y-or-n-p "Greetings ~a ~a. Is this name correct" firstname lastname)
+(defun setup-account (client)
+  "Sets up user account."
+  (write-to-client client "I'm going to need to ask you some questions to make your account.~%")
+  (let ((username (setup-username client))
+	(password (setup-password client))
+	(email (setup-email client)))
+    (make-account :username username :password password :email email)))
+
+;; NOTE: This isn't used.
+(defun setup-name (client)
+  "Prompts client for first and last name."
+  (let* ((firstname (prompt-client client "Please enter your first name"))
+	 (lastname (prompt-client client "Please enter your first name")))
+    (if (client-y-or-n-p "Greetings ~a ~a. Is this name correct" firstname lastname)
 	(values firstname lastname)
-	(setup-name))))
-;; TODO
-(defun setup-email ()
-  "cleaned-up e-mail setup without the suck."
-  (let ((email (prompt-read "Please enter your email address")))
+	(setup-name client))))
+
+(defun setup-email (client)
+  "Prompts client for a correct e-mail address."
+  (let ((email (prompt-client client "Please enter your email address")))
     (if (cl-ppcre:scan "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" email)
 	(if (y-or-n-p "Is the email address ~a correct?" email)
 	    email
-	    (setup-email))
+	    (setup-email client))
 	(progn
-	  (format *query-io* "I'm sorry, ~a is not a valid email address.~%" email)	  
-	  (setup-email)))))
-;; TODO
-(defun setup-username (username)
-  "Setup the user's username."
-  (format *query-io* "It seems that you chose username ~a.~%" username)
-  (if (y-or-n-p "Would you like to use this username?")
-      username
-      (let ((username (prompt-read "Please enter your desired username")))
-	(setup-username username))))
-;; TODO
-(defun setup-password ()
-  "Allow the user to choose a password."
-  (let* ((password (prompt-read "Please choose a password"))
-	 (pass-confirm (prompt-read "Please retype the password")))
+	  (write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
+	  (setup-email client)))))
+
+;; FIXME: this should confirm that there are no illegal characters in the username.
+(defun setup-username (client)
+  "Prompts client for a username."
+  (let ((username (prompt-client client "Please enter your desired username")))
+    (if (< (length username) 16)
+	(progn
+	  (write-to-client client "It seems that you chose username ~a.~%" username)
+	  (if (client-y-or-n-p "Would you like to use this username?")
+	      username
+	      (setup-username client)))
+	(progn
+	  (write-to-client client "Username too long (must be under 16 chars)~%")
+	  (setup-username client)))))
+
+;; TODO: This is horrible insecure. Add some encryption eventually
+(defun setup-password (client)
+  "Prompts client for a password."
+  (let* ((password (prompt-client client "Please choose a password"))
+	 (pass-confirm (prompt-client client "Please retype the password")))
     (if (equal password pass-confirm)
 	password
 	(progn
-	  (format *query-io* "~%Passwords did not match, trying again.~%")
-	  (setup-password)))))
+	  (write-to-client client "~&Passwords did not match, trying again.~%")
+	  (setup-password client)))))
 
 ;;;
 ;;; Account Management
