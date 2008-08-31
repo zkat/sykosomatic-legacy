@@ -37,6 +37,11 @@
     :initarg :socket
     :initform nil
     :documentation "Contains the server's usocket-listener.")
+   (max-idle-time
+    :accessor max-idle-time
+    :initarg :max-idle-time
+    :initform (* 60 5)
+    :documentation "How long the client can be inactive before it's disconneted.")
    (clients
     :accessor clients
     :initform nil
@@ -95,7 +100,9 @@ connected to *server* and handles their input once per tick. Stops with stop-ser
 				 (listen stream))
 			(update-activity client)
 			(maybe-read-line-from-client client))
-		      (funcall (client-step client)))
+		      (if (> (client-idle-time client) (max-idle-time server))
+			  (signal 'client-disconnected-error)
+			  (funcall (client-step client))))
 		  (client-disconnected-error ()
 		    (progn
 		      (log-message :CLIENT "Client disconnected: ~a" (ip client))
