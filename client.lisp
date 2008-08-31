@@ -132,7 +132,8 @@ any). Also contains several slots that handle asynchronous client i/o."))
 Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
   (handler-case
       (let ((stream (usocket:socket-stream (socket client))))
-	(loop for b = (read-byte stream)
+	(loop for b = (when (listen stream) 
+			(read-byte stream))
 	   do
 	   (cond ((null b)
 		  (return))
@@ -154,7 +155,7 @@ Assuming disconnection."))))
   "Reads a single line of input from a client (delimited by a newline)."
   (dequeue (read-lines client)))
 
-(defun/cc prompt-client (client format-string &rest format-args)
+(defun/cc prompt-client (client &optional format-string &rest format-args)
   "Continuation used for prompting a client for input."
   (when format-string 
     (write-to-client client format-string format-args))
