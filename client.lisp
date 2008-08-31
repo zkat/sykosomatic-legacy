@@ -132,8 +132,7 @@ any). Also contains several slots that handle asynchronous client i/o."))
 Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
   (handler-case
       (let ((stream (usocket:socket-stream (socket client))))
-	(loop for b = (when (listen stream)
-			(read-byte stream))
+	(loop for b = (read-byte stream)
 	   do
 	   (cond ((null b)
 		  (return))
