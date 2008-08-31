@@ -40,7 +40,7 @@
    (max-idle-time
     :accessor max-idle-time
     :initarg :max-idle-time
-    :initform (* 60 5)
+    :initform *max-client-idle-time*
     :documentation "How long the client can be inactive before it's disconneted.")
    (clients
     :accessor clients
@@ -80,6 +80,7 @@ the i/o processing ticks, and related slots."))
 (defvar *default-server-address* "0.0.0.0")
 (defvar *default-server-port* 4000)
 (defvar *server* nil)
+(defvar *max-client-idle-time* (* 60 20))
 
 ;;; Clients thread
 
