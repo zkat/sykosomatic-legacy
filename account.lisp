@@ -81,7 +81,7 @@
   "Fetches an account using a username."
   (find username *accounts* :key #'string-equal))
 
-(defun login-client (client)
+(defun/cc login-client (client)
   "Logs a user into their account"
   (let ((account (validate-login client (prompt-username client))))
     (when account
@@ -90,7 +90,7 @@
       (pushnew (ip client) (know-ips account))
       (account-menu client))))
 
-(defun prompt-username (client)
+(defun/cc prompt-username (client)
   "Prompts a client for a username, returns a valid account."
   (let* ((account-name (prompt-client client "~%Username: "))
 	 (account (get-account-by-name account-name)))
@@ -100,14 +100,14 @@
 	  (write-to-client client "~&Invalid username, please try again.")
 	  (prompt-username client)))))
  
-(defun validate-login (client account)
+(defun/cc validate-login (client account)
   "Prompts the user for a password, and validates the login."
   (let ((password (prompt-client client "~&Password: ")))
     (if (equal password (password account))
 	account
 	(validate-login client account))))
 
-(defun account-menu (client)
+(defun/cc account-menu (client)
   "Simple selection menu that new clients once they've logged into an account."
   (write-to-client client "~&Choose your destiny: ~%")
   (write-to-client client "-----------------------~%")
@@ -123,7 +123,7 @@
 	   (write-to-client client "~&Invalid choice.")
 	   (account-menu client)))))
 
-(defun create-an-avatar (client)
+(defun/cc create-an-avatar (client)
   "Takes user through the avatar-creation process."
   (let ((account (account client)))
     (let* ((avatar-name (prompt-client client "~&Choose a name for your character: "))
@@ -159,7 +159,7 @@
 ;;; Account Creation
 ;;;
 
-(defun setup-account (client)
+(defun/cc setup-account (client)
   "Sets up user account."
   (write-to-client client "I'm going to need to ask you some questions to make your account.~%")
   (let ((username (setup-username client))
@@ -176,7 +176,7 @@
 	(values firstname lastname)
 	(setup-name client))))
 
-(defun setup-email (client)
+(defun/cc setup-email (client)
   "Prompts client for a correct e-mail address."
   (let ((email (prompt-client client "Please enter your email address")))
     (if (cl-ppcre:scan "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" email)
@@ -188,7 +188,7 @@
 	  (setup-email client)))))
 
 ;; FIXME: this should confirm that there are no illegal characters in the username.
-(defun setup-username (client)
+(defun/cc setup-username (client)
   "Prompts client for a username."
   (let ((username (prompt-client client "Please enter your desired username")))
     (if (< (length username) 16)
@@ -202,7 +202,7 @@
 	  (setup-username client)))))
 
 ;; TODO: This is horrible insecure. Add some encryption eventually
-(defun setup-password (client)
+(defun/cc setup-password (client)
   "Prompts client for a password."
   (let* ((password (prompt-client client "Please choose a password"))
 	 (pass-confirm (prompt-client client "Please retype the password")))
