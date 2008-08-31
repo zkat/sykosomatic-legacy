@@ -92,7 +92,7 @@ any). Also contains several slots that handle asynchronous client i/o."))
 				 :socket socket
 				 :ip (usocket:get-peer-address socket))))
       (client-init client)
-      (log-message :CLIENT (format nil "New client: ~a" (ip client)))
+      (log-message :CLIENT "New client: ~a" (ip client))
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
 	(push client (clients *server*))))))
 
@@ -102,10 +102,8 @@ any). Also contains several slots that handle asynchronous client i/o."))
     (if socket
 	(progn
 	  (usocket:socket-close socket))
-	(log-message :CLIENT
-		     (format nil 
-			     "Tried disconnecting client ~a, but nothing to disconnect." 
-			     (ip client))))))
+	(log-message :CLIENT 
+		     "Tried disconnecting client ~a, but nothing to disconnect." (ip client)))))
 
 (defun remove-client (client)
   "Removes client from the server's client-list."
