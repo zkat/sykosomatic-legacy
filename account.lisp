@@ -21,15 +21,21 @@
 ;; like login/pass, characters available, and the client currently connected to the account. This 
 ;; file also contains the functions that handle user login, account creation, and account management.
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;=========================================== Accounts =========================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;==================== Class ===================;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+
+;;;
+;;; Account vars
+;;;
+
+(defvar *accounts* (make-hash-table :test #'equalp)
+  "Hash table holding all existing accounts.")
+
+(defvar *max-account-id* 0)
+
+;;;
+;;; Account class
+;;;
 (defclass <account> ()
   ((username
     :initarg :username
@@ -38,7 +44,7 @@
     :initarg :password
     :accessor password)
    (id
-    :initform (incf *account-ids*)
+    :initform (incf *max-account-id*)
     :reader id
     :documentation "Unique account ID number.")
    (avatars
@@ -60,18 +66,19 @@
     :initform nil
     :documentation "All IPs this account has been known no use.")))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;        Login        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+(defun make-account (&key username password)
+  "Generic constructor"
+  (make-instance '<account> :username username :password password))
+
+;;;
+;;; Account Login
+;;;
+
 (defun get-account-by-name (username)
   "Fetches an account using a username."
   (find username *accounts* :key #'string-equal))
 
+;;Note: (if .. (progn ..)) should be replaced by (when .. forms*)
 (defun login-client (client)
   "Logs a user into their account"
   (let ((account (validate-login client (prompt-username client))))
@@ -91,7 +98,7 @@
 	(progn
 	  (write-to-client client "~&Invalid username, please try again.")
 	  (prompt-username client)))))
-
+ 
 (defun validate-login (client account)
   "Prompts the user for a password, and validates the login."
   (let ((password (prompt-client client "~&Password: ")))
@@ -148,10 +155,11 @@
     (loop for avatar in avatars
        do (write-to-client client "~&~a~&" (name avatar)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;   Account Creation  ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+
+;;;
+;;; Account Creation
+;;;
+
 ;; TODO
 (defun setup-account (username)
   (format *query-io* "Welcome to BMUD new player.~%")
@@ -199,8 +207,7 @@
 	  (format *query-io* "~%Passwords did not match, trying again.~%")
 	  (setup-password)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;  Account Management ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+;;;
+;;; Account Management
+;;;
 

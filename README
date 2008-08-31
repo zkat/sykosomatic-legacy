@@ -3,9 +3,11 @@ REQUIREMENTS
 
 * cl-store (http://common-lisp.net/project/cl-store/)
 * cl-ppcre (http://weitz.de/cl-ppcre/)
+* cl-cont (http://common-lisp.net/project/cl-cont/)
 * bordeaux-threads (http://common-lisp.net/project/bordeaux-threads/)
 * usocket (http://common-lisp.net/project/usocket/)
-* SBCL, unless you feel adventurous. I'm not sure if it's compatible with anything else.
+* SBCL, no other lisp is supported right now. 
+
 
 INSTALLATION
 ------------
