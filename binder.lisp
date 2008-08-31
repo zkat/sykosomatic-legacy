@@ -53,3 +53,6 @@
 (defun string->sexp (player string)
   "Takes a STRING and turns it into a valid S-EXP to run."
   (parse-tree->sexp player (parse-string string)))
+
+(defun bind-noun-phrase (player noun-phrase)
+  "Binds a noun-phrase within PLAYER's scope.")
