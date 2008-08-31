@@ -14,8 +14,38 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defpackage #:sykosomatic
-  (:use :cl :cl-store :cl-cont)
-  (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held))
+;; mobile.lisp
+;;
+;; Stuff related to mobiles, and everything that subclasses <mobile>
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(in-package #:sykosomatic)
+
+;;;
+;;; Mobile class
+;;;
+(defclass <mobile> (<entity>)
+  ((species
+    :initarg :species
+    :accessor species
+    :documentation "Mobile's species")
+   (killcount
+    :initform 0
+    :documentation "MURDER! DESTROY! BARSH!")
+   (level
+    :initarg :level
+    :initform 1
+    :accessor level
+    :documentation "Power level (must be less than 9000)")
+   (skills
+    :initarg :skills
+    :initform nil
+    :accessor skills
+    :documentation "A list of skills belonging to mobile")
+   (inventory
+    :initarg :inventory
+    :initform nil
+    :accessor inventory
+    :documentation "A list of items in the player's possession"))
+  (:documentation "Living things."))

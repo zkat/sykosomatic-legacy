@@ -15,16 +15,29 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; game.lisp
+;; item.lisp
 ;;
-;; This was a basic main function when sykosomatic was still single-player. This needs to
-;; be reworked a bit, I think.
+;; Stuff related to items.
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;============================================== Game ==========================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-(defun play-game (player)
-  (execute-command player (prompt-user))
-  (play-game player))
+
+;;;
+;;; Item class
+;;;
+(defclass <item> (<entity>)
+  ((equippable
+    :initarg :equip-p
+    :initform nil
+    :accessor equip-p
+    :documentation "Can item be equipped?")
+   (moveable
+    :initarg :moveable
+    :initform t
+    :accessor moveable-p
+    :documentation "Is this object movable? If nil, player cannot pick up")
+   (effects
+    :initarg :effects
+    :accessor effects
+    :documentation "Any special effects of the item"))
+  (:documentation "Master class for items."))
