@@ -231,13 +231,15 @@
 ;;; Load
 (defun load-accounts ()
   "Loads the account database into *accounts*"
-  (setf *accounts* (cl-store:restore (merge-pathnames
-				      "accounts.sy"
-				      *game-directory*))))
+  (setf *accounts* (cl-store:restore (ensure-directories-exist 
+				      (merge-pathnames
+				       "accounts.sy"
+				       *game-directory*)))))
 (defun restore-max-account-id ()
   "Loads the highest account id"
-  (let ((account-ids (loop for account being each hash-value of *accounts*
-			collect (id account))))
+  (let ((account-ids (or (loop for account being each hash-value of *accounts*
+			 collect (id account))
+			 '(0))))
     (apply #'max account-ids)))
 
 ;;;
