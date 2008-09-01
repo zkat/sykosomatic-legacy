@@ -210,6 +210,18 @@ Assuming disconnection."))))
 ;;; Client main
 ;;;
 
+(defun client-init (client)
+  "Initializes a client, and sets the main function to step through."
+  (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
+  (setf (client-step client) (make-client-step-with-continuations client #'client-main)))
+
+(defun client-main (client)
+  "Main function to run clients through."
+  ;;Keep it simple at first. Grab input, echo something back.
+  ;; Later on, allow clients to enter players, and run in the main player loop.
+  ;; Then start getting fancy from there.
+  (client-echo-ast client))
+
 (defun make-client-step-with-continuations (client function)
   "Wrap some CPS transformed function of one argument (client) handling client IO with continuation handler."
   (lambda ()
@@ -219,15 +231,6 @@ Assuming disconnection."))))
 	    (setf (client-continuation client) nil)
 	    (funcall client-continuation (read-line-from-client client))))
 	(funcall function client))))
-
-
-(defun client-init (client)
-  "Main function for clients."
-;;Keep it simple at first. Grab input, echo something back.
-;; Later on, allow clients to enter players, and run in the main player loop.
-;; Then start getting fancy from there.
-  (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
-  (setf (client-step client) (make-client-step-with-continuations client #'client-echo-ast)))
 
 ;; Temporary
 
