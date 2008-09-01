@@ -77,6 +77,22 @@
 ;;; Account Login
 ;;;
 
+(defun/cc account-menu (client)
+  "Simple selection menu that new clients once they've logged into an account."
+  (write-to-client client "~&Choose your destiny: ~%")
+  (write-to-client client "-----------------------~%")
+  (write-to-client client "1. Create a new character~%")
+  (write-to-client client "2. Enter existing character~%")
+  (write-to-client client "-----------------------~%~%")
+  (let ((choice (prompt-client client "Your choice: ")))
+    (cond ((equal choice "1")
+	   (create-an-avatar client))
+	  ((equal choice "2")
+	   (choose-avatar client))
+	  (t
+	   (write-to-client client "~&Invalid choice.")
+	   (account-menu client)))))
+
 (defun get-account-by-name (username)
   "Fetches an account using a username."
   (find username *accounts* :key #'string-equal))
@@ -103,34 +119,16 @@
 (defun/cc validate-login (client account)
   "Prompts the user for a password, and validates the login."
   (let ((password (prompt-client client "~&Password: ")))
-    (if (equal password (password account))
+    (if (equal (hash-password password) (password account))
 	account
 	(validate-login client account))))
 
-(defun/cc account-menu (client)
-  "Simple selection menu that new clients once they've logged into an account."
-  (write-to-client client "~&Choose your destiny: ~%")
-  (write-to-client client "-----------------------~%")
-  (write-to-client client "1. Create a new character~%")
-  (write-to-client client "2. Enter existing character~%")
-  (write-to-client client "-----------------------~%~%")
-  (let ((choice (prompt-client client "Your choice: ")))
-    (cond ((equal choice "1")
-	   (create-an-avatar client))
-	  ((equal choice "2")
-	   (choose-avatar client))
-	  (t
-	   (write-to-client client "~&Invalid choice.")
-	   (account-menu client)))))
-
-(defun/cc create-an-avatar (client)
-  "Takes user through the avatar-creation process."
-  (let ((account (account client)))
-    (let* ((avatar-name (prompt-client client "~&Choose a name for your character: "))
-	   (avatar (make-player 
-		    :name avatar-name)))
-      (pushnew avatar *players*)
-      (pushnew avatar (avatars account)))))
+(defun print-available-avatars (client)
+  "Prints a list of available avatars."
+  (let ((avatars (avatars (account client))))
+    (write-to-client client "~%Characters:~%-----------~%~%")
+    (loop for avatar in avatars
+       do (write-to-client client "~&~a~&" (name avatar)))))
 
 ;; TODO - player-main-loop thing is borked.
 ;; (defun choose-avatar (client)
@@ -147,72 +145,116 @@
 ;; 	  (write-to-client client "~&No such character, please try again.~%")
 ;; 	  (choose-avatar client)))))
 
-(defun print-available-avatars (client)
-  "Prints a list of available avatars."
-  (let ((avatars (avatars (account client))))
-    (write-to-client client "~%Characters:~%-----------~%~%")
-    (loop for avatar in avatars
-       do (write-to-client client "~&~a~&" (name avatar)))))
-
-
 ;;;
 ;;; Account Creation
 ;;;
 
+(defun/cc create-new-account (client)
+  "Creates a new account and adds it to available accounts."
+  (let ((account (setup-account client)))
+    (unless (gethash (username account) *accounts*)
+      (setf (gethash (username account) *accounts*) account))))
+
 (defun/cc setup-account (client)
   "Sets up user account."
-  (write-to-client client "I'm going to need to ask you some questions to make your account.~%")
-  (let ((username (setup-username client))
-	(password (setup-password client))
-	(email (setup-email client)))
+  (write-to-client client "Alright, let's set up your account...~%")
+  (let* ((username (setup-username client))
+	 (password (setup-password client))
+	 (email (setup-email client)))
     (make-account :username username :password password :email email)))
 
-;; NOTE: This isn't used.
-(defun setup-name (client)
-  "Prompts client for first and last name."
-  (let* ((firstname (prompt-client client "Please enter your first name"))
-	 (lastname (prompt-client client "Please enter your first name")))
-    (if (client-y-or-n-p "Greetings ~a ~a. Is this name correct" firstname lastname)
-	(values firstname lastname)
-	(setup-name client))))
-
-(defun/cc setup-email (client)
-  "Prompts client for a correct e-mail address."
-  (let ((email (prompt-client client "Please enter your email address")))
-    (if (cl-ppcre:scan "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" email)
-	(if (y-or-n-p "Is the email address ~a correct?" email)
-	    email
-	    (setup-email client))
-	(progn
-	  (write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
-	  (setup-email client)))))
-
-;; FIXME: this should confirm that there are no illegal characters in the username.
 (defun/cc setup-username (client)
   "Prompts client for a username."
-  (let ((username (prompt-client client "Please enter your desired username")))
-    (if (< (length username) 16)
+  (let ((username (prompt-client client "Please enter your desired username: ")))
+    (if (confirm-username-sanity username)
 	(progn
-	  (write-to-client client "It seems that you chose username ~a.~%" username)
-	  (if (client-y-or-n-p "Would you like to use this username?")
+	  (write-to-client client "~%It seems that you chose username ~a.~%" username)
+	  (if (client-y-or-n-p client "Would you like to use this username? ")
 	      username
 	      (setup-username client)))
 	(progn
 	  (write-to-client client "Username too long (must be under 16 chars)~%")
 	  (setup-username client)))))
 
-;; TODO: This is horrible insecure. Add some encryption eventually
+;; This could really use a sanity-checker, too.
 (defun/cc setup-password (client)
   "Prompts client for a password."
-  (let* ((password (prompt-client client "Please choose a password"))
-	 (pass-confirm (prompt-client client "Please retype the password")))
+  (let* ((password (prompt-client client "~%Choose a password: "))
+	 (pass-confirm (prompt-client client "Retype your password: ")))
     (if (equal password pass-confirm)
-	password
+	(hash-password password)
 	(progn
-	  (write-to-client client "~&Passwords did not match, trying again.~%")
+	  (write-to-client client "~&Passwords did not match, try again.~%")
 	  (setup-password client)))))
+
+(defun/cc setup-email (client)
+  "Prompts client for a correct e-mail address."
+  (let ((email (prompt-client client "~%Please enter your email address: ")))
+    (if (confirm-email-sanity email)
+	(progn
+	  (write-to-client "~%You chose ~a as your email address.~%" email)
+	  (if (client-y-or-n-p client "Is this email address correct?")
+	     email
+	     (setup-email client)))
+	(progn
+	  (write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
+	  (setup-email client)))))
+
+;; NOTE: This isn't used (yet)
+(defun/cc setup-name (client)
+  "Prompts client for first and last name."
+  (let* ((firstname (prompt-client client "Please enter your first name"))
+	 (lastname (prompt-client client "Please enter your first name")))
+    (if (client-y-or-n-p client "Greetings ~a ~a. Is this name correct" firstname lastname)
+	(values firstname lastname)
+	(setup-name client))))
 
 ;;;
 ;;; Account Management
 ;;;
 
+;; NIL
+
+
+;;;
+;;; Load/Save
+;;;
+
+;;; Save
+(defun save-accounts ()
+  "Saves the account database into *account*"
+  (cl-store:store *accounts* (ensure-directories-exist
+			      (merge-pathnames
+			       "accounts.sy"
+			       *game-directory*))))
+
+;;; Load
+(defun load-accounts ()
+  "Loads the account database into *accounts*"
+  (setf *accounts* (cl-store:restore (merge-pathnames
+				      "accounts.sy"
+				      *game-directory*))))
+(defun restore-max-account-id ()
+  "Loads the highest account id"
+  (let ((account-ids (loop for account being each hash-value of *accounts*
+			collect (id account))))
+    (apply #'max account-ids)))
+
+;;;
+;;; Utils
+;;;
+(defun hash-password (password)
+  (ironclad:byte-array-to-hex-string
+   (ironclad:digest-sequence
+     :sha256
+     (ironclad:ascii-string-to-byte-array
+      password))))
+
+(defun confirm-username-sanity (username)
+  (and (<= (length username) 16) 
+       (not (find #\Space username))))
+
+(defun confirm-email-sanity (email)
+  (cl-ppcre:scan 
+   "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
+   email))
