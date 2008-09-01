@@ -120,9 +120,9 @@
 
 (defun restore-max-player-id ()
   "Loads the highest player-id."
-  (setf *max-player-id* 
-	(apply #'max 
-	       (mapcar #'player-id *players*))))
+  (let ((player-ids (or (mapcar #'player-id *players*) '(0))))
+    (setf *max-player-id* 
+	  (apply #'max player-ids))))
 
 (defun load-players ()
   "Takes care of loading all players into the *players* list"
