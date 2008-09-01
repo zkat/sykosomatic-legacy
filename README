@@ -59,6 +59,7 @@ INSTALLATION
 
 TESTING THE SERVER 
 ------------------ 
+
 The server runs on port 4000 by default, and will accept external
 connections by default. If you want to prevent those, start the server
 with :address "127.0.0.1".
@@ -82,11 +83,13 @@ config.lisp. You can set the base game directory there.
 
 TESTING THE PARSER
 ------------------
+
 The parser doesn't generate anything until you give it some verbs to
-work with. A nice basic one is (add-verb "smile" #'pc-emote). That
-will add the verb "smile" to the vocabulary, and you can write a bunch
-of other verbs to see what else happens. Take a look at commands.lisp
-for currently available verbs.
+work with. A nice basic one is (add-verb "smile" #'pc-emote) (the same
+effect can be achieved with (add-emote "smile"). That will add the
+verb "smile" to the vocabulary, and you can write a bunch of other
+verbs to see what else happens. Take a look at commands.lisp for
+currently available verbs.
 
 The parser doesn't bind yet, so you'll only be getting syntax trees
 for now.
