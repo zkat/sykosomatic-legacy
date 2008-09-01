@@ -29,6 +29,7 @@
 ;;; Values
 ;;;
 
+;;; Directories
 (defvar *game-directory* (merge-pathnames #P".sykosomatic/" (user-homedir-pathname))
   "Configures the base directory for the game.")
 
@@ -36,6 +37,11 @@
 (defvar *players-directory* (merge-pathnames #P"players/" *game-directory*))
 (defvar *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*))
 (defvar *log-directory* (merge-pathnames #P"logs/" *game-directory*))
+
+;;; Server options
+(defvar *default-server-address* "0.0.0.0")
+(defvar *default-server-port* 4000)
+(defvar *max-client-idle-time* (* 60 20))
 
 ;;;
 ;;; Functions

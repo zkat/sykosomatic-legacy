@@ -77,10 +77,7 @@ the i/o processing ticks, and related slots."))
 ;;; Init/Destruct
 ;;;
 
-(defvar *default-server-address* "0.0.0.0")
-(defvar *default-server-port* 4000)
 (defvar *server* nil)
-(defvar *max-client-idle-time* (* 60 20))
 
 ;;; Clients thread
 
