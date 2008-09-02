@@ -40,7 +40,7 @@
 (defun heap-size (heap)
   (1- (length heap)))
 
-(defun heapify (heap start &key (key #'identity) (test #'>=))
+(defun heapify (heap start &key (key #'identity) (test #'<=))
   (declare (function key test))
   (flet ((key (obj) (funcall key obj))
          (ge (i j) (funcall test i j)))
@@ -62,7 +62,7 @@
         (heapify heap largest :key key :test test)))
     heap))
 
-(defun heap-insert (heap new-item &key (key #'identity) (test #'>=))
+(defun heap-insert (heap new-item &key (key #'identity) (test #'<=))
   (declare (function key test))
   (flet ((key (obj) (funcall key obj))
          (ge (i j) (funcall test i j)))
@@ -76,11 +76,11 @@
           finally (setf (aref heap i) new-item))
     heap))
 
-(defun heap-maximum (heap)
+(defun heap-minimum (heap)
   (unless (zerop (length heap))
     (aref heap 0)))
 
-(defun heap-extract (heap i &key (key #'identity) (test #'>=))
+(defun heap-extract (heap i &key (key #'identity) (test #'<=))
   (when (< (length heap) i)
     (error "Heap underflow"))
   (prog1
@@ -89,7 +89,7 @@
     (decf (fill-pointer heap))
     (heapify heap i :key key :test test)))
 
-(defun heap-extract-maximum (heap &key (key #'identity) (test #'>=))
+(defun heap-extract-minimum (heap &key (key #'identity) (test #'<=))
   (heap-extract heap 0 :key key :test test))
 
 
@@ -117,21 +117,21 @@
     (format stream "~[empty~:;~:*~D item~:P~]"
             (length (%pqueue-contents object)))))
 
-(defun priority-queue-maximum (priority-queue)
+(defun priority-queue-minimum (priority-queue)
   "Return the item in PRIORITY-QUEUE with the largest key."
   (symbol-macrolet ((contents (%pqueue-contents priority-queue)))
     (unless (zerop (length contents))
-      (heap-maximum contents))))
+      (heap-minimum contents))))
 
-(defun priority-queue-extract-maximum (priority-queue)
+(defun priority-queue-extract-minimum (priority-queue)
   "Remove and return the item in PRIORITY-QUEUE with the largest key."
   (symbol-macrolet ((contents (%pqueue-contents priority-queue))
                     (keyfun (%pqueue-keyfun priority-queue)))
     (unless (zerop (length contents))
-      (heap-extract-maximum contents :key keyfun :test #'<=))))
+      (heap-extract-minimum contents :key keyfun :test #'<=))))
 
 (defun priority-queue-insert (priority-queue new-item)
-  "Add NEW-ITEM to PRIOIRITY-QUEUE."
+  "Add NEW-ITEM to PRIORITY-QUEUE."
   (symbol-macrolet ((contents (%pqueue-contents priority-queue))
                     (keyfun (%pqueue-keyfun priority-queue)))
     (heap-insert contents new-item :key keyfun :test #'<=)))
@@ -147,6 +147,10 @@
       (when i
         (heap-extract contents i :key keyfun :test #'<=)))))
 
+;;;
+;;; Util
+;;;
 
+(defvar *test-event-queue* (make-priority-queue :key #'exec-time))
 
 
