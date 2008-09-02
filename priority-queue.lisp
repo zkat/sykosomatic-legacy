@@ -82,11 +82,6 @@
       (when i
         (heap-extract contents i :key keyfun :test #'<=)))))
 
-;;;
-;;; Util
-;;;
-
-(defvar *test-event-queue* (make-priority-queue :key #'exec-time))
 
 ;;;
 ;;; Heap (for the priority queue)
