@@ -34,22 +34,30 @@
     :documentation "A function (lambda), that contains the code to be executed.")
    (exec-time
     :initarg :exec-time
-    :initform (get-universal-time)
+    :initform (get-internal-real-time)
     :accessor exec-time
     :documentation "The delay, in seconds, until this event is supposed to fire.")))
 
 (defun make-event (payload &key (delay 0))
+  "Creates a new event, with PAYLOAD being a lambda that contains everything to be executed.
+It also accepts a DELAY, in milliseconds, until the event is ready to go. Otherwise, it's
+ ready immediately"
   (make-instance '<event> 
 		 :payload payload 
-		 :exec-time (+ (get-universal-time) delay)))
+		 :exec-time (+ (get-internal-real-time) delay)))
 
 ;;;
 ;;; Event processing
 ;;;
 
-;; (defun process-event ()
- 
-;; )
+(defun process-event (event-queue)
+  "Processes the next event in EVENT-QUEUE, executing it if it's 'baked'."
+  (let ((next-event (priority-queue-minimum event-queue)))
+    (when (<= (exec-time next-event)
+	      (get-internal-real-time))
+      (let ((event (priority-queue-extract-minimum event-queue)))
+	(execute-event event)))))
+
 (defun execute-event (event)
   "Executes an event."
   (funcall (payload event)))
