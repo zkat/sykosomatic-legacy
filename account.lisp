@@ -95,7 +95,7 @@
 
 (defun get-account-by-name (username)
   "Fetches an account using a username."
-  (find username *accounts* :key #'string-equal))
+  (gethash username *accounts*))
 
 (defun/cc login-client (client)
   "Logs a user into their account"
