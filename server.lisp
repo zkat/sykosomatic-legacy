@@ -113,6 +113,9 @@ connected to *server* and handles their input once per tick. Stops with stop-ser
 	     (sleep (/ (- next-tick now)
 		       internal-time-units-per-second)))))))
 
+;;; Note: Start-server and stop-server should be wrapped elsewhere. Probably not a good idea
+;;;       to just use them directly. Wrapping them would allow stuff like loading/saving, etc.
+
 ;;; Start
 
 (defun start-server (&key (address *default-server-address*) (port *default-server-port*))
