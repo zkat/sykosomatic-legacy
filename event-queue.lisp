@@ -1,3 +1,4 @@
+;; Copyright 2008 Zach Beane
 ;; Copyright 2008 Kat Marchan
 
 ;; This file is part of sykosomatic
