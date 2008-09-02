@@ -61,3 +61,9 @@ It also accepts a DELAY, in milliseconds, until the event is ready to go. Otherw
 (defun execute-event (event)
   "Executes an event."
   (funcall (payload event)))
+
+;;;
+;;; Util
+;;;
+
+(defvar *test-event-queue* (make-priority-queue :key #'exec-time))
