@@ -176,16 +176,19 @@
 	  (write-to-client client "Username too long (must be under 16 chars)~%")
 	  (setup-username client)))))
 
-;; This could really use a sanity-checker, too.
 (defun/cc setup-password (client)
   "Prompts client for a password."
   (let* ((password (prompt-client client "~%Choose a password: "))
-	 (pass-confirm (prompt-client client "Retype your password: ")))
+	 (pass-confirm (if (confirm-password-sanity password)
+			   (prompt-client client "Retype your password: ")
+			 (progn
+			   (write-to-client client "Password must consist of letters and numbers.")
+			   (setup-password client)))))
     (if (equal password pass-confirm)
 	(hash-password password)
-	(progn
-	  (write-to-client client "~&Passwords did not match, try again.~%")
-	  (setup-password client)))))
+      (progn
+	(write-to-client client "~&Passwords did not match, try again.~%")
+	(setup-password client)))))
 
 (defun/cc setup-email (client)
   "Prompts client for a correct e-mail address."
@@ -194,11 +197,11 @@
 	(progn
 	  (write-to-client "~%You chose ~a as your email address.~%" email)
 	  (if (client-y-or-n-p client "Is this email address correct?")
-	     email
-	     (setup-email client)))
-	(progn
-	  (write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
-	  (setup-email client)))))
+	      email
+	    (setup-email client)))
+      (progn
+	(write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
+	(setup-email client)))))
 
 ;; NOTE: This isn't used (yet)
 (defun/cc setup-name (client)
@@ -207,7 +210,7 @@
 	 (lastname (prompt-client client "Please enter your first name")))
     (if (client-y-or-n-p client "Greetings ~a ~a. Is this name correct" firstname lastname)
 	(values firstname lastname)
-	(setup-name client))))
+      (setup-name client))))
 
 ;;;
 ;;; Account Management
@@ -248,14 +251,14 @@
 (defun hash-password (password)
   (ironclad:byte-array-to-hex-string
    (ironclad:digest-sequence
-     :sha256
-     (ironclad:ascii-string-to-byte-array
-      password))))
+    :sha256
+    (ironclad:ascii-string-to-byte-array
+     password))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Account Management ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
-;
+					;
 
 (defun confirm-username-sanity (username)
   (and (<= (length username) 16)
@@ -265,3 +268,6 @@
   (cl-ppcre:scan 
    "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
    email))
+
+(defun confirm-password-sanity (password)
+  (not (find-if-not #'alphanumericp password)))
