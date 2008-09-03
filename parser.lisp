@@ -38,6 +38,7 @@
 ;;; Pre-processing
 ;;;
 ;; Cleans up the incoming string
+
 (defun prompt-user ()
   "Prompts the user for input, and returns a string."
   (format t "~%~%-> ")
@@ -68,6 +69,7 @@
 
 (defun string->token-list (string)
   "Converts a STRING into a LIST of TOKEN-STRINGS."
+<<<<<<< HEAD:parser.lisp
   (let* ((com+chat (split-off-chat-string (preprocess-string string)))
 	 (commands (split-command-string (car com+chat))))
     (if (cadr com+chat)
