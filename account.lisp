@@ -199,8 +199,14 @@
 	  (format *query-io* "~%Passwords did not match, trying again.~%")
 	  (setup-password)))))
 
+<<<<<<< accounting:account.lisp
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Account Management ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
+=======
+(defun confirm-username-sanity (username)
+  (and (<= (length username) 16)
+       (not (find-if (lambda (c) (not (alphanumericp c))) username))))
+>>>>>>> local:account.lisp
 
