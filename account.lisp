@@ -252,9 +252,14 @@
      (ironclad:ascii-string-to-byte-array
       password))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Account Management ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+
 (defun confirm-username-sanity (username)
-  (and (<= (length username) 16) 
-       (not (find #\Space username))))
+  (and (<= (length username) 16)
+       (not (find-if-not #'alphanumericp username))))
 
 (defun confirm-email-sanity (email)
   (cl-ppcre:scan 
