@@ -14,7 +14,9 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defpackage #:sykosomatic
-  (:use :cl :cl-store)
-  (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held))
+  (:use :cl :cl-store :cl-cont)
+  (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held)
+  (:import-from :ironclad :byte-array-to-hex-string :digest-sequence :ascii-string-to-byte-array))
