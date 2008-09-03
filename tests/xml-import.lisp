@@ -20,14 +20,17 @@
 
 (def-suite xml-import)
 
-(test validation
+(def-suite validation :in xml-import)
+(in-suite validation)
+
+(test validate
       (is-true (xml-validate '("room" nil
 			       ("name" "A name")
 			       ("desc" "A description")
 			       ("desc-long" "A long description"))))
 )
 
-(test validation-predicates
+(test validate-predicate
       (is-false (xml-valid-p nil "room"))
       (is-false (xml-valid-p '("room" nil '()) "room"))
       (is-false (xml-valid-p '("rooma" nil '()) "room"))

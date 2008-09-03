@@ -27,4 +27,5 @@
 			:components ((:file "packages")
 				     (:file "account")
 				     (:file "xml-import")))
+	       (:file "run-tests" :depends-on ("tests"))
 	       ))

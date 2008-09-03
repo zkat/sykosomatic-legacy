@@ -1,10 +1,10 @@
 ;; -*- common-lisp -*-
 
-(require 'fiveam)
-(in-package :sykosomatic)
-(use-package :fiveam)
+(in-package #:sykosomatic-tests)
 
-(def-suite pre-processing-tests)
+(def-suite parser)
+
+(def-suite pre-processing-tests :in parser)
 (in-suite pre-processing-tests)
 
 (test preprocess-string
@@ -17,7 +17,7 @@
       (is (equal "hello    world" (preprocess-string "    hello    world    ")))
       )
 
-(def-suite tokenizer-tests)
+(def-suite tokenizer-tests :in parser)
 (in-suite tokenizer-tests)
 
 (test split-command-string
@@ -47,5 +47,5 @@
       (is (equal '("walk" "north") (string->token-list "walk north 'Cool'")))
       )
 
-(def-suite parser-tests)
+(def-suite parser-tests :in parser)
 (in-suite parser-tests)

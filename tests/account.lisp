@@ -20,12 +20,18 @@
 
 (def-suite account)
 
-(test sanity-checks
-      ;; Username tests
+(def-suite sanity-checks :in account)
+(in-suite sanity-checks)
+
+(test username-sanity
       (is-true (confirm-username-sanity "hello"))
       (is-true (confirm-username-sanity "HELLO"))
       (is-true (confirm-username-sanity "HELLOworld"))
       (is-false (confirm-username-sanity "hello world"))
-      ;; Password tests
-      ;; Email tests
 )
+
+;;(test password-sanity
+;;)
+
+;;(test email-sanity
+;;)
