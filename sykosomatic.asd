@@ -10,8 +10,8 @@
   :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:cl-cont #:ironclad)
   :components ((:file "packages")
 	       (:file "queue" :depends-on ("packages"))
-	       (:file "event" :depends-on ("packages"))
 	       (:file "priority-queue" :depends-on ("packages"))
+	       (:file "event" :depends-on ("packages" "priority-queue"))
 	       (:file "config" :depends-on ("packages"))
 	       ;;server/client
 	       (:file "logger" :depends-on ("config"))
@@ -31,4 +31,5 @@
 	       (:file "commands" :depends-on ("binder"))
 	       ;; other stuff
 	       (:file "account" :depends-on ("client" "player"))
+
 	       (:file "xml-import" :depends-on ("entity"))))
