@@ -17,6 +17,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defpackage #:sykosomatic
-  (:use :cl :cl-store :cl-cont)
+  (:use :cl :cl-store :cl-cont :xmls)
   (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held)
   (:import-from :ironclad :byte-array-to-hex-string :digest-sequence :ascii-string-to-byte-array))

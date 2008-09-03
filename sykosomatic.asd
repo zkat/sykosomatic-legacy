@@ -7,7 +7,7 @@
   :maintainer "Kat M <kzm@sykosomatic.org>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, powerful text-based online game engine."
-  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:cl-cont #:ironclad)
+  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:cl-cont #:ironclad #:xmls)
   :components ((:file "packages")
 	       (:file "queue" :depends-on ("packages"))
 	       (:file "priority-queue" :depends-on ("packages"))
@@ -31,5 +31,4 @@
 	       (:file "commands" :depends-on ("binder"))
 	       ;; other stuff
 	       (:file "account" :depends-on ("client" "player"))
-
-	       (:file "xml-import" :depends-on ("entity"))))
+	       (:file "xml-import" :depends-on ("room" "player"))))
