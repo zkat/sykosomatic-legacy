@@ -15,16 +15,37 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; game.lisp
+;; mobile.lisp
 ;;
-;; This was a basic main function when sykosomatic was still single-player. This needs to
-;; be reworked a bit, I think.
+;; Stuff related to mobiles, and everything that subclasses <mobile>
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;============================================== Game ==========================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-(defun play-game (player)
-  (execute-command player (prompt-user))
-  (play-game player))
+
+;;;
+;;; Mobile class
+;;;
+(defclass <mobile> (<entity>)
+  ((species
+    :initarg :species
+    :accessor species
+    :documentation "Mobile's species")
+   (killcount
+    :initform 0
+    :documentation "MURDER! DESTROY! BARSH!")
+   (level
+    :initarg :level
+    :initform 1
+    :accessor level
+    :documentation "Power level (must be less than 9000)")
+   (skills
+    :initarg :skills
+    :initform nil
+    :accessor skills
+    :documentation "A list of skills belonging to mobile")
+   (inventory
+    :initarg :inventory
+    :initform nil
+    :accessor inventory
+    :documentation "A list of items in the player's possession"))
+  (:documentation "Living things."))

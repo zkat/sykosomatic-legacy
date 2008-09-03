@@ -20,82 +20,28 @@
 ;; Currently, it's an amalgamation of a sort of binder, vocabulary handler, and several player
 ;; functions, along with commands to execute them. Very nasty stuff.
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;======================================  User Commands  =======================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~ Sexy Builder ~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; AST goes in, sexp goes out. (it builds s-exps, so it's sexy)
-;; -----------------------------------------------
-;; Goal AST - (emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
-;; ----------Where rest-of-sentence is ((noun-phrase) &optional (noun-phrase))
-;; ---------------Where noun-phrase is ((descriptors) &optional (descriptors))
-;; ---------------------where descriptors is ("noun" &rest "adjectives, articles, etc")
-;; -----------------------------------------------
-;
-(defun string->function (string)
-  "Checks if STRING is a VERB. Returns a FUNCTION."
-  (cdr (assoc string *verbs* :test #'string-equal)))
 
-(defun parse-tree->sexp (player tree)
-  "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  (if (listp tree)
-      (let ((verb (string->function (car tree)))
-	    (emote (car tree))
-	    (rest-of-sentence (cadr tree))
-	    (chat-string (fourth tree))
-	    (adverb (third tree)))
-	(list verb player (list emote rest-of-sentence adverb chat-string)))
-      ;; if it's not a list, it's an error from the parser. Spit that out, instead.
-      (write-to-client (client player) "~&~a~&" tree)))
+;;;
+;;; Executor
+;;;
 
-(defun string->sexp (player string)
-  "Takes a STRING and turns it into a valid S-EXP to run."
-  (parse-tree->sexp player (parse-string string)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~ EXECUTOR!! ~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
 (defun execute-command (player string)
   "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
   (let ((sexp (string->sexp player string)))
     (if (functionp (car sexp))
 	(apply (car sexp) (cdr sexp)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-(defun write-to-player (player format-string &rest format-args)
-  "Sends output to a player."
-  (let ((player-client (current-client player)))
-    (apply #'write-to-client player-client format-string format-args)))
+;;;
+;;; Base Commands
+;;;
 
-(defun write-to-others-in-room (player format-string &rest format-args)
-  "Sends output to everyone in PLAYER'S room except to PLAYER."
-  ;; UNTESTED AS OF YET.
-  (let* ((players (get-players (location player)))
-	 (others (remove player players)))
-    (apply #'write-to-player others format-string format-args)))
-
-(defun disconnect-player (player)
-  "Disconnects the given player from the game."
-  (disconnect-client (current-client player)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~ Base Commands ~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
 ;; TODO - Keep an eye out for a possible defcommand macro.
 ;;
 ;; This is what all commands receive as argument:
 ;; (<player> (emote rest-of-predicate adverbs chat-string))
-;
+
 (defun pc-emote (player ast)
   "Emotes an EMOTE-STRING."
   (let ((emote (car ast)))
@@ -171,10 +117,11 @@
 		(write-to-player player "No exit in that direction.")))
 	  (write-to-player player "Player can't move. He isn't anywhere to begin with!")))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;~~~~~~~~~~~~~~~~~~~~~ Utils ~~~~~~~~~~~~~~~~~~;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+
+;;;
+;;; Utils
+;;;
+
 (defun refresh-verb (string function)
   "Associates STRING with FUNCTION and adds it to *VERBS*,
 removing all previous associations with STRING"

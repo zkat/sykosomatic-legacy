@@ -22,23 +22,31 @@
 ;; be changed, if possible. By default, the game data directory is saved to .sykosomatic, in the
 ;; user's home directory.
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Values ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-(defvar *game-directory* (merge-pathnames #P".sykosomatic/" (user-homedir-pathname)))
+
+;;;
+;;; Values
+;;;
+
+;;; Directories
+(defvar *game-directory* (merge-pathnames #P".sykosomatic/" (user-homedir-pathname))
+  "Configures the base directory for the game.")
+
 (defvar *rooms-directory* (merge-pathnames #P"rooms/" *game-directory*))
 (defvar *players-directory* (merge-pathnames #P"players/" *game-directory*))
 (defvar *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*))
 (defvar *log-directory* (merge-pathnames #P"logs/" *game-directory*))
 
-(defvar *db-directory* (merge-pathnames #P"db/" *game-directory*)) ;; not used
+;;; Server options
+(defvar *default-server-address* "0.0.0.0")
+(defvar *default-server-port* 4000)
+(defvar *max-client-idle-time* (* 60 20))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+;;;
+;;; Functions
+;;;
+
 ;; (defun read-config-from-file (file)
 ;;   "Reads a configuration FILE and loads the appropriate values into their respective globals"
 ;;   )

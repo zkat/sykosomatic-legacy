@@ -1,17 +1,35 @@
+WARNING: May contain trace amounts of lisp.
+
+ABOUT
+-----
+
+SykoSoMaTIC is a fairly general, flexible, powerful, and all-around
+awesome game engine meant mainly for text-based online games. Chunks
+of it can be used for other purposes, like simple chat servers with
+accounts. It also includes a parser and basic game-object classes
+like room, mobile, player, item, etc, that can be built upon to create
+any online text-based game in a fairly short amount of time.
+
+
 REQUIREMENTS
 ------------
 
 * cl-store (http://common-lisp.net/project/cl-store/)
 * cl-ppcre (http://weitz.de/cl-ppcre/)
+* cl-cont (http://common-lisp.net/project/cl-cont/)
 * bordeaux-threads (http://common-lisp.net/project/bordeaux-threads/)
 * usocket (http://common-lisp.net/project/usocket/)
-* SBCL, unless you feel adventurous. I'm not sure if it's compatible with anything else.
+* ironclad (http://method-combination.net/lisp/ironclad/)
+* SBCL, no other lisp is supported right now.
+* Linux x86, probably x64 (untested). No windows support until it gets threads.
+
 
 INSTALLATION
 ------------
 
 1. Get all the required source code
    A. With asdf-install:
+      *CL-USER> (require 'asdf-install)
       *CL-USER> (asdf-install:install :cl-store)
       *CL-USER> (asdf-install:install :cl-ppcre)
       *etc..
@@ -30,9 +48,6 @@ INSTALLATION
    A. In Slime with SBCL:
       * (require 'sykosomatic)
       * Hope for the best!
-   B. In anything else:
-      *something like (asdf:oos 'asdf:load-op 'sykosomatic)
-      * Hope for the best even more.
 
 3. Get yourself into the package.
    * (in-package sykosomatic)
@@ -41,16 +56,40 @@ INSTALLATION
 
 5. Happy Hacking!
 
-TESTING THE SERVER
+
+TESTING THE SERVER 
+------------------ 
+
+The server runs on port 4000 by default, and will accept external
+connections by default. If you want to prevent those, start the server
+with :address "127.0.0.1".
+
+Telnet clients can connect with 'telnet <address> <port>', and the
+engine can currently handle all the garbage telnet likes sending (I
+think).  The current function in the client loop echoes back the
+generated abstract syntax tree from whatever the client sends in.
+
+You can prompt a client for input, but since the netcode uses
+continuations, you'll have to defun/cc anything that uses
+prompt-client, and toss the input into a variable that you can check
+out afterward. You can't just have it output straight into the repl.
+
+Logs are all tossed into ~/.sykosomatic/logs/sykosomatic.log right
+now.
+
+Oh, and if you want to change any directories, read through
+config.lisp. You can set the base game directory there.
+
+
+TESTING THE PARSER
 ------------------
-The server runs on port 4000 by default, and will accept external connections by
-default. If you want to prevent those, start the server with :address "127.0.0.1".
 
-Telnet clients can connect with 'telnet <address> <port>', and the engine can currently
-handle all the garbage telnet likes sending (I think).
-Read through client.lisp to see what you can do to the poor victims.
+The parser doesn't generate anything until you give it some verbs to
+work with. A nice basic one is (add-verb "smile" #'pc-emote) (the same
+effect can be achieved with (add-emote "smile"). That will add the
+verb "smile" to the vocabulary, and you can write a bunch of other
+verbs to see what else happens. Take a look at commands.lisp for
+currently available verbs.
 
-Logs are all tossed into ~/.sykosomatic/logs/sykosomatic.log right now. 
-
-Oh, and if you want to change any directories, read through config.lisp. You can set the
-base game directory there.
+The parser doesn't bind yet, so you'll only be getting syntax trees
+for now.

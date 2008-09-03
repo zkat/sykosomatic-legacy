@@ -15,14 +15,29 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; event-queue.lisp
+;; item.lisp
 ;;
-;; Implementation of a time-based event queue. It handles events depending on their execution
-;; time. It's a min-priority queue, so the event with the lowest time until execution (which
-;; can, and often will be, negative), is at the top of the queue.
+;; Stuff related to items.
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;======================================= Event Queue ==========================================;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;;
+;;; Item class
+;;;
+(defclass <item> (<entity>)
+  ((equippable
+    :initarg :equip-p
+    :initform nil
+    :accessor equip-p
+    :documentation "Can item be equipped?")
+   (moveable
+    :initarg :moveable
+    :initform t
+    :accessor moveable-p
+    :documentation "Is this object movable? If nil, player cannot pick up")
+   (effects
+    :initarg :effects
+    :accessor effects
+    :documentation "Any special effects of the item"))
+  (:documentation "Master class for items."))
