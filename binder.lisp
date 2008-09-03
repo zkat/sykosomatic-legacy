@@ -40,6 +40,7 @@
 
 (defun parse-tree->sexp (player tree)
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
+  ;; FIXME: This should build a sexp based on actual bound objects, not pass strings around.
   (if (listp tree)
       (let ((verb (string->function (car tree)))
 	    (emote (car tree))
@@ -53,3 +54,19 @@
 (defun string->sexp (player string)
   "Takes a STRING and turns it into a valid S-EXP to run."
   (parse-tree->sexp player (parse-string string)))
+
+(defun bind-noun-phrase (player noun-phrase)
+  "Binds a noun-phrase within PLAYER's scope."
+  ;; NOTE: Basic idea of how to bind:
+  ;;      * The car of the noun-phrase is the name of the actual object
+  ;;      * Standalone words following this are searched for in the TAGS slot of the object
+  ;;        until a unique match is found (if any at all)
+  ;;      * If the binder comes across a single "s", then the next item is the name of the object
+  ;;        the car is a feature of.
+  ;;
+  ;; NOTE: I could possibly replace any instance of "s" with "of", to make it clearer, and bind
+  ;;       references that use "of" and "'s" in the same way.
+  ;;
+  
+  )
+

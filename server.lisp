@@ -37,6 +37,11 @@
     :initarg :socket
     :initform nil
     :documentation "Contains the server's usocket-listener.")
+   (max-idle-time
+    :accessor max-idle-time
+    :initarg :max-idle-time
+    :initform *max-client-idle-time*
+    :documentation "How long the client can be inactive before it's disconneted.")
    (clients
     :accessor clients
     :initform nil
@@ -72,8 +77,6 @@ the i/o processing ticks, and related slots."))
 ;;; Init/Destruct
 ;;;
 
-(defvar *default-server-address* "localhost")
-(defvar *default-server-port* 4000)
 (defvar *server* nil)
 
 ;;; Clients thread
@@ -95,7 +98,9 @@ connected to *server* and handles their input once per tick. Stops with stop-ser
 				 (listen stream))
 			(update-activity client)
 			(maybe-read-line-from-client client))
-		      (funcall (client-step client)))
+		      (if (> (client-idle-time client) (max-idle-time server))
+			  (signal 'client-disconnected-error)
+			  (funcall (client-step client))))
 		  (client-disconnected-error ()
 		    (progn
 		      (log-message :CLIENT "Client disconnected: ~a" (ip client))
@@ -107,6 +112,9 @@ connected to *server* and handles their input once per tick. Stops with stop-ser
 	   (when (> next-tick now)
 	     (sleep (/ (- next-tick now)
 		       internal-time-units-per-second)))))))
+
+;;; Note: Start-server and stop-server should be wrapped elsewhere. Probably not a good idea
+;;;       to just use them directly. Wrapping them would allow stuff like loading/saving, etc.
 
 ;;; Start
 

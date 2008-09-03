@@ -61,6 +61,8 @@
 ;;;
 ;;; Load/Save
 ;;;
+;;; Note: I think save-objects and load-objects could eventually be moved to a new db.lisp. The
+;;;       file should do something else as well, though, so these will reside here, for now.
 
 ;;; Save
 
@@ -74,9 +76,7 @@
 
 (defun save-objects ()
   (save-players)
-  (save-player-ids)
   (save-rooms)
-  (save-room-ids)
   (format t "I think everything got saved. Hopefully, it did..."))
 
 ;;; Load
@@ -96,8 +96,6 @@
 
 (defun load-objects ()
   (load-players)
-  (load-player-ids)
   (load-rooms)
-  (load-room-ids)
   (format t "Apparently, everything got loaded."))
 

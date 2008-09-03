@@ -1,3 +1,4 @@
+;; Copyright 2006 Nick Thomas
 ;; Copyright 2008 Kat Marchan
 
 ;; This file is part of sykosomatic
