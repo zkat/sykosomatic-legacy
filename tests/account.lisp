@@ -18,7 +18,14 @@
 
 (in-package #:sykosomatic-tests)
 
-(def-suite xml-import)
+(def-suite account)
 
-;;(test sanity-checks
-;;)
+(test sanity-checks
+      ;; Username tests
+      (is-true (confirm-username-sanity "hello"))
+      (is-true (confirm-username-sanity "HELLO"))
+      (is-true (confirm-username-sanity "HELLOworld"))
+      (is-false (confirm-username-sanity "hello world"))
+      ;; Password tests
+      ;; Email tests
+)
