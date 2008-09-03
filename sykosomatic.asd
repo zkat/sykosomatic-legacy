@@ -6,8 +6,8 @@
   :version "nil"
   :maintainer "Kat M <kzm@sykosomatic.org>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
-  :long-description "A heavily-extensible, simple, powerful text-adventure engine."
-  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:cl-cont)
+  :long-description "A heavily-extensible, simple, powerful text-based online game engine."
+  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:cl-cont #:ironclad)
   :components ((:file "packages")
 	       (:file "queue" :depends-on ("packages"))
 	       (:file "event" :depends-on ("packages"))

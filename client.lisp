@@ -132,7 +132,7 @@ any). Also contains several slots that handle asynchronous client i/o."))
 Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
   (handler-case
       (let ((stream (usocket:socket-stream (socket client))))
-	(loop for b = (when (listen stream)
+	(loop for b = (when (listen stream) 
 			(read-byte stream))
 	   do
 	   (cond ((null b)
@@ -155,7 +155,7 @@ Assuming disconnection."))))
   "Reads a single line of input from a client (delimited by a newline)."
   (dequeue (read-lines client)))
 
-(defun/cc prompt-client (client format-string &rest format-args)
+(defun/cc prompt-client (client &optional format-string &rest format-args)
   "Continuation used for prompting a client for input."
   (when format-string 
     (write-to-client client format-string format-args))
@@ -210,6 +210,18 @@ Assuming disconnection."))))
 ;;; Client main
 ;;;
 
+(defun client-init (client)
+  "Initializes a client, and sets the main function to step through."
+  (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
+  (setf (client-step client) (make-client-step-with-continuations client #'client-main)))
+
+(defun client-main (client)
+  "Main function to run clients through."
+  ;;Keep it simple at first. Grab input, echo something back.
+  ;; Later on, allow clients to enter players, and run in the main player loop.
+  ;; Then start getting fancy from there.
+  (client-echo-ast client))
+
 (defun make-client-step-with-continuations (client function)
   "Wrap some CPS transformed function of one argument (client) handling client IO with continuation handler."
   (lambda ()
@@ -219,15 +231,6 @@ Assuming disconnection."))))
 	    (setf (client-continuation client) nil)
 	    (funcall client-continuation (read-line-from-client client))))
 	(funcall function client))))
-
-
-(defun client-init (client)
-  "Main function for clients."
-;;Keep it simple at first. Grab input, echo something back.
-;; Later on, allow clients to enter players, and run in the main player loop.
-;; Then start getting fancy from there.
-  (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
-  (setf (client-step client) (make-client-step-with-continuations client #'client-echo-ast)))
 
 ;; Temporary
 
