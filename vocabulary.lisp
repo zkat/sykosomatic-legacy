@@ -38,10 +38,10 @@
 (defvar *pronouns* nil
   "List of pronouns, as strings.")
 
-(defvar *verbs* nil ; should be turned into a hash table
+(defvar *verbs* (make-hash-table :test #'equalp) ; should be turned into a hash table
   "This is a dotted list right now. The CAR is a string, CDR the function.")
 
-(defvar *adverbs* (make-hash-table)
+(defvar *adverbs* (make-hash-table :test #'equalp)
   "This contains a HASH TABLE of all available ADVERBS.")
 
 ;;;

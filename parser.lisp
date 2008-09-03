@@ -172,7 +172,7 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 ; TODO - verbs should go in a hash table
 (defun verb-p (string)
   "Is STRING a VERB?"
-  (assoc string *verbs* :test #'string-equal))
+  (gethash string *verbs*))
 
 (defun chat-string-p (string)
   "Is STRING a CHAT-STRING?"
