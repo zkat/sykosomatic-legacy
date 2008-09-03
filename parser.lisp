@@ -169,15 +169,14 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 ;;; Predicates
 ;;;
 
-; TODO - verbs should go in a hash table
 (defun verb-p (string)
   "Is STRING a VERB?"
   (gethash string *verbs*))
 
 (defun chat-string-p (string)
   "Is STRING a CHAT-STRING?"
-  (if (not (null string))
-      (char-equal #\' (char string 0))))
+  (unless (null string)
+    (char-equal #\' (char string 0))))
 
 (defun preposition-p (string)
   "Is STRING a PREPOSITION?"
