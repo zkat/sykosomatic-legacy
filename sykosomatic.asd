@@ -11,12 +11,12 @@
   :components ((:file "packages")
 	       (:file "queue" :depends-on ("packages"))
 	       (:file "event" :depends-on ("packages"))
-	       (:file "event-queue" :depends-on ("packages"))
+	       (:file "priority-queue" :depends-on ("packages"))
 	       (:file "config" :depends-on ("packages"))
 	       ;;server/client
 	       (:file "logger" :depends-on ("config"))
 	       (:file "server" :depends-on ("queue"))
-	       (:file "client" :depends-on ("server" "queue" "event-queue"))
+	       (:file "client" :depends-on ("server" "queue" "priority-queue"))
 	       ;;game-object stuff
 	       (:file "game-object" :depends-on ("config"))
 	       (:file "room" :depends-on ("game-object"))
