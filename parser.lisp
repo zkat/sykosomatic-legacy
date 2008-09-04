@@ -125,6 +125,7 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 		      (list verb rest-of-predicate adverbs nil))))))
 	  (t
 	   (let ((fail-verb (car token-list)))
+	     ;; NOTE: Should this really return this value? Maybe it should raise a condition?
 	     (if fail-verb
 		 (format nil "Unknown verb: '~a'" fail-verb)
 		 (format nil "Invalid input")))))))
