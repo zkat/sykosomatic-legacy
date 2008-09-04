@@ -176,7 +176,6 @@
 	  (write-to-client client "Username too long (must be under 16 chars)~%")
 	  (setup-username client)))))
 
-;; This could really use a sanity-checker, too.
 (defun/cc setup-password (client)
   "Prompts client for a password."
   (let ((password (prompt-client client "~%Choose a password: "))
