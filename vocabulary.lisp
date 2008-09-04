@@ -26,23 +26,29 @@
 ;;; Vocab vars
 ;;;
 
+;; Note: Could these entries be put into a single object, or a struct?
+
+;; These are hash tables because they'll have thousands of entries.
+(defvar *verbs* (make-hash-table :test #'equalp)
+  "This is a dotted list right now. The CAR is a string, CDR the function.")
+
+(defvar *adverbs* (make-hash-table :test #'equalp)
+  "This contains a HASH TABLE of all available ADVERBS.")
+
+;; These are relatively small, so they'll stay as conses.
 (defvar *articles* nil
   "A list of articles, as strings.")
 
 (defvar *prepositions* nil
   "A simple list of strings which represent prepositions.")
 
-(defvar *adjectives* nil
-  "List of adjectives, as strings.")
-
 (defvar *pronouns* nil
   "List of pronouns, as strings.")
 
-(defvar *verbs* (make-hash-table :test #'equalp) ; should be turned into a hash table
-  "This is a dotted list right now. The CAR is a string, CDR the function.")
-
-(defvar *adverbs* (make-hash-table :test #'equalp)
-  "This contains a HASH TABLE of all available ADVERBS.")
+;; This seems unnecessary. Neither the binder nor the parser need such a list. Note that
+;; this list is no longer handled in load/save
+(defvar *adjectives* nil 
+  "List of adjectives, as strings.")
 
 ;;;
 ;;; Load/Save
