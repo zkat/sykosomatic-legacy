@@ -179,9 +179,10 @@
 ;; This could really use a sanity-checker, too.
 (defun/cc setup-password (client)
   "Prompts client for a password."
-  (let* ((password (prompt-client client "~%Choose a password: "))
-	 (pass-confirm (prompt-client client "Retype your password: ")))
-    (if (equal password pass-confirm)
+  (let ((password (prompt-client client "~%Choose a password: "))
+	(pass-confirm (prompt-client client "Retype your password: ")))
+    (if (and (equal password pass-confirm)
+	     (confirm-password-sanity password))
 	(hash-password password)
 	(progn
 	  (write-to-client client "~&Passwords did not match, try again.~%")
@@ -213,7 +214,7 @@
 ;;; Account Management
 ;;;
 
-;; NIL
+;;NIL
 
 
 ;;;
@@ -245,6 +246,7 @@
 ;;;
 ;;; Utils
 ;;;
+
 (defun hash-password (password)
   (ironclad:byte-array-to-hex-string
    (ironclad:digest-sequence
@@ -252,16 +254,21 @@
      (ironclad:ascii-string-to-byte-array
       password))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;  Account Management ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-
 (defun confirm-username-sanity (username)
+  "Confirms username sanity. Usernames have to be 16 chars or shorter in length, and may only
+be composed of alphanumeric characters."
   (and (<= (length username) 16)
        (not (find-if-not #'alphanumericp username))))
+
+(defun confirm-password-sanity (password)
+  "Confirms password is acceptable. Password needs to be 32 chars or under, and may only contain
+a set of characters defined as CL's standard-char type."
+  (and (<= (length password) 32)
+       (not (find-if-not #'standard-char-p password))))
 
 (defun confirm-email-sanity (email)
   (cl-ppcre:scan 
    "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
    email))
+
+
