@@ -36,37 +36,61 @@
 
 (defun string->function (string)
   "Checks if STRING is a VERB. Returns a FUNCTION."
-  (cdr (assoc string *verbs* :test #'string-equal)))
+  (gethash string *verbs*))
 
 (defun parse-tree->sexp (player tree)
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  ;; FIXME: This should build a sexp based on actual bound objects, not pass strings around.
-  (if (listp tree)
+  ;; FIXME: This could handle errors better. It should build the proper sexp now, though.
+  (if (listp tree) ;change this to a WHEN once the silly write-to-client is disposed of
       (let ((verb (string->function (car tree)))
 	    (emote (car tree))
-	    (rest-of-sentence (cadr tree))
-	    (chat-string (fourth tree))
-	    (adverb (third tree)))
-	(list verb player (list emote rest-of-sentence adverb chat-string)))
-      ;; if it's not a list, it's an error from the parser. Spit that out, instead.
+	    (rest-of-sentence (bind-rest-of-sentence (cadr tree)))
+	    (adverb-list (third tree))
+	    (chat-string (fourth tree)))
+	(list verb player (list emote rest-of-sentence adverb-list chat-string)))
+      ;; Note about the following: This isn't a nice way to handle 'bad verb' conditions.
       (write-to-client (client player) "~&~a~&" tree)))
 
 (defun string->sexp (player string)
   "Takes a STRING and turns it into a valid S-EXP to run."
   (parse-tree->sexp player (parse-string string)))
 
+;;;
+;;; Binder
+;;;
+
+;; NOTE: Basic idea of how to bind:
+;;      * The car of the noun-phrase is the name of the actual object
+;;      * Standalone words following this are searched for in the TAGS slot of the object
+;;        until a unique match is found (if any at all)
+;;      * If the binder comes across a single "s", then the next item is the name of the object
+;;        the car is a feature of.
+
+(defun bind-rest-of-sentence (player rest-of-sentence)
+  "Binds the rest-of-sentence part of the AST, returns a list of actual objects that
+player commands can then interpret, and execute based upon."
+  ;; Example rest-of-sentence
+  ;; ((bound-noun-phrase) preposition (bound-noun-phrase))
+  ;; ((bound-noun-phrase) nil nil)
+  ;; (nil preposition (bound-noun-phrase))
+
+  )
+
 (defun bind-noun-phrase (player noun-phrase)
   "Binds a noun-phrase within PLAYER's scope."
-  ;; NOTE: Basic idea of how to bind:
-  ;;      * The car of the noun-phrase is the name of the actual object
-  ;;      * Standalone words following this are searched for in the TAGS slot of the object
-  ;;        until a unique match is found (if any at all)
-  ;;      * If the binder comes across a single "s", then the next item is the name of the object
-  ;;        the car is a feature of.
+  ;; Example noun-phrases:
+  ;; (object preposition object)
+  ;; (object nil nil)
+  ;; (nil preposition object)
+
+  )
+
+(defun bind-descriptor-list (player descriptor-list)
+  "Binds a descriptor-list, which includes the name of an object, adjectives, pronouns,
+and possessives. Returns a single object (the object being referred to)."
+  ;; Example descriptor-list using possessives 
+  ;; ("glimmer" "s" "hair" "green" "s" "syko")
   ;;
   ;; NOTE: I could possibly replace any instance of "s" with "of", to make it clearer, and bind
   ;;       references that use "of" and "'s" in the same way.
-  ;;
-  
   )
-
