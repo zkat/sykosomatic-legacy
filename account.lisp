@@ -254,6 +254,7 @@
      (ironclad:ascii-string-to-byte-array
       password))))
 
+;;; Sanity checkers
 (defun confirm-username-sanity (username)
   "Confirms username sanity. Usernames have to be between 6 and 16 chars long, and may only
 be composed of alphanumeric characters."
