@@ -55,10 +55,12 @@
     :accessor client-step)
    (partial-line
     :initform nil
-    :accessor partial-line)
+    :accessor partial-line
+    :documentation "Holds a line that's currently being read, while reader receives a newline.")
    (read-lines
     :initform (make-empty-queue)
-    :accessor read-lines)
+    :accessor read-lines
+    :documentation "A queue of lines that have been read in from the client.")
    (account
     :initarg :account
     :accessor account
