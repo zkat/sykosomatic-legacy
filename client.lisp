@@ -73,9 +73,9 @@
 the client's IP address, last activity time, associated account (if any), and associated avatar (if 
 any). Also contains several slots that handle asynchronous client i/o."))
 
-;; TODO
-;; (defun make-client ()
-;;   )
+(defun make-client (socket ip)
+  "Generic constructor for <client>"
+  (make-instance '<client> :socket socket :ip ip))
 
 ;;;
 ;;; Connection
@@ -88,9 +88,7 @@ any). Also contains several slots that handle asynchronous client i/o."))
 (defun connect-new-client ()
   "Connects a new client to the main server."
   (let ((socket (usocket:socket-accept (socket *server*))))
-    (let ((client (make-instance '<client>
-				 :socket socket
-				 :ip (usocket:get-peer-address socket))))
+    (let ((client (make-client socket (usocket:get-peer-address socket))))
       (client-init client)
       (log-message :CLIENT "New client: ~a" (ip client))
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
