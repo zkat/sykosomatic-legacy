@@ -247,6 +247,7 @@
 ;;;
 
 (defun hash-password (password)
+  "Password hashing function."
   (ironclad:byte-array-to-hex-string
    (ironclad:digest-sequence
      :sha256
@@ -254,18 +255,21 @@
       password))))
 
 (defun confirm-username-sanity (username)
-  "Confirms username sanity. Usernames have to be 16 chars or shorter in length, and may only
+  "Confirms username sanity. Usernames have to be between 6 and 16 chars long, and may only
 be composed of alphanumeric characters."
-  (and (<= (length username) 16)
+  (and (>= (length username) 6)
+       (<= (length username) 16)
        (not (find-if-not #'alphanumericp username))))
 
 (defun confirm-password-sanity (password)
-  "Confirms password is acceptable. Password needs to be 32 chars or under, and may only contain
+  "Confirms password is acceptable. Password needs to be 8 to 32 chars long, and may only contain
 a set of characters defined as CL's standard-char type."
-  (and (<= (length password) 32)
+  (and (>= (length password) 8)
+       (<= (length password) 32)
        (not (find-if-not #'standard-char-p password))))
 
 (defun confirm-email-sanity (email)
+  "Checks that EMAIL is a legal e-mail address. Only accepts certain domains."
   (cl-ppcre:scan 
    "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
    email))
