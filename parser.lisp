@@ -54,11 +54,11 @@
 
 (defun split-command-string (command-string)
   "Splits each COMMAND in COMMAND-STRING and puts it in a list of words-strings."
-  (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9@/#$^&*]{1,}" command-string))
+  (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9@/#$^&*']{1,}" command-string))
 
 (defun split-off-chat-string (string)
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
-  (cl-ppcre:split "^+'| +'|\"" string :limit 2))
+  (cl-ppcre:split " +'|\"" string :limit 2))
 
 (defun format-chat-string (chat-string)
   "Adds a ['] to the beginning of the CHAT-STRING. Used to tell it apart from other parts of the sentence."
@@ -91,14 +91,14 @@
 ;; where (rest-of-predicate) is (noun-phrase-1 preposition noun-phrase-2)
 ;; where (noun-phrase) is (noun (modifiers))
 ;;
-
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-sentence (string->token-list string)))
 
-(defun preparse-adverbs (token-list) ;This is the worst way to handle this shit. Ever. Temporary. Very.
+(defun preparse-adverbs (token-list) 
   "Yoinks all the adverbs it recognizes out of a list.
 MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of this evil."
+  ;; This is the worst way to handle this shit. Ever. Temporary. Very.
   (if (> (length token-list) 1)
       (let ((adverb (find-if #'adverb-p token-list)))
 	(if adverb
@@ -110,7 +110,7 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 (defun parse-sentence (token-list)
   "Uses a TOKEN-LIST to generate an AST"
   (multiple-value-bind (adverbs token-list) (preparse-adverbs token-list)
-    (cond ((chat-string-p (car token-list))
+    (cond ((chat-string-p (car token-list)) 
 	   (list "say" nil adverbs (car token-list)))
 	  ((verb-p (car token-list))
 	   (let ((verb (car token-list))
@@ -125,10 +125,9 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 		      (list verb rest-of-predicate adverbs nil))))))
 	  (t
 	   (let ((fail-verb (car token-list)))
-	     ;; NOTE: Should this really return this value? Maybe it should raise a condition?
 	     (if fail-verb
-		 (format nil "Unknown verb: '~a'" fail-verb)
-		 (format nil "Invalid input")))))))
+		 (error 'unknown-verb-error :text "Unknown verb" :verb fail-verb)
+		 (error 'parser-error :text "Invalid input")))))))
 
 (defun parse-rest-of-predicate (token-list)
   "Generates the REST-OF-PREDICATE list."
@@ -137,8 +136,8 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 	(let ((preposition (car token-list))
 	      (token-list (cdr token-list)))
 	  (multiple-value-bind (noun-phrase-2 token-list) (parse-noun-phrase token-list)
-	    (values (list noun-phrase-1 preposition noun-phrase-2) token-list)))
-	(values (list noun-phrase-1 nil nil) token-list))))
+	    (values (list preposition noun-phrase-1 noun-phrase-2) token-list)))
+	(values (list nil noun-phrase-1 nil) token-list))))
 
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
@@ -147,8 +146,8 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
     (if (preposition-p (car token-list))
 	(let ((preposition (car token-list)))
 	  (multiple-value-bind (noun-group-2 token-list) (parse-noun-group (cdr token-list))
-	    (values (list noun-group-1 preposition noun-group-2) token-list)))
-	(values (list noun-group-1) token-list))))
+	    (values (list preposition noun-group-1  noun-group-2) token-list)))
+	(values (list nil noun-group-1 nil) token-list))))
 
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP.
@@ -188,6 +187,19 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
   (gethash string *adverbs*))
      
 ;; Util
+
+(define-condition unknown-verb-error (error)
+  ((text :initarg :text :reader text)
+   (verb :initarg :verb :reader verb))
+  (:documentation "Signaled whenever an unknown verb is encountered.")
+  (:report (lambda (condition stream)
+	     (format stream "Tried to parse an unknown verb: ~A" (verb condition)))))
+
+(define-condition parser-error (error)
+  ((text :initarg :text :reader text))
+  (:documentation "Condition signaled whenever some generic parsing error happens.")
+  (:report "Parser probably got some garbage input, or an empty string."))
+
 (defun test-the-parser ()
   "Runs a loop that asks for player input and returns whatever gets parsed. Quits on 'quit'."
   (let ((current-input (prompt-user)))
