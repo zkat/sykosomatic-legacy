@@ -25,8 +25,7 @@
 (in-package #:sykosomatic)
 
 ;; !!! NOTE: Players will want abbreviations... but do I really need to deviate from existing ones?
-;;           example: >go 2 him --> approaches first PC
-;;                    >smile w/ my teeth --> You smile with your teeth.
+;;           example: >smile w/ my teeth --> You smile with your teeth.
 ;;                    >smirk @ noobtard99 --> You smirk at NoobTard99
 ;;          This can be easily implemented by adding stuff to *prepositions*
 ;;          One potential problem is dealing with numerals properly, but this can be fixed if we just agree
@@ -86,15 +85,17 @@
 ;; Noun-phrase ::= <noun-group> (preposition <noun-group>)
 ;; noun-group ::= (pronoun) | ((article) (number) (adjective) string) ;;whoever wrote this doesn't know english :-\
 ;; ----------------------------------------------
-;; The goal AST:
-;; ("verb" (rest-of-predicate) adverbs "chat-string"))
-;; where (rest-of-predicate) is (noun-phrase-1 preposition noun-phrase-2)
-;; where (noun-phrase) is (noun (modifiers))
+;; Goal AST - (emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
+;; -----------Where REST-OF-SENTENCE is ((noun-phrase) &optional (noun-phrase))
+;; -----------Where NOUN-PHRASE is ((descriptors) &optional (descriptors))
+;; -----------Where DESCRIPTORS is ("noun" &rest "adjectives, articles, etc")
 ;;
+
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-sentence (string->token-list string)))
 
+;; TODO: Implement proper adverb parsing
 (defun preparse-adverbs (token-list) 
   "Yoinks all the adverbs it recognizes out of a list.
 MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of this evil."
@@ -130,7 +131,8 @@ MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of thi
 		 (error 'parser-error :text "Invalid input")))))))
 
 (defun parse-rest-of-predicate (token-list)
-  "Generates the REST-OF-PREDICATE list."
+  "Generates the REST-OF-PREDICATE list.
+MULTIPLE RETURN VALUES: REST-OF-PREDICATE list, and the remaining TOKEN-LIST"
   (multiple-value-bind (noun-phrase-1 token-list) (parse-noun-phrase token-list)
     (if (preposition-p (car token-list))
 	(let ((preposition (car token-list))
@@ -180,14 +182,13 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 
 (defun preposition-p (string)
   "Is STRING a PREPOSITION?"
-  (member string *prepositions* :test #'string-equal))
+  (gethash string *prepositions*))
 
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
   (gethash string *adverbs*))
      
 ;; Util
-
 (define-condition unknown-verb-error (error)
   ((text :initarg :text :reader text)
    (verb :initarg :verb :reader verb))

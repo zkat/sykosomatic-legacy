@@ -35,20 +35,14 @@
 (defvar *adverbs* (make-hash-table :test #'equalp)
   "This contains a HASH TABLE of all available ADVERBS.")
 
-;; These are relatively small, so they'll stay as conses.
-(defvar *articles* nil
-  "A list of articles, as strings.")
+(defvar *articles* (make-hash-table :test #'equalp)
+    "A table of articles, as strings.")
 
-(defvar *prepositions* nil
-  "A simple list of strings which represent prepositions.")
+(defvar *prepositions* (make-hash-table :test #'equalp)
+  "A table of strings which represent prepositions.")
 
-(defvar *pronouns* nil
-  "List of pronouns, as strings.")
-
-;; This seems unnecessary. Neither the binder nor the parser need such a list. Note that
-;; this list is no longer handled in load/save
-(defvar *adjectives* nil 
-  "List of adjectives, as strings.")
+(defvar *pronouns* (make-hash-table :test #'equalp)
+  "Table of pronouns, as strings.")
 
 ;;;
 ;;; Load/Save

@@ -65,6 +65,14 @@
 ;;        until a unique match is found (if any at all)
 ;;      * If the binder comes across a single "s", then the next item is the name of the object
 ;;        the car is a feature of.
+;; NOTE: Problems:
+;;       * This doesn't handle possessives too smoothly
+;;       * I don't know how to handle changing the command's scope (i.e. look in my pouch)
+
+;; I don't know if this is the right approach. Mainly because these functions are not aware
+;; of all the other parts of speech, which could cause binding to different objects.
+;; Example: look in my pouch, look at my pouch, get item from my purse.
+;; THEN AGAIN: this isn't necessary! The functions can decide, by order of arguments! :D
 
 (defun bind-rest-of-sentence (player rest-of-sentence)
   "Binds the rest-of-sentence part of the AST, returns a list of actual objects that
@@ -73,7 +81,7 @@ player commands can then interpret, and execute based upon."
   ;; ((bound-noun-phrase) preposition (bound-noun-phrase))
   ;; ((bound-noun-phrase) nil nil)
   ;; (nil preposition (bound-noun-phrase))
-
+  
   )
 
 (defun bind-noun-phrase (player noun-phrase)
@@ -82,7 +90,7 @@ player commands can then interpret, and execute based upon."
   ;; (object preposition object)
   ;; (object nil nil)
   ;; (nil preposition object)
-
+  
   )
 
 (defun bind-descriptor-list (player descriptor-list)
@@ -93,4 +101,5 @@ and possessives. Returns a single object (the object being referred to)."
   ;;
   ;; NOTE: I could possibly replace any instance of "s" with "of", to make it clearer, and bind
   ;;       references that use "of" and "'s" in the same way.
+  
   )
