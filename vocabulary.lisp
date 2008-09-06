@@ -28,7 +28,6 @@
 
 ;; Note: Could these entries be put into a single object, or a struct?
 
-;; These are hash tables because they'll have thousands of entries.
 (defvar *verbs* (make-hash-table :test #'equalp)
   "This is a dotted list right now. The CAR is a string, CDR the function.")
 
