@@ -59,47 +59,46 @@
 ;;; Binder
 ;;;
 
-;; NOTE: Basic idea of how to bind:
-;;      * The car of the noun-phrase is the name of the actual object
-;;      * Standalone words following this are searched for in the TAGS slot of the object
-;;        until a unique match is found (if any at all)
-;;      * If the binder comes across a single "s", then the next item is the name of the object
-;;        the car is a feature of.
-;; NOTE: Problems:
-;;       * This doesn't handle possessives too smoothly
-;;       * I don't know how to handle changing the command's scope (i.e. look in my pouch)
+(defgeneric list-visible-objects (anchor)
+  (:documentation "Returns a list of visible objects within the scope of the ANCHOR"))
 
-;; I don't know if this is the right approach. Mainly because these functions are not aware
-;; of all the other parts of speech, which could cause binding to different objects.
-;; Example: look in my pouch, look at my pouch, get item from my purse.
-;; THEN AGAIN: this isn't necessary! The functions can decide, by order of arguments! :D
+(defmethod list-visible-objects ((room <room>))
+  (contents room))
 
-(defun bind-rest-of-sentence (player rest-of-sentence)
+(defmethod list-visible-objects ((entity <entity>))
+  (contents (location entity)))
+
+(defmethod list-visible-objects ((mobile <mobile>))
+  (append (contents (location mobile))
+	  (inventory mobile)))
+
+(defun bind-rest-of-sentence (player rest-of-sentence &key (scope :player))
   "Binds the rest-of-sentence part of the AST, returns a list of actual objects that
 player commands can then interpret, and execute based upon."
   ;; Example rest-of-sentence
-  ;; ((bound-noun-phrase) preposition (bound-noun-phrase))
-  ;; ((bound-noun-phrase) nil nil)
-  ;; (nil preposition (bound-noun-phrase))
+  ;; (preposition (bound-noun-phrase1) (bound-noun-phrase))
+  ;; (nil (bound-noun-phrase1) nil)
+  ;; (preposition nil (bound-noun-phrase2))
   
   )
 
-(defun bind-noun-phrase (player noun-phrase)
+(defun bind-noun-phrase (player noun-phrase &key (scope :player))
   "Binds a noun-phrase within PLAYER's scope."
   ;; Example noun-phrases:
-  ;; (object preposition object)
-  ;; (object nil nil)
-  ;; (nil preposition object)
+  ;; (preposition object object)
+  ;; (nil object nil)
+  ;; (preposition nil  object)
   
   )
 
-(defun bind-descriptor-list (player descriptor-list)
+;; NOTE: Make this a method that specializes on different objects. The binder then uses scope
+;;       based on that object to figure out exactly how to bind a descriptor-list. OOP. mmm.
+(defun bind-descriptor-list (player descriptor-list &key (scope :player))
   "Binds a descriptor-list, which includes the name of an object, adjectives, pronouns,
 and possessives. Returns a single object (the object being referred to)."
   ;; Example descriptor-list using possessives 
-  ;; ("glimmer" "s" "hair" "green" "s" "syko")
+  ;; ("hilt" "heavy" "sword's" "the")
   ;;
-  ;; NOTE: I could possibly replace any instance of "s" with "of", to make it clearer, and bind
-  ;;       references that use "of" and "'s" in the same way.
   
   )
+

@@ -37,7 +37,7 @@
 ;;; Base Commands
 ;;;
 
-;; TODO - Keep an eye out for a possible defcommand macro.
+;; TODO - What should a call to a defmacro command look like?
 ;;
 ;; This is what all commands receive as argument:
 ;; (<player> (emote rest-of-predicate adverbs chat-string))
