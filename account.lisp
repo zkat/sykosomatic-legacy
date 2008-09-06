@@ -246,6 +246,7 @@
 ;;; Utils
 ;;;
 
+;; This is still probably not very safe. That, or the way I'm handling it might be wrong.
 (defun hash-password (password)
   "Password hashing function."
   (ironclad:byte-array-to-hex-string
@@ -255,6 +256,7 @@
       password))))
 
 ;;; Sanity checkers
+
 (defun confirm-username-sanity (username)
   "Confirms username sanity. Usernames have to be between 6 and 16 chars long, and may only
 be composed of alphanumeric characters."
@@ -274,5 +276,3 @@ a set of characters defined as CL's standard-char type."
   (cl-ppcre:scan 
    "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
    email))
-
-
