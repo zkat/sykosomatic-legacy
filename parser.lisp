@@ -24,19 +24,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
 
-;; !!! NOTE: Players will want abbreviations... but do I really need to deviate from existing ones?
-;;           example: >smile w/ my teeth --> You smile with your teeth.
-;;                    >smirk @ noobtard99 --> You smirk at NoobTard99
-;;          This can be easily implemented by adding stuff to *prepositions*
-;;          One potential problem is dealing with numerals properly, but this can be fixed if we just agree
-;;          to require some symbol before number-qualifiers (like #). This should be thought about. 
-;;          The exception may not be needed, since '2' is the only item that will actually be used.
-;;
-
 ;;;
 ;;; Pre-processing
 ;;;
-;; Cleans up the incoming string
+;;; - Cleans up the incoming string
 (defun prompt-user ()
   "Prompts the user for input, and returns a string."
   (format t "~%~%-> ")
@@ -49,7 +40,7 @@
 ;;;
 ;;; Tokenizer
 ;;;
-;; String goes in, string-list goes out.
+;;; - String goes in, string-list goes out.
 
 (defun split-command-string (command-string)
   "Splits each COMMAND in COMMAND-STRING and puts it in a list of words-strings."
@@ -77,6 +68,7 @@
 ;;;
 ;;; Parser
 ;;;
+;;; - Takes a string-list, and returns an AST.
 
 ;; string-list goes in, AST comes out.
 ;; -----------------------------------------------
@@ -187,8 +179,11 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
   (gethash string *adverbs*))
-     
-;; Util
+
+;;;     
+;;; Util
+;;;
+
 (define-condition unknown-verb-error (error)
   ((text :initarg :text :reader text)
    (verb :initarg :verb :reader verb))
