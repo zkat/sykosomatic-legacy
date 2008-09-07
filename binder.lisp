@@ -23,41 +23,52 @@
 (in-package #:sykosomatic)
 
 ;;;
-;;; Sexy builder
-;;;
-
-;; AST goes in, sexp goes out. (it builds s-exps, so it's sexy)
-;; -----------------------------------------------
-;; Goal AST - (emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
-;; ----------Where rest-of-sentence is ((noun-phrase) &optional (noun-phrase))
-;; ---------------Where noun-phrase is ((descriptors) &optional (descriptors))
-;; ---------------------where descriptors is ("noun" &rest "adjectives, articles, etc")
-;; -----------------------------------------------
-
-(defun string->function (string)
-  "Checks if STRING is a VERB. Returns a FUNCTION."
-  (gethash string *verbs*))
-
-(defun parse-tree->sexp (player tree)
-  "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  ;; FIXME: This could handle errors better. It should build the proper sexp now, though.
-  (if (listp tree) ;change this to a WHEN once the silly write-to-client is disposed of
-      (let ((verb (string->function (car tree)))
-	    (emote (car tree))
-	    (rest-of-sentence (bind-rest-of-sentence (cadr tree)))
-	    (adverb-list (third tree))
-	    (chat-string (fourth tree)))
-	(list verb player (list emote rest-of-sentence adverb-list chat-string)))
-      ;; Note about the following: This isn't a nice way to handle 'bad verb' conditions.
-      (write-to-client (client player) "~&~a~&" tree)))
-
-(defun string->sexp (player string)
-  "Takes a STRING and turns it into a valid S-EXP to run."
-  (parse-tree->sexp player (parse-string string)))
-
-;;;
 ;;; Binder
 ;;;
+;;; - Handles binding of AST to game-objects.
+
+(defun bind-verb (verb)
+  "Checks if VERB is a VERB. Returns a FUNCTION."
+  (gethash verb *verbs*))
+
+(defun bind-rest-of-sentence (scope rest-of-sentence)
+  "Binds the rest-of-sentence part of the AST, returns a list of actual objects that
+player commands can then interpret, and execute based upon."
+  ;; Example rest-of-sentence
+  ;; (preposition (bound-noun-phrase1) (bound-noun-phrase))
+  ;; (nil (bound-noun-phrase1) nil)
+  ;; (preposition nil (bound-noun-phrase2))
+  
+  )
+
+(defun bind-noun-phrase (scope noun-phrase)
+  "Binds a noun-phrase within PLAYER's scope."
+  ;; Example noun-phrases:
+  ;; (preposition object object)
+  ;; (nil object nil)
+  ;; (preposition nil  object)
+  
+  )
+
+;; NOTE: Make this a method that specializes on different objects. The binder then uses scope
+;;       based on that object to figure out exactly how to bind a descriptor-list. OOP. mmm.
+(defun bind-descriptor-list (scope descriptor-list)
+  "Binds a descriptor-list, which includes the name of an object, adjectives, pronouns,
+and possessives. Returns a single object (the object being referred to)."
+  ;; Example descriptor-list using possessives 
+  ;; ("hilt" "heavy" "sword's" "the")
+  ;;
+  
+  )
+
+(defun bind-noun (scope noun)
+  "Binds a noun, within SCOPE."
+  )
+
+;;;
+;;; Scope
+;;;
+;;; - These methods return the appropriate scope-list, given an object.
 
 (defgeneric list-visible-objects (anchor)
   (:documentation "Returns a list of visible objects within the scope of the ANCHOR"))
@@ -72,39 +83,19 @@
   (append (contents (location mobile))
 	  (inventory mobile)))
 
-(defun bind-rest-of-sentence (player rest-of-sentence &key scope)
-  "Binds the rest-of-sentence part of the AST, returns a list of actual objects that
-player commands can then interpret, and execute based upon."
-  ;; Example rest-of-sentence
-  ;; (preposition (bound-noun-phrase1) (bound-noun-phrase))
-  ;; (nil (bound-noun-phrase1) nil)
-  ;; (preposition nil (bound-noun-phrase2))
-  
+;;;
+;;; Sexy builder
+;;;
+;;; - Builds the final s-expressions to be run by the event system.
+
+;; TODO
+(defun parse-tree->sexp (player tree)
+  "Takes a parsed TREE of tokens and returns a runnable S-EXP"
   )
 
-(defun bind-noun-phrase (player noun-phrase &key scope)
-  "Binds a noun-phrase within PLAYER's scope."
-  ;; Example noun-phrases:
-  ;; (preposition object object)
-  ;; (nil object nil)
-  ;; (preposition nil  object)
-  
-  )
-
-;; NOTE: Make this a method that specializes on different objects. The binder then uses scope
-;;       based on that object to figure out exactly how to bind a descriptor-list. OOP. mmm.
-(defun bind-descriptor-list (player descriptor-list &key scope)
-  "Binds a descriptor-list, which includes the name of an object, adjectives, pronouns,
-and possessives. Returns a single object (the object being referred to)."
-  ;; Example descriptor-list using possessives 
-  ;; ("hilt" "heavy" "sword's" "the")
-  ;;
-  
-  )
-
-(defun bind-noun (scope noun)
-  "Binds a noun, within SCOPE."
-  )
+(defun string->sexp (player string)
+  "Takes a STRING and turns it into a valid S-EXP to run."
+  (parse-tree->sexp player (parse-string string)))
 
 ;;;
 ;;; Util
@@ -122,3 +113,4 @@ and possessives. Returns a single object (the object being referred to)."
 (defun extract-name-from-possessive (word)
   "Nabs the actual word out of a possessive."
   (car (cl-ppcre:split "'|'s" word)))
+
