@@ -72,7 +72,7 @@
   (append (contents (location mobile))
 	  (inventory mobile)))
 
-(defun bind-rest-of-sentence (player rest-of-sentence &key (scope :player))
+(defun bind-rest-of-sentence (player rest-of-sentence &key scope)
   "Binds the rest-of-sentence part of the AST, returns a list of actual objects that
 player commands can then interpret, and execute based upon."
   ;; Example rest-of-sentence
@@ -82,7 +82,7 @@ player commands can then interpret, and execute based upon."
   
   )
 
-(defun bind-noun-phrase (player noun-phrase &key (scope :player))
+(defun bind-noun-phrase (player noun-phrase &key scope)
   "Binds a noun-phrase within PLAYER's scope."
   ;; Example noun-phrases:
   ;; (preposition object object)
@@ -93,7 +93,7 @@ player commands can then interpret, and execute based upon."
 
 ;; NOTE: Make this a method that specializes on different objects. The binder then uses scope
 ;;       based on that object to figure out exactly how to bind a descriptor-list. OOP. mmm.
-(defun bind-descriptor-list (player descriptor-list &key (scope :player))
+(defun bind-descriptor-list (player descriptor-list &key scope)
   "Binds a descriptor-list, which includes the name of an object, adjectives, pronouns,
 and possessives. Returns a single object (the object being referred to)."
   ;; Example descriptor-list using possessives 
@@ -102,3 +102,23 @@ and possessives. Returns a single object (the object being referred to)."
   
   )
 
+(defun bind-noun (scope noun)
+  "Binds a noun, within SCOPE."
+  )
+
+;;;
+;;; Util
+;;;
+
+(defun possessive-p (word)
+  "Is WORD in possessive form?"
+  (let ((second-to-last-letter (elt word(- (length word) 2)))
+	(last-letter (elt word (- (length word) 1))))
+    (or (and (equal second-to-last-letter #\')
+	     (equal last-letter #\s))
+	(and (equal second-to-last-letter #\s)
+	     (equal last-letter #\')))))
+
+(defun extract-name-from-possessive (word)
+  "Nabs the actual word out of a possessive."
+  (car (cl-ppcre:split "'|'s" word)))
