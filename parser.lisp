@@ -73,9 +73,10 @@
 ;; string-list goes in, AST comes out.
 ;; -----------------------------------------------
 ;; The complete parser
-;; Command ::= (adverb) verb (adverb) ((pronoun)<noun-phrase> (adverb) (preposition <noun-phrase> (adverb)))
-;; Noun-phrase ::= <noun-group> (preposition <noun-group>)
-;; noun-group ::= (pronoun) | ((article) (number) (adjective) string) ;;whoever wrote this doesn't know english :-\
+;; TODO: expand noun-group to account for multiple nouns and possessives.
+;; Command = 1*[adverb] verb [adverb] [[pronoun] noun-phrase [adverb] [preposition <noun-phrase> [adverb]]]
+;; Noun-phrase ::= noun-group [preposition noun-group]
+;; noun-group ::= ([pronoun] / [[article] [number] [adjective] string] 
 ;; ----------------------------------------------
 ;; Goal AST - (emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
 ;; -----------Where REST-OF-SENTENCE is ((noun-phrase) &optional (noun-phrase))
