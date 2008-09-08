@@ -101,17 +101,4 @@ and possessives. Returns a single object (the object being referred to)."
 ;;; Util
 ;;;
 
-(defun %possessive-p (word)
-  "Is WORD in possessive form?"
-  (let ((second-to-last-letter (elt word(- (length word) 2)))
-	(last-letter (elt word (- (length word) 1))))
-    (or (and (equal second-to-last-letter #\')
-	     (equal last-letter #\s))
-	(and (equal second-to-last-letter #\s)
-	     (equal last-letter #\')))))
-
-(defun possessive-p (word)
-  "Nabs the actual word out of a possessive."
-  (when (%possessive-p word)
-    (car (cl-ppcre:split "'|'s" word))))
-
+;; NIL

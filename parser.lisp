@@ -45,7 +45,7 @@
 
 (defun split-command-string (command-string)
   "Splits each COMMAND in COMMAND-STRING and puts it in a list of words-strings."
-  (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9@/#$^&*']{1,}" command-string))
+  (cl-ppcre:all-matches-as-strings "[a-zA-Z0-9@/#$^&*']{1,}|," command-string))
 
 (defun split-off-chat-string (string)
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
@@ -71,31 +71,50 @@
 ;;;
 ;;; - Takes a string-list, and returns an AST.
 
-;; string-list goes in, AST comes out.
-;; -----------------------------------------------
-;; The complete parser
-;; command = [adverb] verb [adverb] \
-;;           [[pronoun] noun-phrase [adverb] [preposition <noun-phrase> [adverb]]]
+
+;; ABNF grammar - http://en.wikipedia.org/wiki/ABNF
+;; ------------
 ;;
-;; noun-phrase = noun-group [preposition noun-group]
+;; sentence =  chat-string
+;; sentence =/ [adverb] verb [noun-clause] [adverb] [chat-string]
 ;;
-;; noun-group = [pronoun]
-;; noun-group =/ [[article] [number] [adjective] \
-;;               (noun / possessive-noun noun-group / noun conjunction noun-group)]
+;; noun-clause = noun-phrase [adverb] [preposition noun-phrase]
+;;
+;; noun-phrase =  pronoun
+;; noun-phrase =/ [article] [numeral] [adjective] \
+;;               (noun / noun conjunction noun-phrase / possessive-noun phrase)
+;;
+;; article = satisfies article-p
+;; numeral = satisfies numeral-p
+;; adjective = any unknown token that comes before a noun or a possessive
+;; noun = anything before a preposition or conjunction
+;; possessive-noun = satisfies possessive-p (['s] or [s'])
+;; conjunction = satisfies conjunction-p (i.e. "and" "&" "," etc.)
 ;;
 ;; ----------------------------------------------
 ;; TODO: What does the AST for the new noun-group grammar look like?
-;; Goal AST - (emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
-;; -----------Where REST-OF-SENTENCE is ((noun-phrase) &optional (noun-phrase))
-;; -----------Where NOUN-PHRASE is ((descriptors) &optional (descriptors))
-;; -----------Where DESCRIPTORS is ("noun" &rest "adjectives, articles, etc") ; this needs update
 ;;
+;; Goal AST - (verb noun-clause adverb-list chat-string) ;;this will be expanded further.
+;; -----------Where NOUN-CLAUSE is (preposition noun-phrase noun-phrase)
+;; -----------Where NOUN-PHRASE is (list-of-objects)  update
+;;
+;;;; NOTE: I can grab a list of possessives and use (reduce #'list possessive-list) on them, in the
+;;;;       order that I want the recursion to go in!!
+
 
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-sentence (string->token-list string)))
 
 ;; TODO: Implement proper adverb parsing
+;;
+;; NOTE: There are two functions where adverbs are possible.. two adverbs in parse-sentence, 
+;;       and two in rest-of-sentence. There can be two lists from these functions, and I can
+;;       #'append them at the end of parse-sentence to generate the full adverb-list, which will
+;;       even contain information about adverb position.
+;;
+;; NOTE: Preparsing the first adverb might still be a good idea. Possible the second one, too.
+;;
 (defun preparse-adverbs (token-list) 
   "Yoinks all the adverbs it recognizes out of a list.
 MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of this evil."
@@ -187,6 +206,10 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 (defun adverb-p (string)
   "Is STRING an ADVERB?"
   (gethash string *adverbs*))
+
+(defun conjunction-p (string)
+  "Is STRING a CONJUNCTION?"
+  (gethash string *conjunctions*))
 
 (defun %possessive-p (word)
   "Is WORD in possessive form?"
