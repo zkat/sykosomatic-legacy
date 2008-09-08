@@ -91,7 +91,7 @@ and possessives. Returns a single object (the object being referred to)."
 ;; TODO
 (defun parse-tree->sexp (player tree)
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  )
+  t)
 
 (defun string->sexp (player string)
   "Takes a STRING and turns it into a valid S-EXP to run."
@@ -101,7 +101,7 @@ and possessives. Returns a single object (the object being referred to)."
 ;;; Util
 ;;;
 
-(defun possessive-p (word)
+(defun %possessive-p (word)
   "Is WORD in possessive form?"
   (let ((second-to-last-letter (elt word(- (length word) 2)))
 	(last-letter (elt word (- (length word) 1))))
@@ -110,7 +110,8 @@ and possessives. Returns a single object (the object being referred to)."
 	(and (equal second-to-last-letter #\s)
 	     (equal last-letter #\')))))
 
-(defun extract-name-from-possessive (word)
+(defun possessive-p (word)
   "Nabs the actual word out of a possessive."
-  (car (cl-ppcre:split "'|'s" word)))
+  (when (%possessive-p word)
+    (car (cl-ppcre:split "'|'s" word))))
 
