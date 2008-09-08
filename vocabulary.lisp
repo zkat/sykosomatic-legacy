@@ -25,7 +25,6 @@
 ;;;
 ;;; Vocab vars
 ;;;
-
 ;; Note: Could these entries be put into a single object, or a struct?
 
 (defvar *verbs* (make-hash-table :test #'equalp)
@@ -42,6 +41,48 @@
 
 (defvar *pronouns* (make-hash-table :test #'equalp)
   "Table of pronouns, as strings.")
+
+(defvar *conjunctions* (make-hash-table :test #'equalp)
+  "Table of possible conjunctions. Go wild.")
+
+;;;
+;;; Predicates
+;;;
+
+(defun verb-p (string)
+  "Is STRING a VERB?"
+  (gethash string *verbs*))
+
+(defun chat-string-p (string)
+  "Is STRING a CHAT-STRING?"
+  (unless (null string)
+    (char-equal #\' (char string 0))))
+
+(defun preposition-p (string)
+  "Is STRING a PREPOSITION?"
+  (gethash string *prepositions*))
+
+(defun adverb-p (string)
+  "Is STRING an ADVERB?"
+  (gethash string *adverbs*))
+
+(defun conjunction-p (string)
+  "Is STRING a CONJUNCTION?"
+  (gethash string *conjunctions*))
+
+(defun possessive-p (word)
+  "Is WORD in possessive form?"
+  (let ((second-to-last-letter (elt word(- (length word) 2)))
+	(last-letter (elt word (- (length word) 1))))
+    (or (and (equal second-to-last-letter #\')
+	     (equal last-letter #\s))
+	(and (equal second-to-last-letter #\s)
+	     (equal last-letter #\')))))
+
+;; TODO
+(defun numeral-p (word)
+  "Is WORD a NUMERAL?"
+  t)
 
 ;;;
 ;;; Load/Save

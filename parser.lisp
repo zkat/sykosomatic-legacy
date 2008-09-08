@@ -17,9 +17,7 @@
 
 ;; parser.lisp
 ;;
-;; Cleans up and parses a string, generating an abstract syntax tree. Needs access to
-;; a list of verbs and adverbs in order to generate the tree accurately.
-;; Also has some functions for saving/loading some vocabulary.
+;; Cleans up and parses a string, generating an abstract syntax tree.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
@@ -71,7 +69,6 @@
 ;;;
 ;;; - Takes a string-list, and returns an AST.
 
-
 ;; ABNF grammar - http://en.wikipedia.org/wiki/ABNF
 ;; ------------
 ;;
@@ -97,10 +94,8 @@
 ;; Goal AST - (verb noun-clause adverb-list chat-string) ;;this will be expanded further.
 ;; -----------Where NOUN-CLAUSE is (preposition noun-phrase noun-phrase)
 ;; -----------Where NOUN-PHRASE is (list-of-objects)  update
-;;
 ;;;; NOTE: I can grab a list of possessives and use (reduce #'list possessive-list) on them, in the
 ;;;;       order that I want the recursion to go in!!
-
 
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
@@ -186,48 +181,14 @@ MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
 	     (values (append descriptors (list descriptor))
 		     token-list))))))
 
-;;;
-;;; Predicates
-;;;
-
-(defun verb-p (string)
-  "Is STRING a VERB?"
-  (gethash string *verbs*))
-
-(defun chat-string-p (string)
-  "Is STRING a CHAT-STRING?"
-  (unless (null string)
-    (char-equal #\' (char string 0))))
-
-(defun preposition-p (string)
-  "Is STRING a PREPOSITION?"
-  (gethash string *prepositions*))
-
-(defun adverb-p (string)
-  "Is STRING an ADVERB?"
-  (gethash string *adverbs*))
-
-(defun conjunction-p (string)
-  "Is STRING a CONJUNCTION?"
-  (gethash string *conjunctions*))
-
-(defun %possessive-p (word)
-  "Is WORD in possessive form?"
-  (let ((second-to-last-letter (elt word(- (length word) 2)))
-	(last-letter (elt word (- (length word) 1))))
-    (or (and (equal second-to-last-letter #\')
-	     (equal last-letter #\s))
-	(and (equal second-to-last-letter #\s)
-	     (equal last-letter #\')))))
-
-(defun possessive-p (word)
-  "Nabs the actual word out of a possessive."
-  (when (%possessive-p word)
-    (car (cl-ppcre:split "'|'s" word))))
-
 ;;;     
 ;;; Util
 ;;;
+
+(defun extract-noun-from-possessive (word)
+  "Nabs the actual noun out of a possessive."
+  (when (possessive-p word)
+    (car (cl-ppcre:split "'|'s" word))))
 
 (define-condition unknown-verb-error (error)
   ((text :initarg :text :reader text)
