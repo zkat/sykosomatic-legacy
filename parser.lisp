@@ -28,6 +28,7 @@
 ;;; Pre-processing
 ;;;
 ;;; - Cleans up the incoming string
+
 (defun prompt-user ()
   "Prompts the user for input, and returns a string."
   (format t "~%~%-> ")
@@ -73,15 +74,21 @@
 ;; string-list goes in, AST comes out.
 ;; -----------------------------------------------
 ;; The complete parser
-;; TODO: expand noun-group to account for multiple nouns and possessives.
-;; Command = 1*[adverb] verb [adverb] [[pronoun] noun-phrase [adverb] [preposition <noun-phrase> [adverb]]]
-;; Noun-phrase ::= noun-group [preposition noun-group]
-;; noun-group ::= ([pronoun] / [[article] [number] [adjective] string]) ;this is incomplete. 
+;; command = [adverb] verb [adverb] \
+;;           [[pronoun] noun-phrase [adverb] [preposition <noun-phrase> [adverb]]]
+;;
+;; noun-phrase = noun-group [preposition noun-group]
+;;
+;; noun-group = [pronoun]
+;; noun-group =/ [[article] [number] [adjective] \
+;;               (noun / possessive-noun noun-group / noun conjunction noun-group)]
+;;
 ;; ----------------------------------------------
+;; TODO: What does the AST for the new noun-group grammar look like?
 ;; Goal AST - (emote rest-of-sentence adverb chat-string) ;;this will be expanded further.
 ;; -----------Where REST-OF-SENTENCE is ((noun-phrase) &optional (noun-phrase))
 ;; -----------Where NOUN-PHRASE is ((descriptors) &optional (descriptors))
-;; -----------Where DESCRIPTORS is ("noun" &rest "adjectives, articles, etc")
+;; -----------Where DESCRIPTORS is ("noun" &rest "adjectives, articles, etc") ; this needs update
 ;;
 
 (defun parse-string (string)
