@@ -75,16 +75,18 @@
 ;; sentence =  chat-string
 ;; sentence =/ [adverb] verb [noun-clause] [adverb] [chat-string]
 ;;
-;; noun-clause = noun-phrase [adverb] [preposition noun-phrase]
+;; noun-clause =  noun-phrase
+;; noun-clause =/ [noun-phrase] [[adverb] [preposition] noun-phrase]
 ;;
 ;; noun-phrase =  pronoun
 ;; noun-phrase =/ [article] [numeral] [adjective] \
-;;               (noun / noun conjunction noun-phrase / possessive-noun phrase)
+;;                (noun / noun conjunction noun-phrase / possessive-noun phrase)
 ;;
 ;; article = satisfies article-p
 ;; numeral = satisfies numeral-p
 ;; adjective = any unknown token that comes before a noun or a possessive
 ;; noun = anything before a preposition or conjunction
+;; pronoun = satisfies pronoun-p
 ;; possessive-noun = satisfies possessive-p (['s] or [s'])
 ;; conjunction = satisfies conjunction-p (i.e. "and" "&" "," etc.)
 ;;
