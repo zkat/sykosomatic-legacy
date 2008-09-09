@@ -42,6 +42,17 @@
 ;; This is what all commands receive as argument:
 ;; (<player> (emote rest-of-predicate adverbs chat-string))
 
+
+;; NOTE: Here's an example of how commands should be handled. Any object that needs a special action
+;; performed upon it should define either an overriding method, or something to do before calling
+;; (call-next-method)
+
+(defgeneric pc-example (entity direct-object indirect-object)
+  )
+(defmethod pc-example ((player <player>) (item <item>) (noob <player>))
+  (format t "foo"))
+
+;;; NOTE: The following are obsolete
 (defun pc-emote (player ast)
   "Emotes an EMOTE-STRING."
   (let ((emote (car ast)))
