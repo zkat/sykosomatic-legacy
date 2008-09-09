@@ -79,6 +79,10 @@
 	(and (equal second-to-last-letter #\s)
 	     (equal last-letter #\')))))
 
+(defun pronoun-p (word)
+  "Is WORD a PRONOUN?"
+  (gethash word *pronouns*))
+
 ;; TODO
 (defun numeral-p (word)
   "Is WORD a NUMERAL?"
