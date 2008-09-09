@@ -80,7 +80,7 @@
 ;;
 ;; noun-phrase =  pronoun
 ;; noun-phrase =/ [article] [numeral] [adjective] \
-;;                (noun / noun conjunction noun-phrase / possessive-noun phrase)
+;;               (noun / noun conjunction noun-phrase / possessive-noun phrase)
 ;;
 ;; article = satisfies article-p
 ;; numeral = satisfies numeral-p
@@ -103,52 +103,40 @@
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-sentence (string->token-list string)))
 
-;; TODO: Implement proper adverb parsing
-;;
-;; NOTE: There are two functions where adverbs are possible.. two adverbs in parse-sentence, 
-;;       and two in rest-of-sentence. There can be two lists from these functions, and I can
-;;       #'append them at the end of parse-sentence to generate the full adverb-list, which will
-;;       even contain information about adverb position.
-;;
-;; NOTE: Preparsing the first adverb might still be a good idea. Possible the second one, too.
-;;
-(defun preparse-adverbs (token-list) 
-  "Yoinks all the adverbs it recognizes out of a list.
-MULTIPLE RETURN VALUES: The first adv it finds, and a token-list purified of this evil."
-  ;; This is the worst way to handle this shit. Ever. Temporary. Very.
-  (if (> (length token-list) 1)
-      (let ((adverb (find-if #'adverb-p token-list)))
-	(if adverb
-	    (let ((token-list (remove adverb token-list :test #'string-equal :count 1)))
-	      (values (list adverb) token-list))
-	    (values (list adverb) token-list)))
-      (values nil token-list)))
+;; TODO: ALRIGHT. LET'S REWRITE THIS BITCH.
 
 (defun parse-sentence (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (multiple-value-bind (adverbs token-list) (preparse-adverbs token-list)
-    (cond ((chat-string-p (car token-list)) 
-	   (list "say" nil adverbs (car token-list)))
+  (let ((verb nil)
+	(noun-clause nil)
+	(adverb-1 nil)
+	(adverb-2 nil)
+	(adverb-3 nil)
+	(chat-string nil))
+    (when (adverb-p (car token-list))
+      (setf adverb-1 (pop token-list)))
+    (cond ((chat-string-p (car token-list))
+	   (setf verb "say")
+	   (setf chat-string (pop token-list)))
 	  ((verb-p (car token-list))
-	   (let ((verb (car token-list))
-		 (token-list (cdr token-list)))
-	     (multiple-value-bind (rest-of-predicate token-list) (parse-rest-of-predicate token-list)
-	       (cond ((null token-list)
-		      (list verb rest-of-predicate adverbs nil))
-		     ((chat-string-p (car token-list))
-		      (let ((chat-string (car token-list)))
-			(list verb rest-of-predicate adverbs chat-string)))
-		     (t
-		      (list verb rest-of-predicate adverbs nil))))))
+	   (setf verb (pop token-list))
+	   (multiple-value-setq (noun-clause adverb-2 token-list) (parse-noun-clause token-list))
+	   (when (adverb-p (car token-list))
+	     (setf adverb-3 (pop token-list)))
+	   (when (chat-string-p (car token-list))
+	     (setf chat-string (pop token-list)))
+	   (when token-list
+	     (error 'parser-error :text "Unknown token encountered.")))
 	  (t
 	   (let ((fail-verb (car token-list)))
 	     (if fail-verb
 		 (error 'unknown-verb-error :text "Unknown verb" :verb fail-verb)
-		 (error 'parser-error :text "Invalid input")))))))
+		 (error 'parser-error :text "Invalid input")))))
+    (list verb noun-clause (list adverb-1 adverb-2 adverb-3) chat-string)))
 
-(defun parse-rest-of-predicate (token-list)
-  "Generates the REST-OF-PREDICATE list.
-MULTIPLE RETURN VALUES: REST-OF-PREDICATE list, and the remaining TOKEN-LIST"
+(defun parse-noun-clause (token-list)
+  "Generates the NOUN-CLAUSE list.
+MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
   (multiple-value-bind (noun-phrase-1 token-list) (parse-noun-phrase token-list)
     (if (preposition-p (car token-list))
 	(let ((preposition (car token-list))
