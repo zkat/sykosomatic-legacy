@@ -121,12 +121,13 @@
 	  ((verb-p (car token-list))
 	   (setf verb (pop token-list))
 	   (multiple-value-setq (noun-clause adverb-2 token-list) (parse-noun-clause token-list))
-	   (when (adverb-p (car token-list))
-	     (setf adverb-3 (pop token-list)))
-	   (when (chat-string-p (car token-list))
-	     (setf chat-string (pop token-list)))
 	   (when token-list
-	     (error 'parser-error :text "Unknown token encountered.")))
+	     (when (adverb-p (car token-list))
+	       (setf adverb-3 (pop token-list)))
+	     (when (chat-string-p (car token-list))
+	       (setf chat-string (pop token-list)))
+	     (when token-list
+	       (error 'parser-error :text "Unknown token encountered."))))
 	  (t
 	   (let ((fail-verb (car token-list)))
 	     (if fail-verb
@@ -166,6 +167,10 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	   (multiple-value-bind (descriptors token-list) (parse-noun-group (cdr token-list))
 	     (values (append descriptors (list descriptor))
 		     token-list))))))
+
+(defun parse-possessive (token-list)
+  "Here's an idea on how to handle possessives: a recursive function :D")
+
 
 ;;;     
 ;;; Util
