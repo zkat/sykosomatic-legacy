@@ -152,8 +152,10 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
+  ;; NOTE: confirm that this grammar is correct.
+  ;;
   ;; noun-phrase =  pronoun
-  ;; noun-phrase =/ [article] [numeral] [adjective] \
+  ;; noun-phrase =/ [article] [(ordinal / cardinal)] [adjective] \
   ;;               (noun / noun conjunction noun-phrase / possessive-noun phrase)
   (cond ((or (preposition-p (car token-list))
 	     (null (car token-list))
@@ -167,10 +169,6 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	   (multiple-value-bind (descriptors token-list) (parse-noun-group (cdr token-list))
 	     (values (append descriptors (list descriptor))
 		     token-list))))))
-
-(defun parse-possessive (token-list)
-  "Here's an idea on how to handle possessives: a recursive function :D")
-
 
 ;;;     
 ;;; Util
