@@ -149,18 +149,11 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
       (values (list preposition noun-phrase-1 noun-phrase-2) token-list))))
 
 (defun parse-noun-phrase (token-list)
-  "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
-MULTIPLE RETURN VALUES: NOUN-PHRASE and REST OF THE TOKEN LIST."
-  (multiple-value-bind (noun-group-1 token-list) (parse-noun-group token-list)
-    (if (preposition-p (car token-list))
-	(let ((preposition (car token-list)))
-	  (multiple-value-bind (noun-group-2 token-list) (parse-noun-group (cdr token-list))
-	    (values (list preposition noun-group-1  noun-group-2) token-list)))
-	(values (list nil noun-group-1 nil) token-list))))
-
-(defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP.
-MULTIPLE RETURN VALUES: NOUN-GROUP and REST of the TOKEN-LIST."
+MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
+  ;; noun-phrase =  pronoun
+  ;; noun-phrase =/ [article] [numeral] [adjective] \
+  ;;               (noun / noun conjunction noun-phrase / possessive-noun phrase)
   (cond ((or (preposition-p (car token-list))
 	     (null (car token-list))
 	     (chat-string-p (car token-list)))
