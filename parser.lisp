@@ -137,13 +137,16 @@
 (defun parse-noun-clause (token-list)
   "Generates the NOUN-CLAUSE list.
 MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
-  (multiple-value-bind (noun-phrase-1 token-list) (parse-noun-phrase token-list)
-    (if (preposition-p (car token-list))
-	(let ((preposition (car token-list))
-	      (token-list (cdr token-list)))
-	  (multiple-value-bind (noun-phrase-2 token-list) (parse-noun-phrase token-list)
-	    (values (list preposition noun-phrase-1 noun-phrase-2) token-list)))
-	(values (list nil noun-phrase-1 nil) token-list))))
+  (let ((adverb nil)
+	(preposition nil)
+	(noun-phrase-2 nil))
+    (multiple-value-bind (noun-phrase-1 token-list) (parse-noun-phrase token-list)
+      (when (adverb-p (car token-list))
+	(setf adverb (pop token-list)))
+      (if (preposition-p (car token-list))
+	  (progn (setf preposition (pop token-list))
+		 (multiple-value-setq (noun-phrase-2 token-list) (parse-noun-phrase token-list))))
+      (values (list preposition noun-phrase-1 noun-phrase-2) token-list))))
 
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into an LIST representing a NOUN PHRASE.
