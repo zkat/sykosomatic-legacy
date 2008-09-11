@@ -152,30 +152,36 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
 phrases, joined by conjunctions) MULTIPLE RETURN VALUES: NOUN-GROUP and the 
 REST of the TOKEN-LIST."
   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
-    (if (conjunction-p (car token-list))
-	(progn
-	  (pop token-list)
-	  (multiple-value-bind (other-noun-phrases token-list) (parse-noun-group token-list)
-	    (values (append (list noun-phrase) other-noun-phrases) token-list)))
-	(values (list noun-phrase) token-list))))
-
+    (cond ((conjunction-p (car token-list))
+	   (when (and (conjunction-p (car token-list))
+		      (conjunction-p (cadr token-list)))
+	     (pop token-list))
+	   (pop token-list)
+	   (multiple-value-bind (other-noun-phrases token-list) (parse-noun-group token-list)
+	     (values (append (list noun-phrase) other-noun-phrases) token-list)))
+	  (t
+	   (values (list noun-phrase) token-list)))))
 
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
-  ;; NOTE: confirm that this grammar is correct.
-  ;;
   ;; noun-phrase =  pronoun
   ;; noun-phrase =/ [article] cardinal [adjective] noun
   ;; noun-phrase =/ [article] [ordinal] [adjective] \
-  ;;                (noun / possessive-noun phrase)
+  ;;                (noun / possessive noun-phrase)
   ;;
   (let ((noun nil)
 	(adjectives nil)
 	(belongs-to nil))
-    (cond ((pronoun-p (car token-list))
+    (cond ((or (preposition-p (car token-list))
+	       (null (car token-list))
+	       (chat-string-p (car token-list))
+	       (conjunction-p (car token-list)))
+	   nil)
+	  ((pronoun-p (car token-list))
 	   (setf noun (pop token-list)))
-	  )
+	  (t
+	   nil))
     (values (list noun adjectives belongs-to) token-list)))
 
 ;;;     
