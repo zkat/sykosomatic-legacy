@@ -73,7 +73,7 @@
 ;; noun-clause =  noun-phrase
 ;; noun-clause =/ [noun-phrase] [[adverb] [preposition] noun-phrase]
 ;;
-;; noun-group = noun-phrase 0*(conjunction noun-phrase)
+;; noun-group =  noun-phrase [","] 0*(conjunction noun-phrase)
 ;;
 ;; noun-phrase =  pronoun
 ;; noun-phrase =/ [article] [cardinal] [adjective] noun
@@ -152,8 +152,9 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
 phrases, joined by conjunctions) MULTIPLE RETURN VALUES: NOUN-GROUP and the 
 REST of the TOKEN-LIST."
   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
-    (cond ((conjunction-p (car token-list))
-	   (when (and (conjunction-p (car token-list))
+    (cond ((or (conjunction-p (car token-list))
+	       (string-equal "," (car token-list)))
+	   (when (and (string-equal "," (car token-list))
 		      (conjunction-p (cadr token-list)))
 	     (pop token-list))
 	   (pop token-list)
