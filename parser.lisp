@@ -81,7 +81,6 @@
 ;;                (noun / possessive noun-phrase)
 ;;
 ;; article = satisfies article-p
-;; numeral = satisfies numeral-p
 ;; adjective = any unknown token that comes before a noun or a possessive
 ;; noun = anything before a preposition, a conjunction, an adverb, a chat-string, or a NIL
 ;; pronoun = satisfies pronoun-p
@@ -105,6 +104,8 @@
 
 (defun parse-sentence (token-list)
   "Uses a TOKEN-LIST to generate an AST"
+  ;; sentence =  chat-string
+  ;; sentence =/ [adverb] verb [noun-clause] [adverb] [chat-string]
   (let ((verb nil)
 	(noun-clause nil)
 	(adverb-1 nil)
@@ -129,28 +130,31 @@
 	  (t
 	   (let ((fail-verb (car token-list)))
 	     (if fail-verb
-		 (error 'unknown-verb-error :text "Unknown verb" :verb fail-verb)
+		 (error 'parser-error :text (format nil "Unknown verb: ~a" fail-verb))
 		 (error 'parser-error :text "Invalid input")))))
     (list verb noun-clause (list adverb-1 adverb-2 adverb-3) chat-string)))
 
 (defun parse-noun-clause (token-list)
   "Generates the NOUN-CLAUSE list.
 MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
+  ;; noun-clause =  noun-phrase
+  ;; noun-clause =/ [noun-phrase] [[adverb] [preposition] noun-phrase]
   (let ((adverb nil)
 	(preposition nil)
-	(noun-phrase-2 nil))
-    (multiple-value-bind (noun-phrase-1 token-list) (parse-noun-phrase token-list)
+	(noun-group-2 nil))
+    (multiple-value-bind (noun-group-1 token-list) (parse-noun-group token-list)
       (when (adverb-p (car token-list))
 	(setf adverb (pop token-list)))
       (if (preposition-p (car token-list))
 	  (progn (setf preposition (pop token-list))
-		 (multiple-value-setq (noun-phrase-2 token-list) (parse-noun-phrase token-list))))
-      (values (list preposition noun-phrase-1 noun-phrase-2) token-list))))
+		 (multiple-value-setq (noun-group-2 token-list) (parse-noun-group token-list))))
+      (values (list preposition noun-group-1 noun-group-2) token-list))))
 
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP (multiple noun 
 phrases, joined by conjunctions) MULTIPLE RETURN VALUES: NOUN-GROUP and the 
 REST of the TOKEN-LIST."
+  ;; noun-group =  noun-phrase [","] 0*(conjunction noun-phrase)
   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
     (cond ((or (conjunction-p (car token-list))
 	       (string-equal "," (car token-list)))
@@ -158,6 +162,8 @@ REST of the TOKEN-LIST."
 		      (conjunction-p (cadr token-list)))
 	     (pop token-list))
 	   (pop token-list)
+	   (when (conjunction-p (car token-list))
+	     (error 'parser-error :text "Too many conjunctions."))
 	   (multiple-value-bind (other-noun-phrases token-list) (parse-noun-group token-list)
 	     (values (append (list noun-phrase) other-noun-phrases) token-list)))
 	  (t
@@ -175,9 +181,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	(adjectives nil)
 	(belongs-to nil))
     (cond ((or (preposition-p (car token-list))
-	       (null (car token-list))
-	       (chat-string-p (car token-list))
-	       (conjunction-p (car token-list)))
+	       (null (car token-list)))
 	   nil)
 	  ((pronoun-p (car token-list))
 	   (setf noun (pop token-list)))
@@ -185,7 +189,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	   nil))
     (values (list noun adjectives belongs-to) token-list)))
 
-;;;     
+;;;
 ;;; Util
 ;;;
 
@@ -194,17 +198,12 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
   (when (possessive-p word)
     (car (cl-ppcre:split "'|'s" word))))
 
-(define-condition unknown-verb-error (error)
-  ((text :initarg :text :reader text)
-   (verb :initarg :verb :reader verb))
-  (:documentation "Signaled whenever an unknown verb is encountered.")
-  (:report (lambda (condition stream)
-	     (format stream "Tried to parse an unknown verb: ~A" (verb condition)))))
-
+;; TODO: figure out a nice way to make a bunch of handleable errors like this.
 (define-condition parser-error (error)
   ((text :initarg :text :reader text))
   (:documentation "Condition signaled whenever some generic parsing error happens.")
-  (:report "Parser probably got some garbage input, or an empty string."))
+  (:report (lambda (condition stream)
+	     (format stream "~a" (text condition)))))
 
 (defun test-the-parser ()
   "Runs a loop that asks for player input and returns whatever gets parsed. Quits on 'quit'."
