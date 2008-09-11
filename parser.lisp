@@ -87,9 +87,6 @@
 ;; possessive-noun = satisfies possessive-p (['s] or [s'])
 ;; conjunction = satisfies conjunction-p (i.e. "and" "&" "," etc.)
 ;;
-;; ----------------------------------------------
-;; TODO: What does the AST for the new noun-group grammar look like?
-;;
 ;; Goal AST - (verb noun-clause adverb-list chat-string) ;;this will be expanded further.
 ;; -----------Where NOUN-CLAUSE is (preposition noun-phrase noun-phrase)
 ;; -----------Where NOUN-PHRASE is (list-of-objects)  update
@@ -190,13 +187,13 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	     (push (pop token-list) adjectives))
 	   (if (cardinal-number-p (car token-list))
 	       (progn 
-		 (push (pop token-list) adjectives)
 		 (loop until (or (preposition-p (cadr token-list))
 				 (null (cadr token-list)))
 		      do (push (pop token-list) adjectives)
 		      finally (setf noun (pop token-list))))
 	       (progn
-		 (loop until (or (preposition-p (cadr token-list))
+		 (loop until (or (possessive-p (car token-list))
+				 (preposition-p (cadr token-list))
 				 (null (cadr token-list))
 				 (possessive-p (cadr token-list)))
 		      do (push (pop token-list) adjectives))
