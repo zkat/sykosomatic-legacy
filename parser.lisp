@@ -27,11 +27,6 @@
 ;;;
 ;;; - Cleans up the incoming string
 
-(defun prompt-user ()
-  "Prompts the user for input, and returns a string."
-  (format t "~%~%-> ")
-  (read-line))
-
 (defun preprocess-string (string)
   "Get rid of trailing whitespace"
   (string-trim '(#\Space #\Tab #\Newline #\Return) string))
@@ -164,35 +159,26 @@ REST of the TOKEN-LIST."
 	    (values (append (list noun-phrase) other-noun-phrases) token-list)))
 	(values (list noun-phrase) token-list))))
 
-(defun parse-noun-phrase (token-list)
-  (if (conjunction-p (car token-list))
-      nil
-      (values (list (pop token-list)) token-list)))
 
-;; (defun parse-noun-phrase (token-list)
-;;   "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
-;; MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
-;;   ;; NOTE: confirm that this grammar is correct.
-;;   ;;
-;;   ;; noun-phrase =  pronoun
-;;   ;; noun-phrase =/ [article] [cardinal] 0*(adjective) \
-;;   ;;                (noun / noun conjunction noun-phrase)
-;;   ;; noun-phrase =/ [article] [ordinal] 0*(adjective) \
-;;   ;;               (noun / noun conjunction noun-phrase / possessive-noun phrase)
-;;   (let ((noun nil)
-;; 	(article nil)
-;; 	(adjectives nil)))
-;;   (cond ((or (null (car token-list))
-;; 	     (chat-string-p (car token-list))
-;; 	     (preposition-p (cadr token-list))
-;; 	     (chat-string-p (cadr token-list)))
-;; 	 nil)
-;; 	(t
-;; 	 (let ((descriptor (car token-list)))
-;; 	   (multiple-value-bind (descriptors token-list) (parse-noun-phrase (cdr token-list))
-;; 	     (values (append descriptors (list descriptor))
-;; 		     token-list)))))
-;;   (values noun-phrase token-list))
+(defun parse-noun-phrase (token-list)
+  "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
+MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
+  ;; NOTE: confirm that this grammar is correct.
+  ;;
+  ;; noun-phrase =  pronoun
+  ;; noun-phrase =/ [article] cardinal [adjective] noun
+  ;; noun-phrase =/ [article] [ordinal] [adjective] \
+  ;;                (noun / possessive-noun phrase)
+  ;;
+  (let ((noun nil)
+	(adjectives nil)
+	(belongs-to nil))
+    (cond ((pronoun-p (car token-list))
+	   (setf noun (pop token-list)))
+	  ((or (cardinal-number-p (car token-list))
+	       (cardinal-number-p (cadr token-list)))
+	   ()
+	   ))))
 
 ;;;     
 ;;; Util
