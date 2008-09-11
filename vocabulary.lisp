@@ -57,6 +57,9 @@
 ;;;
 ;;; Predicates
 ;;;
+(defun article-p (word)
+  "Is WORD an ARTICLE?"
+  (gethash word *articles*))
 
 (defun verb-p (word)
   "Is WORD a VERB?"
@@ -82,12 +85,13 @@
 (defun possessive-p (word)
   "Is WORD in possessive form?
 This function checks for s' or 's form of possessives in English."
-  (let ((second-to-last-letter (elt word(- (length word) 2)))
-	(last-letter (elt word (- (length word) 1))))
-    (or (and (equal second-to-last-letter #\')
-	     (equal last-letter #\s))
-	(and (equal second-to-last-letter #\s)
-	     (equal last-letter #\')))))
+  (when (> (length word) 2)
+   (let ((second-to-last-letter (elt word(- (length word) 2)))
+	 (last-letter (elt word (- (length word) 1))))
+     (or (and (equal second-to-last-letter #\')
+	      (equal last-letter #\s))
+	 (and (equal second-to-last-letter #\s)
+	      (equal last-letter #\'))))))
 
 (defun pronoun-p (word)
   "Is WORD a PRONOUN?"
@@ -96,12 +100,15 @@ This function checks for s' or 's form of possessives in English."
 (defun ordinal-number-p (word)
   "Is WORD an ORDINAL NUMBER?
 This function checks for the full-word version,
-as well as number+th/st/nd/rd form.")
+as well as number+th/st/nd/rd form."
+  t)
 
 (defun cardinal-number-p (word)
   "Is WORD a CARDINAL NUMBER?
 This function checks for the full-word version,
-as well as number+th/st/nd/rd form.")
+as well as number+th/st/nd/rd form."
+  (or (numberp (parse-integer word :junk-allowed t))
+      (gethash word *cardinal-numbers*)))
 
 (defun plural-p (word)
   "Is WORD in plural form?
