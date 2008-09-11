@@ -45,33 +45,43 @@
 (defvar *conjunctions* (make-hash-table :test #'equalp)
   "Table of possible conjunctions. Go wild.")
 
+(defvar *cardinal-numbers* (make-hash-table :test #'equalp)
+  "Table of words representing cardinal numbers, and the number they map to.")
+
+(defvar *ordinal-numbers* (make-hash-table :test #'equalp)
+  "Table of words representing ordinal numbers, and the number they map to.")
+
+(defvar *plural-exceptions* (make-hash-table :test #'equalp)
+  "Table of exceptions to the English WORD+(e)s pluralization rule.")
+
 ;;;
 ;;; Predicates
 ;;;
 
-(defun verb-p (string)
-  "Is STRING a VERB?"
-  (gethash string *verbs*))
+(defun verb-p (word)
+  "Is WORD a VERB?"
+  (gethash word *verbs*))
 
-(defun chat-string-p (string)
-  "Is STRING a CHAT-STRING?"
-  (unless (null string)
-    (char-equal #\' (char string 0))))
+(defun chat-string-p (word)
+   "Is WORD a CHAT-WORD?"
+   (unless (null word)
+     (char-equal #\' (char word 0))))
 
-(defun preposition-p (string)
-  "Is STRING a PREPOSITION?"
-  (gethash string *prepositions*))
+(defun preposition-p (word)
+  "Is WORD a PREPOSITION?"
+  (gethash word *prepositions*))
 
-(defun adverb-p (string)
-  "Is STRING an ADVERB?"
-  (gethash string *adverbs*))
+(defun adverb-p (word)
+  "Is WORD an ADVERB?"
+  (gethash word *adverbs*))
 
-(defun conjunction-p (string)
-  "Is STRING a CONJUNCTION?"
-  (gethash string *conjunctions*))
+(defun conjunction-p (word)
+  "Is WORD a CONJUNCTION?"
+  (gethash word *conjunctions*))
 
 (defun possessive-p (word)
-  "Is WORD in possessive form?"
+  "Is WORD in possessive form?
+This function checks for s' or 's form of possessives in English."
   (let ((second-to-last-letter (elt word(- (length word) 2)))
 	(last-letter (elt word (- (length word) 1))))
     (or (and (equal second-to-last-letter #\')
@@ -83,10 +93,19 @@
   "Is WORD a PRONOUN?"
   (gethash word *pronouns*))
 
-;; TODO
-(defun numeral-p (word)
-  "Is WORD a NUMERAL?"
-  t)
+(defun ordinal-number-p (word)
+  "Is WORD an ORDINAL NUMBER?
+This function checks for the full-word version,
+as well as number+th/st/nd/rd form.")
+
+(defun cardinal-number-p (word)
+  "Is WORD a CARDINAL NUMBER?
+This function checks for the full-word version,
+as well as number+th/st/nd/rd form.")
+
+(defun plural-p (word)
+  "Is WORD in plural form?
+This function checks both standard pluralization (WORD+s), plus a database of irregular verbs.")
 
 ;;;
 ;;; Load/Save
