@@ -186,8 +186,28 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	  ((pronoun-p (car token-list))
 	   (setf noun (pop token-list)))
 	  (t
-	   nil))
+	   (when (article-p (car token-list))
+	     (push (pop token-list) adjectives))
+	   (if (cardinal-number-p (car token-list))
+	       (progn 
+		 (push (pop token-list) adjectives)
+		 (loop until (or (preposition-p (cadr token-list))
+				 (null (cadr token-list)))
+		      do (push (pop token-list) adjectives)
+		      finally (setf noun (pop token-list))))
+	       (progn
+		 (loop until (or (preposition-p (cadr token-list))
+				 (null (cadr token-list))
+				 (possessive-p (cadr token-list)))
+		      do (push (pop token-list) adjectives))
+		 (if (possessive-p (car token-list))
+		     (progn
+		       (setf noun (extract-noun-from-possessive (pop token-list)))
+		       (multiple-value-setq (belongs-to token-list)
+			 (parse-noun-phrase token-list)))
+		     (setf noun (pop token-list)))))))
     (values (list noun adjectives belongs-to) token-list)))
+
 
 ;;;
 ;;; Util
