@@ -78,12 +78,12 @@
 ;; noun-phrase =  pronoun
 ;; noun-phrase =/ [article] [cardinal] [adjective] noun
 ;; noun-phrase =/ [article] [ordinal] [adjective] \
-;;                (noun / possessive-noun phrase)
+;;                (noun / possessive noun-phrase)
 ;;
 ;; article = satisfies article-p
 ;; numeral = satisfies numeral-p
 ;; adjective = any unknown token that comes before a noun or a possessive
-;; noun = anything before a preposition or conjunction
+;; noun = anything before a preposition, a conjunction, an adverb, a chat-string, or a NIL
 ;; pronoun = satisfies pronoun-p
 ;; possessive-noun = satisfies possessive-p (['s] or [s'])
 ;; conjunction = satisfies conjunction-p (i.e. "and" "&" "," etc.)
@@ -175,10 +175,8 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	(belongs-to nil))
     (cond ((pronoun-p (car token-list))
 	   (setf noun (pop token-list)))
-	  ((or (cardinal-number-p (car token-list))
-	       (cardinal-number-p (cadr token-list)))
-	   ()
-	   ))))
+	  )
+    (values (list noun adjectives belongs-to) token-list)))
 
 ;;;     
 ;;; Util
