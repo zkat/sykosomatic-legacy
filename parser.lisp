@@ -145,7 +145,7 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
       (if (preposition-p (car token-list))
 	  (progn (setf preposition (pop token-list))
 		 (multiple-value-setq (noun-group-2 token-list) (parse-noun-group token-list))))
-      (values (list preposition noun-group-1 noun-group-2) token-list))))
+      (values (list preposition noun-group-1 noun-group-2) adverb token-list))))
 
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP (multiple noun 
