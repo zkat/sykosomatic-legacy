@@ -196,6 +196,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	       (progn
 		 (loop until (or (possessive-p (car token-list))
 				 (conjunction-p (cadr token-list))
+				 (string-equal "," (cadr token-list))
 				 (preposition-p (cadr token-list))
 				 (chat-string-p (cadr token-list))
 				 (adverb-p (cadr token-list))
