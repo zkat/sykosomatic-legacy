@@ -25,7 +25,6 @@
 ;;;
 ;;; Vocab vars
 ;;;
-;; Note: Could these entries be put into a single object, or a struct?
 
 (defvar *verbs* (make-hash-table :test #'equalp)
   "This is a dotted list right now. The CAR is a string, CDR the function.")
@@ -55,8 +54,39 @@
   "Table of exceptions to the English WORD+(e)s pluralization rule.")
 
 ;;;
+;;; Load/Save
+;;;
+
+(defun save-vocabulary ()
+  "Saves all the nice vocabulary words :)"
+  (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (cl-store:store *adverbs* (ensure-directories-exist (merge-pathnames #P"adverbs.db" *vocab-directory*)))
+  (cl-store:store *articles* (ensure-directories-exist (merge-pathnames #P"articles.db" *vocab-directory*)))
+  (cl-store:store *prepositions* (ensure-directories-exist (merge-pathnames #P"prepositions.db" *vocab-directory*)))
+  (cl-store:store *pronouns* (ensure-directories-exist (merge-pathnames #P"pronouns.db" *vocab-directory*)))
+  (cl-store:store *conjunctions* (ensure-directories-exist (merge-pathnames #P"conjunctions.db" *vocab-directory*)))
+  (cl-store:store *cardinal-numbers* (ensure-directories-exist (merge-pathnames #P"cardinal-numbers.db" *vocab-directory*)))
+  (cl-store:store *ordinal-numbers* (ensure-directories-exist (merge-pathnames #P"ordinal-numbers.db" *vocab-directory*)))  
+  (cl-store:store *plural-exceptions* (ensure-directories-exist (merge-pathnames #P"plural-exceptions.db" *vocab-directory*)))
+  (format t "Vocabulary saved."))
+
+(defun load-vocabulary ()
+  "Loads saved vocab files into their respective variables."
+  (setf *verbs* (cl-store:restore (merge-pathnames #P"verbs.db" *vocab-directory*)))
+  (setf *adverbs* (cl-store:restore (merge-pathnames #P"adverbs.db" *vocab-directory*)))
+  (setf *articles* (cl-store:restore (merge-pathnames #P"articles.db" *vocab-directory*)))
+  (setf *prepositions* (cl-store:restore (merge-pathnames #P"prepositions.db" *vocab-directory*)))
+  (setf *pronouns* (cl-store:restore (merge-pathnames #P"pronouns.db" *vocab-directory*)))
+  (setf *conjunctions* (cl-store:restore (merge-pathnames #P"conjunctions.db" *vocab-directory*)))
+  (setf *cardinal-numbers* (cl-store:restore (merge-pathnames #P"cardinal-numbers.db" *vocab-directory*)))
+  (setf *ordinal-numbers* (cl-store:restore (merge-pathnames #P"ordinal-numbers.db" *vocab-directory*)))
+  (setf *plural-exceptions* (cl-store:restore (merge-pathnames #P"plural-exceptions.db" *vocab-directory*)))
+  (format t "Vocabulary loaded."))
+
+;;;
 ;;; Predicates
 ;;;
+
 (defun article-p (word)
   "Is WORD an ARTICLE?"
   (gethash word *articles*))
@@ -85,53 +115,34 @@
 (defun possessive-p (word)
   "Is WORD in possessive form?
 This function checks for s' or 's form of possessives in English."
-  (when (> (length word) 2)
-   (let ((second-to-last-letter (elt word(- (length word) 2)))
-	 (last-letter (elt word (- (length word) 1))))
-     (or (and (equal second-to-last-letter #\')
-	      (equal last-letter #\s))
-	 (and (equal second-to-last-letter #\s)
-	      (equal last-letter #\'))))))
+  (or (string-equal word "my")
+      (when (> (length word) 2)
+	(let ((second-to-last-letter (elt word(- (length word) 2)))
+	      (last-letter (elt word (- (length word) 1))))
+	  (or (and (equal second-to-last-letter #\')
+		   (equal last-letter #\s))
+	      (and (equal second-to-last-letter #\s)
+		   (equal last-letter #\')))))))
 
 (defun pronoun-p (word)
   "Is WORD a PRONOUN?"
   (gethash word *pronouns*))
 
+;; TODO: This should also deal with numbers in their "#th" form
 (defun ordinal-number-p (word)
   "Is WORD an ORDINAL NUMBER?
 This function checks for the full-word version,
 as well as number+th/st/nd/rd form."
-  t)
+  (gethash word *ordinal-numbers*))
 
 (defun cardinal-number-p (word)
   "Is WORD a CARDINAL NUMBER?
-This function checks for the full-word version,
-as well as number+th/st/nd/rd form."
-  (or (numberp (parse-integer word :junk-allowed t))
-      (gethash word *cardinal-numbers*)))
+This function checks for the full-word version, as well as the plain number version."
+  (gethash word *cardinal-numbers*))
 
+;; TODO
 (defun plural-p (word)
   "Is WORD in plural form?
-This function checks both standard pluralization (WORD+s), plus a database of irregular verbs.")
+This function checks both standard pluralization (WORD+s), plus a database of irregular verbs."
+  word)
 
-;;;
-;;; Load/Save
-;;;
-
-(defun save-vocabulary ()
-  "Saves all the nice vocabulary words :)"
-  (cl-store:store *articles* (ensure-directories-exist (merge-pathnames #P"articles.db" *vocab-directory*)))
-  (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
-  (cl-store:store *adverbs* (ensure-directories-exist (merge-pathnames #P"adverbs.db" *vocab-directory*)))
-  (cl-store:store *prepositions* (ensure-directories-exist (merge-pathnames #P"prepositions.db" *vocab-directory*)))
-  (cl-store:store *pronouns* (ensure-directories-exist (merge-pathnames #P"pronouns.db" *vocab-directory*)))
-  (format t "Vocabulary saved."))
-
-(defun load-vocabulary ()
-  "Loads saved vocab files into their respective variables."
-  (setf *articles* (cl-store:restore (merge-pathnames #P"articles.db" *vocab-directory*)))
-  (setf *verbs* (cl-store:restore (merge-pathnames #P"verbs.db" *vocab-directory*)))
-  (setf *adverbs* (cl-store:restore (merge-pathnames #P"adverbs.db" *vocab-directory*)))
-  (setf *prepositions* (cl-store:restore (merge-pathnames #P"prepositions.db" *vocab-directory*)))
-  (setf *pronouns* (cl-store:restore (merge-pathnames #P"pronouns.db" *vocab-directory*)))
-  (format t "Vocabulary loaded."))
