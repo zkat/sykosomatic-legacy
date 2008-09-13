@@ -22,17 +22,58 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
 
+
 ;;;
-;;; Binder
+;;; Accessors
 ;;;
-;;; - Handles binding of AST to game-objects.
-;; AST to bind:
+;;; - Functions that allow easy access to the AST
 ;; AST = (verb (noun-clause) (adverbs) chat-string)
 ;; noun-clause = (preposition (noun-group) (noun-group))
 ;; noun-group = (0*(noun-phrase))
 ;; noun-phrase = (noun (adjectives) belongs-to)
 ;; belongs-to = noun-phrase
-;;
+
+(defun verb (AST)
+  "Grabs the verb off the AST"
+  (car AST))
+
+(defun preposition (AST)
+  "Grabs the preposition off the AST."
+  (car (cadr AST)))
+
+(defun direct-objects (AST)
+  "Grabs the list of direct objects off the AST."
+  (cadr (cadr AST)))
+
+(defun indirect-objects (AST)
+  "Grabs the list of indirect objects off the AST"
+  (caddr (cadr AST)))
+
+(defun adverbs (AST)
+  "Grabs the list of adverbs off the AST"
+  (caddr AST))
+
+(defun chat-string (AST)
+  "Grabs the chat-string off the AST"
+  (cadddr AST))
+
+(defun noun (noun-phrase)
+  "Gets the noun off a noun-phrase."
+  (car noun-phrase))
+
+(defun adjectives (noun-phrase)
+  "Gets the list of adjectives off a noun-phrase."
+  (cadr noun-phrase))
+
+(defun owner-of (noun-phrase)
+  "Gets the noun-phrase that identifies the object that this np is an owner off (from possessive)"
+  (caddr noun-phrase))
+
+;;;
+;;; Binder
+;;;
+;;; - Handles binding of AST to game-objects.
+
 (defun bind-verb (verb)
   "Checks if VERB is a VERB. Returns a FUNCTION."
   (gethash verb *verbs*))
@@ -46,14 +87,9 @@ player commands can interpret."
   "Binds a noun-group within PLAYER's scope."
   )
 
-;; NOTE: Make this a method that specializes on different objects. The binder then uses scope
-;;       based on that object to figure out exactly how to bind a descriptor-list. OOP. mmm.
-;; -- huh?
 (defun bind-noun-phrase (noun-phrase scope-list)
   "Binds a noun-phrase into a single object, based on SCOPE."
   )
-
-(defun resolve-possessive ())
 
 ;;;
 ;;; Scope
