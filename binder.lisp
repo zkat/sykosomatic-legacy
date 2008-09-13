@@ -26,25 +26,30 @@
 ;;; Binder
 ;;;
 ;;; - Handles binding of AST to game-objects.
-
+;; AST to bind:
+;; AST = (verb (noun-clause) (adverbs) chat-string)
+;; noun-clause = (preposition (noun-group) (noun-group))
+;; noun-group = (0*(noun-phrase))
+;; noun-phrase = (noun (adjectives) belongs-to)
+;; belongs-to = noun-phrase
+;;
 (defun bind-verb (verb)
   "Checks if VERB is a VERB. Returns a FUNCTION."
   (gethash verb *verbs*))
 
-(defun bind-noun-clause (scope noun-clause)
+(defun bind-noun-clause (noun-clause scope-list)
   "Binds the noun-clause of the AST, returns a list of actual objects that
 player commands can interpret."
-  
   )
 
-(defun bind-noun-group (scope noun-group)
+(defun bind-noun-group (noun-group scope-list)
   "Binds a noun-group within PLAYER's scope."
   )
 
 ;; NOTE: Make this a method that specializes on different objects. The binder then uses scope
 ;;       based on that object to figure out exactly how to bind a descriptor-list. OOP. mmm.
 ;; -- huh?
-(defun bind-noun-phrase (scope noun-phrase)
+(defun bind-noun-phrase (noun-phrase scope-list)
   "Binds a noun-phrase into a single object, based on SCOPE."
   )
 
