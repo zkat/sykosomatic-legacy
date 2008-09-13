@@ -158,6 +158,10 @@ REST of the TOKEN-LIST."
 	  (t
 	   (values (list noun-phrase) token-list)))))
 
+;; This fails to parse: 
+;; (parse-string "eagerly show stalinbulldog my parser's clear awesomeness
+;;               and this really cool sentence's possessive handling 'check it out")
+
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
