@@ -62,7 +62,7 @@
 ;;;
 ;;; Parser
 ;;;
-;;; - Takes a string-list, and returns an AST.
+;;; - Takes a string-list, and returns an Astract Syntax Tree.
 
 ;; ABNF grammar - http://en.wikipedia.org/wiki/ABNF
 ;; ------------
@@ -87,22 +87,16 @@
 ;; possessive-noun = satisfies possessive-p (['s] or [s'])
 ;; conjunction = satisfies conjunction-p (i.e. "and" "&" "," etc.)
 ;;
-;; Goal AST - (verb noun-clause adverb-list chat-string) ;;this will be expanded further.
+;; Goal AST - (verb noun-clause adverb-list chat-string)
 ;; -----------Where NOUN-CLAUSE is (preposition noun-phrase noun-phrase)
-;; -----------Where NOUN-PHRASE is (list-of-objects)  update
-;;;; NOTE: I can grab a list of possessives and use (reduce #'list possessive-list) on them, in the
-;;;;       order that I want the recursion to go in!!
+;; -----------Where NOUN-PHRASE is (list-of-objects)
 
 (defun parse-string (string)
   "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
   (parse-sentence (string->token-list string)))
 
-;; TODO: ALRIGHT. LET'S REWRITE THIS BITCH.
-
 (defun parse-sentence (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  ;; sentence =  chat-string
-  ;; sentence =/ [adverb] verb [noun-clause] [adverb] [chat-string]
   (let ((verb nil)
 	(noun-clause nil)
 	(adverb-1 nil)
@@ -135,8 +129,6 @@
 (defun parse-noun-clause (token-list)
   "Generates the NOUN-CLAUSE list.
 MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
-  ;; noun-clause =  noun-phrase
-  ;; noun-clause =/ [noun-phrase] [[adverb] [preposition] noun-phrase]
   (let ((adverb nil)
 	(preposition nil)
 	(noun-group-2 nil))
@@ -152,11 +144,10 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP (multiple noun 
 phrases, joined by conjunctions) MULTIPLE RETURN VALUES: NOUN-GROUP and the 
 REST of the TOKEN-LIST."
-  ;; noun-group =  noun-phrase [","] 0*(conjunction noun-phrase)
   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
     (cond ((or (conjunction-p (car token-list))
-	       (string-equal "," (car token-list)))
-	   (when (and (string-equal "," (car token-list))
+	       (string-equal "," (car token-list))) ;VERY NO
+	   (when (and (string-equal "," (car token-list)) ;BAD COMMA, BAD
 		      (conjunction-p (cadr token-list)))
 	     (pop token-list))
 	   (pop token-list)
@@ -170,11 +161,6 @@ REST of the TOKEN-LIST."
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
-  ;; noun-phrase =  pronoun
-  ;; noun-phrase =/ [article] cardinal [adjective] noun
-  ;; noun-phrase =/ [article] [ordinal] [adjective] \
-  ;;                (noun / possessive noun-phrase)
-  ;;
   (let ((noun nil)
 	(adjectives nil)
 	(belongs-to nil))
@@ -197,7 +183,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	       (progn
 		 (loop until (or (possessive-p (car token-list))
 				 (conjunction-p (cadr token-list))
-				 (string-equal "," (cadr token-list))
+				 (string-equal "," (cadr token-list)) ;COMMA BAD!
 				 (preposition-p (cadr token-list))
 				 (chat-string-p (cadr token-list))
 				 (adverb-p (cadr token-list))
@@ -211,7 +197,6 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 			 (parse-noun-phrase token-list)))
 		     (setf noun (pop token-list)))))))
     (values (list noun adjectives belongs-to) token-list)))
-
 
 ;;;
 ;;; Util
@@ -238,4 +223,3 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	  (let ((parse-tree (parse-string current-input)))
 	    (format t "~%AST Generated: ~A~%" parse-tree))
 	  (test-the-parser)))))
-
