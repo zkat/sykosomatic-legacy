@@ -53,6 +53,8 @@ player commands can interpret."
   "Binds a noun-phrase into a single object, based on SCOPE."
   )
 
+(defun resolve-possessive ())
+
 ;;;
 ;;; Scope
 ;;;
