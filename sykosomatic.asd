@@ -7,28 +7,48 @@
   :maintainer "Kat M <kzm@sykosomatic.org>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, powerful text-based online game engine."
+  :license "GPLv3, see COPYING"
   :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:cl-cont #:ironclad #:xmls)
-  :components ((:file "packages")
-	       (:file "queue" :depends-on ("packages"))
-	       (:file "priority-queue" :depends-on ("packages"))
-	       (:file "event" :depends-on ("packages" "priority-queue"))
-	       (:file "config" :depends-on ("packages"))
-	       ;;server/client
-	       (:file "logger" :depends-on ("config"))
-	       (:file "server" :depends-on ("queue"))
-	       (:file "client" :depends-on ("server" "queue" "priority-queue"))
-	       ;;game-object stuff
-	       (:file "game-object" :depends-on ("config"))
-	       (:file "room" :depends-on ("game-object"))
-	       (:file "entity" :depends-on ("game-object" "room"))
-	       (:file "mobile" :depends-on ("entity"))
-	       (:file "item" :depends-on ("entity"))
-	       (:file "player" :depends-on ("mobile" "client"))
-	       ;;parser/vocab stuff
-	       (:file "vocabulary" :depends-on ("config"))
-	       (:file "parser" :depends-on ("vocabulary"))
-	       (:file "binder" :depends-on ("parser" "game-object" "player" "room"))
-	       (:file "commands" :depends-on ("binder"))
-	       ;; other stuff
-	       (:file "account" :depends-on ("client" "player"))
-	       (:file "xml-import" :depends-on ("room" "player"))))
+  :components 
+  ((:module src
+	    :serial t
+	    :components
+	    ((:file "packages")
+
+	     (:module util
+		      :serial t
+		      :components
+		      ((:file "config")
+		       (:file "queue")
+		       (:file "priority-queue")
+		       (:file "xml-import")
+		       (:file "logger")))
+
+	     (:module network
+		      :serial t
+		      :components
+		      ((:file "server")
+		       (:file "client")
+		       (:file "account")))
+
+	     (:module objects
+		      :serial t
+		      :components
+		      ((:file "game-object")
+		       (:file "room")
+		       (:file "entity")
+		       (:file "mobile")
+		       (:file "item")
+		       (:file "player")))
+
+	     (:module commands
+		      :serial t
+		      :components
+		      ((:module parser
+				:serial t
+				:components
+				((:file "vocabulary")
+				 (:file "parser")))
+		       (:file "event")
+		       (:file "binder")
+		       (:file "commands")))))))
