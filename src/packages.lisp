@@ -19,4 +19,60 @@
 (defpackage #:sykosomatic
   (:use :cl :cl-store :cl-cont :xmls)
   (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held)
-  (:import-from :ironclad :byte-array-to-hex-string :digest-sequence :ascii-string-to-byte-array))
+
+  ;; From parser
+  (:export :*verbs*
+	   :save-vocabulary
+	   :load-vocabulary
+	   :parse-string)
+  ;; From network
+  (:export :start-server
+	   :stop-server
+	   :ip
+	   :client-idle-time
+	   :account
+	   :avatar
+	   :read-line-from-client
+	   :prompt-client
+	   :client-y-or-n-p
+	   :write-to-client
+	   :write-to-all-clients)
+  ;;Game classes
+  (:export :<game-object>
+	   :obj->file
+	   :obj-list->files-in-dir
+	   :save-objects
+	   :file->obj
+	   :files-in-path->obj-list
+	   :load-objects)
+  (:export :<entity>
+	   :whereis
+	   :put-entity)
+  (:export :<mobile>)
+  (:export :<item>)
+  (:export :<mobile>)
+  (:export :<player>
+	   :*players*
+	   :make-player
+	   :player-p
+	   :get-players
+	   :write-to-player
+	   :write-to-others-in-room
+	   :disconnect-player
+	   :save-players
+	   :load-players)
+  (:export :<room>
+	   :*rooms*
+	   :make-room
+	   :<door>
+	   :make-door
+	   :set-exit
+	   :save-rooms
+	   :load-rooms)
+  ;; events
+  (:export :<event>
+	   :make-event
+	   :process-event
+	   :execute-event)
+  (:export :log-message))
+
