@@ -123,7 +123,8 @@
 	     (when (chat-string-p (car token-list))
 	       (setf chat-string (pop token-list)))
 	     (when token-list
-	       (error 'parser-error :text "Unknown token encountered."))))
+	       (error 'parser-error 
+		      :text "Input failed to parse (stuff left after finishing parse)."))))
 	  (t
 	   (let ((fail-verb (car token-list)))
 	     (if fail-verb
