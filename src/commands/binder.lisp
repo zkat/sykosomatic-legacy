@@ -1,6 +1,6 @@
 ;; Copyright 2008 Kat Marchan
 
-;; This file is part of sykosomatic-ext
+;; This file is part of sykosomatic
 
 ;; sykosomatic is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 ;; Takes care of binding the various parts of the AST to their corresponding objects.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic-ext)
+(in-package #:sykosomatic)
 
 ;;;
 ;;; Binder

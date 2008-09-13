@@ -1,6 +1,6 @@
 ;; Copyright 2008 Kat Marchan
 
-;; This file is part of sykosomatic-ext
+;; This file is part of sykosomatic
 
 ;; sykosomatic is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 ;; functions, along with commands to execute them. Very nasty stuff.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic-ext)
+(in-package #:sykosomatic)
 
 ;;;
 ;;; Executor

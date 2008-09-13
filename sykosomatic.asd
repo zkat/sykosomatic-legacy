@@ -23,17 +23,13 @@
 		       (:file "priority-queue")
 		       (:file "xml-import")
 		       (:file "logger")))
-	     
-	     (:module event
-		      :serial t
-		      :components
-		      ((:file "event")))
-	     
+
 	     (:module network
 		      :serial t
 		      :components
 		      ((:file "server")
-		       (:file "client")))
+		       (:file "client")
+		       (:file "account")))
 
 	     (:module objects
 		      :serial t
@@ -45,8 +41,14 @@
 		       (:file "item")
 		       (:file "player")))
 
-	     (:module parser
+	     (:module commands
 		      :serial t
 		      :components
-		      ((:file "vocabulary")
-		       (:file "parser")))))))
+		      ((:module parser
+				:serial t
+				:components
+				((:file "vocabulary")
+				 (:file "parser")))
+		       (:file "event")
+		       (:file "binder")
+		       (:file "commands")))))))
