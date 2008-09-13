@@ -31,38 +31,21 @@
   "Checks if VERB is a VERB. Returns a FUNCTION."
   (gethash verb *verbs*))
 
-(defun bind-rest-of-sentence (scope rest-of-sentence)
-  "Binds the rest-of-sentence part of the AST, returns a list of actual objects that
-player commands can then interpret, and execute based upon."
-  ;; Example rest-of-sentence
-  ;; (preposition (bound-noun-phrase1) (bound-noun-phrase))
-  ;; (nil (bound-noun-phrase1) nil)
-  ;; (preposition nil (bound-noun-phrase2))
+(defun bind-noun-clause (scope noun-clause)
+  "Binds the noun-clause of the AST, returns a list of actual objects that
+player commands can interpret."
   
   )
 
-(defun bind-noun-phrase (scope noun-phrase)
-  "Binds a noun-phrase within PLAYER's scope."
-  ;; Example noun-phrases:
-  ;; (preposition object object)
-  ;; (nil object nil)
-  ;; (preposition nil  object)
-  
+(defun bind-noun-group (scope noun-group)
+  "Binds a noun-group within PLAYER's scope."
   )
 
 ;; NOTE: Make this a method that specializes on different objects. The binder then uses scope
 ;;       based on that object to figure out exactly how to bind a descriptor-list. OOP. mmm.
-(defun bind-descriptor-list (scope descriptor-list)
-  "Binds a descriptor-list, which includes the name of an object, adjectives, pronouns,
-and possessives. Returns a single object (the object being referred to)."
-  ;; Example descriptor-list using possessives 
-  ;; ("hilt" "heavy" "sword's" "the")
-  ;;
-  
-  )
-
-(defun bind-noun (scope noun)
-  "Binds a noun, within SCOPE."
+;; -- huh?
+(defun bind-noun-phrase (scope noun-phrase)
+  "Binds a noun-phrase into a single object, based on SCOPE."
   )
 
 ;;;
@@ -88,7 +71,6 @@ and possessives. Returns a single object (the object being referred to)."
 ;;;
 ;;; - Builds the final s-expressions to be run by the event system.
 
-;; TODO
 (defun parse-tree->sexp (player tree)
   "Takes a parsed TREE of tokens and returns a runnable S-EXP"
   t)
