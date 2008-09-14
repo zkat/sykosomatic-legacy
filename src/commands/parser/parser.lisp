@@ -67,6 +67,9 @@
 ;; TODO: Adjust grammar so the following is acceptable:
 ;; "smile AT foo WITH bar"
 ;;
+;; NOTE: Do I want to be able to accept two- or even three-verb sentences? It wouldn't be spammy,
+;;       since the event system can handle putting delays between each action just fine.
+;;
 ;; ABNF grammar - http://en.wikipedia.org/wiki/ABNF
 ;; ------------
 ;;
