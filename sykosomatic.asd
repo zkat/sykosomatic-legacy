@@ -59,5 +59,4 @@
 		      :components
 		      ((:file "account")
 		       (:file "parser")
-		       (:file "xml-import")
-		       (:file "run-tests")))))))
+		       (:file "xml-import")))))))

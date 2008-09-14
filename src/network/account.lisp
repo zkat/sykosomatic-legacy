@@ -255,14 +255,8 @@
     (ironclad:ascii-string-to-byte-array
      password))))
 
-<<<<<<< HEAD:src/network/account.lisp
+
 ;;; Sanity checkers
-=======
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;  Account Management ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
-					;
->>>>>>> 3e9a112c5c3a402d929841ce685eb97155f71e8f:account.lisp
 
 (defun confirm-username-sanity (username)
   "Confirms username sanity. Usernames have to be between 6 and 16 chars long, and may only
@@ -283,6 +277,3 @@ a set of characters defined as CL's standard-char type."
   (cl-ppcre:scan 
    "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
    email))
-
-(defun confirm-password-sanity (password)
-  (not (find-if-not #'alphanumericp password)))
