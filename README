@@ -22,7 +22,8 @@ REQUIREMENTS
 * ironclad (http://method-combination.net/lisp/ironclad/)
 * SBCL, no other lisp is supported right now.
 * Linux x86, probably x64 (untested). No windows support until it gets threads.
-
+* xmls ()
+* fiveam (http://common-lisp.net/project/bese/FiveAM.html) for running the tests.
 
 INSTALLATION
 ------------
