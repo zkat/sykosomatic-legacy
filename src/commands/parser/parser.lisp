@@ -64,9 +64,6 @@
 ;;;
 ;;; - Takes a string-list, and returns an Astract Syntax Tree.
 
-;; TODO: Adjust grammar so the following is acceptable:
-;; "smile AT foo WITH bar"
-;;
 ;; NOTE: Do I want to be able to accept two- or even three-verb sentences? It wouldn't be spammy,
 ;;       since the event system can handle putting delays between each action just fine.
 ;;
@@ -76,8 +73,7 @@
 ;; sentence =  chat-string
 ;; sentence =/ [adverb] verb [noun-clause] [adverb] [chat-string]
 ;;
-;; noun-clause =  noun-phrase
-;; noun-clause =/ [noun-phrase] [[adverb] [preposition] noun-phrase]
+;; noun-clause =/ [[[adverb] preposition] noun-phrase] [[[adverb] preposition] noun-phrase]
 ;;
 ;; noun-group =  noun-phrase [","] 0*(conjunction noun-phrase)
 ;;
@@ -130,11 +126,11 @@
     :initarg :indirect-objects
     :initform nil
     :type list)
-   (preposition 
-    :accessor preposition 
-    :initarg :preposition
+   (prepositions 
+    :accessor prepositions
+    :initarg :prepositions
     :initform nil
-    :type string)))
+    :type list)))
   
 (defclass <noun-phrase> ()
   ((noun  
@@ -166,7 +162,8 @@
 		     (chat-string chat-string)) sentence
       (let ((adverb-1 nil)
 	    (adverb-2 nil)
-	    (adverb-3 nil))	
+	    (adverb-3 nil)
+	    (adverb-4 nil))	
 	(when (adverb-p (car token-list))
 	  (setf adverb-1 (pop token-list)))
 	(cond ((chat-string-p (car token-list))
@@ -175,10 +172,10 @@
 	      ((verb-p (car token-list))
 	       (setf verb (pop token-list))
 	       (multiple-value-setq 
-		   (noun-clause adverb-2 token-list) (parse-noun-clause token-list))
+		   (noun-clause adverb-2 adverb-3 token-list) (parse-noun-clause token-list))
 	       (when token-list
 		 (when (adverb-p (car token-list))
-		   (setf adverb-3 (pop token-list)))
+		   (setf adverb-4 (pop token-list)))
 		 (when (chat-string-p (car token-list))
 		   (setf chat-string (pop token-list)))
 		 (when token-list
@@ -189,6 +186,7 @@
 		 (if fail-verb
 		     (error 'parser-error :text (format nil "Unknown verb: ~a" fail-verb))
 		     (error 'parser-error :text "Invalid input")))))
+	(push adverb-4 adverbs)
 	(push adverb-3 adverbs)
 	(push adverb-2 adverbs)
 	(push adverb-1 adverbs)))
@@ -198,17 +196,26 @@
   "Generates the NOUN-CLAUSE list.
 MULTIPLE RETURN VALUES: NOUN-CLAUSE list, a discovered ADVERB, and the remaining TOKEN-LIST"
   (let ((noun-clause (make-instance '<noun-clause>))
-	(adverb nil))
+	(adverb1 nil)
+	(adverb2 nil)
+	(prep1 nil)
+	(prep2 nil))
     (with-accessors ((dir-obj direct-objects)
 		     (ind-obj indirect-objects)
-		     (prep preposition)) noun-clause
+		     (preps prepositions)) noun-clause
+      (when (adverb-p (car token-list))
+	(setf adverb1 (pop token-list)))
+      (when (preposition-p (car token-list))
+	(setf prep1 (pop token-list)))
       (multiple-value-setq (dir-obj token-list) (parse-noun-group token-list))
       (when (adverb-p (car token-list))
-	(setf adverb (pop token-list)))
+	(setf adverb2 (pop token-list)))
       (when (preposition-p (car token-list))
-	(setf prep (pop token-list)))
+	(setf prep2 (pop token-list)))
       (multiple-value-setq (ind-obj token-list) (parse-noun-group token-list))
-      (values noun-clause adverb token-list))))
+      (push prep2 preps)
+      (push prep1 preps)
+      (values noun-clause adverb1 adverb2 token-list))))
 
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP (multiple noun 
