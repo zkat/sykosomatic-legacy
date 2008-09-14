@@ -8,7 +8,8 @@
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, powerful text-based online game engine."
   :license "GPLv3, see COPYING"
-  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:cl-cont #:ironclad #:xmls)
+  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads 
+	       #:cl-cont #:ironclad #:xmls #:fiveam)
   :components 
   ((:module src
 	    :serial t
@@ -51,4 +52,12 @@
 				 (:file "parser")))
 		       (:file "event")
 		       (:file "binder")
-		       (:file "commands")))))))
+		       (:file "commands")))
+
+	     (:module tests
+		      :serial t
+		      :components
+		      ((:file "account")
+		       (:file "parser")
+		       (:file "xml-import")
+		       (:file "run-tests")))))))
