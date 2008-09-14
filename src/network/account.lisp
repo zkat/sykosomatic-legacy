@@ -183,9 +183,9 @@
     (if (and (equal password pass-confirm)
 	     (confirm-password-sanity password))
 	(hash-password password)
-	(progn
-	  (write-to-client client "~&Passwords did not match, try again.~%")
-	  (setup-password client)))))
+      (progn
+	(write-to-client client "~&Passwords did not match, try again.~%")
+	(setup-password client)))))
 
 (defun/cc setup-email (client)
   "Prompts client for a correct e-mail address."
@@ -194,11 +194,11 @@
 	(progn
 	  (write-to-client "~%You chose ~a as your email address.~%" email)
 	  (if (client-y-or-n-p client "Is this email address correct?")
-	     email
-	     (setup-email client)))
-	(progn
-	  (write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
-	  (setup-email client)))))
+	      email
+	    (setup-email client)))
+      (progn
+	(write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
+	(setup-email client)))))
 
 ;; NOTE: This isn't used (yet)
 (defun/cc setup-name (client)
@@ -207,7 +207,7 @@
 	 (lastname (prompt-client client "Please enter your first name")))
     (if (client-y-or-n-p client "Greetings ~a ~a. Is this name correct" firstname lastname)
 	(values firstname lastname)
-	(setup-name client))))
+      (setup-name client))))
 
 ;;;
 ;;; Account Management
@@ -251,11 +251,18 @@
   "Password hashing function."
   (ironclad:byte-array-to-hex-string
    (ironclad:digest-sequence
-     :sha256
-     (ironclad:ascii-string-to-byte-array
-      password))))
+    :sha256
+    (ironclad:ascii-string-to-byte-array
+     password))))
 
+<<<<<<< HEAD:src/network/account.lisp
 ;;; Sanity checkers
+=======
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Account Management ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+					;
+>>>>>>> 3e9a112c5c3a402d929841ce685eb97155f71e8f:account.lisp
 
 (defun confirm-username-sanity (username)
   "Confirms username sanity. Usernames have to be between 6 and 16 chars long, and may only
@@ -276,3 +283,6 @@ a set of characters defined as CL's standard-char type."
   (cl-ppcre:scan 
    "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
    email))
+
+(defun confirm-password-sanity (password)
+  (not (find-if-not #'alphanumericp password)))
