@@ -235,9 +235,6 @@ REST of the TOKEN-LIST."
 	  (t
 	   (values (list noun-phrase) token-list)))))
 
-;; The grammar is wrong. The following fails to parse:
-;; "smile at foo's face with my teeth"
-
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
