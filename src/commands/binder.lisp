@@ -24,52 +24,6 @@
 
 
 ;;;
-;;; Accessors
-;;;
-;;; - Functions that allow easy access to the AST
-;; AST = (verb (noun-clause) (adverbs) chat-string)
-;; noun-clause = (preposition (noun-group) (noun-group))
-;; noun-group = (0*(noun-phrase))
-;; noun-phrase = (noun (adjectives) belongs-to)
-;; belongs-to = noun-phrase
-
-(defun verb (AST)
-  "Grabs the verb off the AST"
-  (car AST))
-
-(defun preposition (AST)
-  "Grabs the preposition off the AST."
-  (car (cadr AST)))
-
-(defun direct-objects (AST)
-  "Grabs the list of direct objects off the AST."
-  (cadr (cadr AST)))
-
-(defun indirect-objects (AST)
-  "Grabs the list of indirect objects off the AST"
-  (caddr (cadr AST)))
-
-(defun adverbs (AST)
-  "Grabs the list of adverbs off the AST"
-  (caddr AST))
-
-(defun chat-string (AST)
-  "Grabs the chat-string off the AST"
-  (cadddr AST))
-
-(defun noun (noun-phrase)
-  "Gets the noun off a noun-phrase."
-  (car noun-phrase))
-
-(defun adjectives (noun-phrase)
-  "Gets the list of adjectives off a noun-phrase."
-  (cadr noun-phrase))
-
-(defun owner-of (noun-phrase)
-  "Gets the noun-phrase that identifies the object that this np is an owner off (from possessive)"
-  (caddr noun-phrase))
-
-;;;
 ;;; Binder
 ;;;
 ;;; - Handles binding of AST to game-objects.
