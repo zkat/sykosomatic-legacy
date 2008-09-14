@@ -32,13 +32,9 @@
   "Checks if VERB is a VERB. Returns a FUNCTION."
   (gethash verb *verbs*))
 
-(defun bind-noun-group (noun-group scope-list)
-  "Binds a noun-group within PLAYER's scope."
-  )
-
 (defun bind-noun-phrase (noun-phrase scope-list)
   "Binds a noun-phrase into a single object, based on SCOPE."
-  )
+ )
 
 ;;;
 ;;; Scope
