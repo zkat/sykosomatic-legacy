@@ -32,11 +32,6 @@
   "Checks if VERB is a VERB. Returns a FUNCTION."
   (gethash verb *verbs*))
 
-(defun bind-noun-clause (noun-clause scope-list)
-  "Binds the noun-clause of the AST, returns a list of actual objects that
-player commands can interpret."
-  )
-
 (defun bind-noun-group (noun-group scope-list)
   "Binds a noun-group within PLAYER's scope."
   )
