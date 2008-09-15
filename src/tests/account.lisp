@@ -1,4 +1,4 @@
-;; Copyright 2008 Kat Marchan
+;; Copyright 2008 Rudolf Olah
 
 ;; This file is part of sykosomatic
 
@@ -15,29 +15,22 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; item.lisp
-;;
-;; Stuff related to items.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
 
-;;;
-;;; Item class
-;;;
-(defclass <item> (<entity>)
-  ((equippable
-    :initarg :equip-p
-    :initform nil
-    :accessor equip-p
-    :documentation "Can item be equipped?")
-   (moveable
-    :initarg :moveable
-    :initform t
-    :accessor moveable-p
-    :documentation "Is this object movable? If nil, player cannot pick up")
-   (effects
-    :initarg :effects
-    :accessor effects
-    :documentation "Any special effects of the item"))
-  (:documentation "Master class for items."))
+(def-suite account)
+
+(def-suite sanity-checks :in account)
+(in-suite sanity-checks)
+
+(test username-sanity
+      (is-true (confirm-username-sanity "hello"))
+      (is-true (confirm-username-sanity "HELLO"))
+      (is-true (confirm-username-sanity "HELLOworld"))
+      (is-false (confirm-username-sanity "hello world"))
+)
+
+;;(test password-sanity
+;;)
+
+;;(test email-sanity
+;;)

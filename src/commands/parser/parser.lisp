@@ -3,16 +3,16 @@
 ;; This file is part of sykosomatic
 
 ;; sykosomatic is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
+;; it under the terms of the GNU Affero General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
 ;; sykosomatic is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; GNU Affero General Public License for more details.
 
-;; You should have received a copy of the GNU General Public License
+;; You should have received a copy of the GNU Affero General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; parser.lisp
@@ -64,14 +64,16 @@
 ;;;
 ;;; - Takes a string-list, and returns an Astract Syntax Tree.
 
+;; NOTE: Do I want to be able to accept two- or even three-verb sentences? It wouldn't be spammy,
+;;       since the event system can handle putting delays between each action just fine.
+;;
 ;; ABNF grammar - http://en.wikipedia.org/wiki/ABNF
 ;; ------------
 ;;
 ;; sentence =  chat-string
 ;; sentence =/ [adverb] verb [noun-clause] [adverb] [chat-string]
 ;;
-;; noun-clause =  noun-phrase
-;; noun-clause =/ [noun-phrase] [[adverb] [preposition] noun-phrase]
+;; noun-clause =/ [[[adverb] preposition] noun-phrase] [[[adverb] preposition] noun-phrase]
 ;;
 ;; noun-group =  noun-phrase [","] 0*(conjunction noun-phrase)
 ;;
@@ -91,54 +93,129 @@
 ;; -----------Where NOUN-CLAUSE is (preposition noun-phrase noun-phrase)
 ;; -----------Where NOUN-PHRASE is (list-of-objects)
 
+;; Classes for AST
+(defclass <sentence> ()
+  ((verb        
+    :accessor verb
+    :initarg :verb
+    :initform nil
+    :type string)
+   (noun-clause
+    :accessor noun-clause
+    :initarg :noun-clause
+    :initform nil)
+   (adverbs
+    :accessor adverbs
+    :initarg :adverbs
+    :initform nil
+    :type list)
+   (chat-string
+    :accessor chat-string
+    :initarg :chat-string
+    :initform nil
+    :type string)))
+
+(defclass <noun-clause> ()
+  ((direct-objects 
+    :accessor direct-objects
+    :initarg :direct-objects
+    :initform nil
+    :type list)
+   (indirect-objects
+    :accessor indirect-objects
+    :initarg :indirect-objects
+    :initform nil
+    :type list)
+   (prepositions 
+    :accessor prepositions
+    :initarg :prepositions
+    :initform nil
+    :type list)))
+  
+(defclass <noun-phrase> ()
+  ((noun  
+    :accessor noun
+    :initarg :noun
+    :initform nil
+    :type string)
+   (adjectives 
+    :accessor adjectives
+    :initarg :adjectives
+    :initform nil
+    :type list)
+   (owns
+    :accessor owns
+    :initarg :owns
+    :initform nil)))
+ 
+;; AST Generation
 (defun parse-string (string)
-  "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
-  (parse-sentence (string->token-list string)))
+    "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
+    (parse-sentence (string->token-list string)))
 
 (defun parse-sentence (token-list)
   "Uses a TOKEN-LIST to generate an AST"
-  (let ((verb nil)
-	(noun-clause nil)
-	(adverb-1 nil)
-	(adverb-2 nil)
-	(adverb-3 nil)
-	(chat-string nil))
-    (when (adverb-p (car token-list))
-      (setf adverb-1 (pop token-list)))
-    (cond ((chat-string-p (car token-list))
-	   (setf verb "say")
-	   (setf chat-string (pop token-list)))
-	  ((verb-p (car token-list))
-	   (setf verb (pop token-list))
-	   (multiple-value-setq (noun-clause adverb-2 token-list) (parse-noun-clause token-list))
-	   (when token-list
-	     (when (adverb-p (car token-list))
-	       (setf adverb-3 (pop token-list)))
-	     (when (chat-string-p (car token-list))
+  (let ((sentence (make-instance '<sentence>)))
+    (with-accessors ((verb verb)
+		     (noun-clause noun-clause)
+		     (adverbs adverbs)
+		     (chat-string chat-string)) sentence
+      (let ((adverb-1 nil)
+	    (adverb-2 nil)
+	    (adverb-3 nil)
+	    (adverb-4 nil))	
+	(when (adverb-p (car token-list))
+	  (setf adverb-1 (pop token-list)))
+	(cond ((chat-string-p (car token-list))
+	       (setf verb "say")
 	       (setf chat-string (pop token-list)))
-	     (when token-list
-	       (error 'parser-error 
-		      :text "Input failed to parse (stuff left after finishing parse)."))))
-	  (t
-	   (let ((fail-verb (car token-list)))
-	     (if fail-verb
-		 (error 'parser-error :text (format nil "Unknown verb: ~a" fail-verb))
-		 (error 'parser-error :text "Invalid input")))))
-    (list verb noun-clause (list adverb-1 adverb-2 adverb-3) chat-string)))
+	      ((verb-p (car token-list))
+	       (setf verb (pop token-list))
+	       (multiple-value-setq 
+		   (noun-clause adverb-2 adverb-3 token-list) (parse-noun-clause token-list))
+	       (when token-list
+		 (when (adverb-p (car token-list))
+		   (setf adverb-4 (pop token-list)))
+		 (when (chat-string-p (car token-list))
+		   (setf chat-string (pop token-list)))
+		 (when token-list
+		   (error 'parser-error 
+			  :text "Input failed to parse (stuff left after finishing parse)."))))
+	      (t
+	       (let ((fail-verb (car token-list)))
+		 (if fail-verb
+		     (error 'parser-error :text (format nil "Unknown verb: ~a" fail-verb))
+		     (error 'parser-error :text "Invalid input")))))
+	(push adverb-4 adverbs)
+	(push adverb-3 adverbs)
+	(push adverb-2 adverbs)
+	(push adverb-1 adverbs)))
+    sentence))
 
 (defun parse-noun-clause (token-list)
   "Generates the NOUN-CLAUSE list.
-MULTIPLE RETURN VALUES: NOUN-CLAUSE list, and the remaining TOKEN-LIST"
-  (let ((adverb nil)
-	(preposition nil)
-	(noun-group-2 nil))
-    (multiple-value-bind (noun-group-1 token-list) (parse-noun-group token-list)
+MULTIPLE RETURN VALUES: NOUN-CLAUSE list, a discovered ADVERB, and the remaining TOKEN-LIST"
+  (let ((noun-clause (make-instance '<noun-clause>))
+	(adverb1 nil)
+	(adverb2 nil)
+	(prep1 nil)
+	(prep2 nil))
+    (with-accessors ((dir-obj direct-objects)
+		     (ind-obj indirect-objects)
+		     (preps prepositions)) noun-clause
       (when (adverb-p (car token-list))
-	(setf adverb (pop token-list)))
+	(setf adverb1 (pop token-list)))
       (when (preposition-p (car token-list))
-	(setf preposition (pop token-list)))
-      (multiple-value-setq (noun-group-2 token-list) (parse-noun-group token-list))
-      (values (list preposition noun-group-1 noun-group-2) adverb token-list))))
+	(setf prep1 (pop token-list)))
+      (multiple-value-setq (dir-obj token-list) (parse-noun-group token-list))
+      (when (adverb-p (car token-list))
+	(setf adverb2 (pop token-list)))
+      (when (preposition-p (car token-list))
+	(setf prep2 (pop token-list)))
+      (multiple-value-setq (ind-obj token-list) (parse-noun-group token-list))
+      (push prep2 preps)
+      (push prep1 preps)
+      (values noun-clause adverb1 adverb2 token-list))))
 
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP (multiple noun 
@@ -161,42 +238,43 @@ REST of the TOKEN-LIST."
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
-  (let ((noun nil)
-	(adjectives nil)
-	(belongs-to nil))
-    (cond ((or (preposition-p (car token-list))
-	       (null (car token-list))
-	       (chat-string-p (car token-list))
-	       (adverb-p (car token-list)))
-	   nil)
-	  ((pronoun-p (car token-list))
-	   (setf noun (pop token-list)))
-	  (t
-	   (when (article-p (car token-list))
-	     (push (pop token-list) adjectives))
-	   (if (cardinal-number-p (car token-list))
-	       (progn 
-		 (loop until (or (preposition-p (cadr token-list))
-				 (null (cadr token-list)))
-		      do (push (pop token-list) adjectives)
+  (let ((noun-phrase (make-instance '<noun-phrase>)))
+    (with-accessors ((noun noun)
+		     (adjs adjectives)
+		     (owns owns)) noun-phrase
+      (cond ((or (preposition-p (car token-list))
+		 (null (car token-list))
+		 (chat-string-p (car token-list))
+		 (adverb-p (car token-list)))
+	     nil)
+	    ((pronoun-p (car token-list))
+	     (setf noun (pop token-list)))
+	    (t
+	     (when (article-p (car token-list))
+	       (push (pop token-list) adjs))
+	     (if (cardinal-number-p (car token-list))
+		 (progn 
+		   (loop until (or (preposition-p (cadr token-list))
+				   (null (cadr token-list)))
+		      do (push (pop token-list) adjs)
 		      finally (setf noun (pop token-list))))
-	       (progn
-		 (loop until (or (possessive-p (car token-list))
-				 (conjunction-p (cadr token-list))
-				 (string-equal "," (cadr token-list)) ;COMMA BAD!
-				 (preposition-p (cadr token-list))
-				 (chat-string-p (cadr token-list))
-				 (adverb-p (cadr token-list))
-				 (null (cadr token-list))
-				 (possessive-p (cadr token-list)))
-		      do (push (pop token-list) adjectives))
-		 (if (possessive-p (car token-list))
-		     (progn
-		       (setf noun (extract-noun-from-possessive (pop token-list)))
-		       (multiple-value-setq (belongs-to token-list)
-			 (parse-noun-phrase token-list)))
-		     (setf noun (pop token-list)))))))
-    (values (list noun adjectives belongs-to) token-list)))
+		 (progn
+		   (loop until (or (possessive-p (car token-list))
+					;(possessive-p (cadr token-list))
+				   (conjunction-p (cadr token-list))
+				   (string-equal "," (cadr token-list)) ;COMMA BAD!
+				   (preposition-p (cadr token-list))
+				   (chat-string-p (cadr token-list))
+				   (adverb-p (cadr token-list))
+				   (null (cadr token-list)))
+		      do (push (pop token-list) adjs))
+		   (if (possessive-p (car token-list))
+		       (progn
+			 (setf noun (extract-noun-from-possessive (pop token-list)))
+			 (multiple-value-setq (owns token-list)
+			   (parse-noun-phrase token-list)))
+		       (setf noun (pop token-list)))))))
+      (values noun-phrase token-list))))
 
 ;;;
 ;;; Util
@@ -213,6 +291,10 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
   (:documentation "Condition signaled whenever some generic parsing error happens.")
   (:report (lambda (condition stream)
 	     (format stream "~a" (text condition)))))
+
+(defun prompt-user ()
+  (format t "~~>")
+  (read-line))
 
 (defun test-the-parser ()
   "Runs a loop that asks for player input and returns whatever gets parsed. Quits on 'quit'."
