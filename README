@@ -20,9 +20,10 @@ REQUIREMENTS
 * bordeaux-threads (http://common-lisp.net/project/bordeaux-threads/)
 * usocket (http://common-lisp.net/project/usocket/)
 * ironclad (http://method-combination.net/lisp/ironclad/)
-* SBCL, no other lisp is supported right now.
-* Linux x86, probably x64 (untested). No windows support until it gets threads.
-
+* xmls (http://common-lisp.net/project/xmls/)
+* fiveam (http://common-lisp.net/project/bese/FiveAM.html)
+* SBCL (http://www.sbcl.org/http://www.sbcl.org/) no other lisp is supported right now.
+* Linux x86, probably x64 (untested).
 
 INSTALLATION
 ------------
@@ -89,7 +90,4 @@ work with. A nice basic one is (add-verb "smile" #'pc-emote) (the same
 effect can be achieved with (add-emote "smile"). That will add the
 verb "smile" to the vocabulary, and you can write a bunch of other
 verbs to see what else happens. Take a look at commands.lisp for
-currently available verbs.
-
-The parser doesn't bind yet, so you'll only be getting syntax trees
-for now.
+currently available functions.
