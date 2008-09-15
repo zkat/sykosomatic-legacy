@@ -54,18 +54,16 @@
   (append (contents (location mobile))
 	  (inventory mobile)))
 
+(defgeneric belongings (object)
+  (:documentation "Returns a list of objects that belong to OBJECT."))
+
+(defmethod belongings ((object <game-object>))
+  ())
 ;;;
 ;;; Sexy builder
 ;;;
 ;;; - Builds the final s-expressions to be run by the event system.
 
-(defun parse-tree->sexp (player tree)
-  "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  t)
-
-(defun string->sexp (player string)
-  "Takes a STRING and turns it into a valid S-EXP to run."
-  (parse-tree->sexp player (parse-string string)))
 
 ;;;
 ;;; Util

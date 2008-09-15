@@ -27,11 +27,29 @@
 ;;; Executor
 ;;;
 
+;; TODO
 (defun execute-command (player string)
   "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
-  (let ((sexp (string->sexp player string)))
-    (if (functionp (car sexp))
-	(apply (car sexp) (cdr sexp)))))
+  t)
+
+;;;
+;;; Base functions
+;;;
+
+(defun present-tense (verb)
+  "Converts a verb in imperative form to its present tense form."
+  (let ((verb-ending (elt verb (- (length verb) 1))))
+    (cond ((string-equal verb-ending "h")
+	   (concatenate 'string verb "es"))
+	  ((string-equal verb-ending "y")
+	   (let ((verb (string-right-trim "y" verb))) ;could cause problems.
+	     (concatenate 'string verb "ies")))
+	  (t 
+	   (concatenate 'string verb "s")))))
+
+(defun breakdown-ast (ast)
+  "Returns the desired contents of AST"
+  t)
 
 ;;;
 ;;; Base Commands
@@ -40,29 +58,28 @@
 ;; TODO - What should a call to a defmacro command look like?
 ;;
 ;; This is what all commands receive as argument:
-;; (<player> (emote rest-of-predicate adverbs chat-string))
-
+;; (<caller-object> ast)
 
 ;; NOTE: Here's an example of how commands should be handled. Any object that needs a special action
 ;; performed upon it should define either an overriding method, or something to do before calling
 ;; (call-next-method)
 
-(defgeneric pc-example (entity direct-object indirect-object)
-  )
-(defmethod pc-example ((player <player>) (item <item>) (noob <player>))
-  (format t "foo"))
+;; NOTE: The defverb macro should provide a pretty simple, uber-abstracted interface for
+;;       defining new game commands. It should also try to remain as flexible as possible.
+;;       It should also handle adding the command to the *verbs* hash table, and redifining them
+;;       as necessary.
 
-;;; NOTE: The following are obsolete
-(defun pc-emote (player ast)
-  "Emotes an EMOTE-STRING."
-  (let ((emote (car ast)))
-    (write-to-player player "You ~a.~%" emote)))
+(defgeneric action-emote (entity ast)
+  (:documentation "Outputs the verb in action form. No other actions take place."))
 
-(defun pc-quit (player ast)
-  "Takes care of quitting the game."
-  (disconnect-player player))
+(defmethod action-emote ((player <player>) ast)
+  (write-to-player player "You ~a.~%" verb)
+  (write-to-others-in-room "~a ~a." (name player) (present-tense verb)))
 
-(defun pc-look (player ast)
+(defgeneric action-look (entity ast)
+  (:documentation "Represents the action of ENTITY looking, optionally at DIRECT-OBJECT."))
+
+(defmethod action-look ((player <player>) )
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let ((noun-phrase (cadr ast)))
     (let* ((current-room (location player))
@@ -71,6 +88,10 @@
       (if target
 	  (write-to-player player "~a" (desc target))
 	  (write-to-player player "~a" (desc current-room))))))
+
+(defun pc-quit (player ast)
+  "Takes care of quitting the game."
+  (disconnect-player player))
 
 (defun pc-examine (player ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
@@ -127,7 +148,6 @@
 		      (write-to-player player "There's nowhere to go through there.")))
 		(write-to-player player "No exit in that direction.")))
 	  (write-to-player player "Player can't move. He isn't anywhere to begin with!")))))
-
 
 ;;;
 ;;; Utils
