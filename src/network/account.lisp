@@ -3,16 +3,16 @@
 ;; This file is part of sykosomatic
 
 ;; sykosomatic is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
+;; it under the terms of the GNU Affero General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
 ;; sykosomatic is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; GNU Affero General Public License for more details.
 
-;; You should have received a copy of the GNU General Public License
+;; You should have received a copy of the GNU Affero General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; account.lisp
@@ -183,9 +183,9 @@
     (if (and (equal password pass-confirm)
 	     (confirm-password-sanity password))
 	(hash-password password)
-	(progn
-	  (write-to-client client "~&Passwords did not match, try again.~%")
-	  (setup-password client)))))
+      (progn
+	(write-to-client client "~&Passwords did not match, try again.~%")
+	(setup-password client)))))
 
 (defun/cc setup-email (client)
   "Prompts client for a correct e-mail address."
@@ -194,11 +194,11 @@
 	(progn
 	  (write-to-client "~%You chose ~a as your email address.~%" email)
 	  (if (client-y-or-n-p client "Is this email address correct?")
-	     email
-	     (setup-email client)))
-	(progn
-	  (write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
-	  (setup-email client)))))
+	      email
+	    (setup-email client)))
+      (progn
+	(write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
+	(setup-email client)))))
 
 ;; NOTE: This isn't used (yet)
 (defun/cc setup-name (client)
@@ -207,7 +207,7 @@
 	 (lastname (prompt-client client "Please enter your first name")))
     (if (client-y-or-n-p client "Greetings ~a ~a. Is this name correct" firstname lastname)
 	(values firstname lastname)
-	(setup-name client))))
+      (setup-name client))))
 
 ;;;
 ;;; Account Management
@@ -251,9 +251,10 @@
   "Password hashing function."
   (ironclad:byte-array-to-hex-string
    (ironclad:digest-sequence
-     :sha256
-     (ironclad:ascii-string-to-byte-array
-      password))))
+    :sha256
+    (ironclad:ascii-string-to-byte-array
+     password))))
+
 
 ;;; Sanity checkers
 
