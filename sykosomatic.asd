@@ -7,7 +7,7 @@
   :maintainer "Kat M <kzm@sykosomatic.org>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, powerful text-based online game engine."
-  :license "GPLv3, see COPYING"
+  :license "AGPL, see COPYING"
   :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads 
 	       #:cl-cont #:ironclad #:xmls #:fiveam)
   :components 
