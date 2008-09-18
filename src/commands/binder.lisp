@@ -59,6 +59,7 @@
 
 (defmethod belongings ((object <game-object>))
   ())
+
 ;;;
 ;;; Sexy builder
 ;;;
