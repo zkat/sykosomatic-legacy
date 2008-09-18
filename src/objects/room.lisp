@@ -47,12 +47,7 @@
    (room-id
     :initform (incf *max-room-id*)
     :reader room-id
-    :documentation "Universal room ID number")
-   (exits
-    :initarg :exits
-    :initform nil
-    :accessor exits
-    :documentation "Contains an assoc list of <exit> objects that refer to the next room.")))
+    :documentation "Universal room ID number")))
 
 (defun make-room (&key (name "NoRoomName") (desc "") (desc-long "") features)
   "Simple constructor function for creating a room."
@@ -70,7 +65,7 @@
     :initarg :locked-p
     :initform nil
     :accessor locked-p
-    :documentation "Is the exit locked?")
+    :documentation "Is the door locked?")
    (next-room
     :initarg :next-room
     :initform nil
@@ -159,4 +154,4 @@
   "Returns a LIST containing NUM-ROOMS generic instances of <room>."
   (loop
      for i upto (1- num-rooms)
-     collect (new-room)))
+     collect (make-room)))
