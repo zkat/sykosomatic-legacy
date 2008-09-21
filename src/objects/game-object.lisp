@@ -37,12 +37,7 @@
     :initform ""
     :accessor desc
     :documentation "A description of the object")
-   (desc-long
-    :initarg :desc-long
-    :initform ""
-    :accessor desc-long
-    :documentation "Long, detailed description of the object")
-   (tags ;;not used in anything yet, but nifty idea
+   (tags
     :initarg :tags
     :initform nil
     :accessor tags
@@ -55,7 +50,7 @@
     :initarg :features
     :initform nil
     :accessor features
-    :documentation "A list of OBJECTS that add more little details, all targetable :3"))
+    :documentation "A list of OBJECTS that add more little details, all targetable."))
   (:documentation "Master game object. Contains base capabilities of all other objects in the game."))
 
 ;;;

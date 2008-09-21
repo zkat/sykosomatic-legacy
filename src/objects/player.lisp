@@ -37,7 +37,9 @@
 ;;; Player class
 ;;;
 (defclass <player> (<mobile>)
-  ((player-id
+  ((name
+    :initform "NoNamePlayer")
+   (player-id
     :initarg :player-id
     :initform (incf *max-player-id*)
     :reader player-id
@@ -47,11 +49,6 @@
     :initform nil
     :accessor current-client
     :documentation "The <client> currently associated with this <player>")))
-
-(defun make-player (&key (name "NoName"))
-  "Constructor function to create a player."
-  (make-instance '<player> 
-		 :name name))
 
 ;;;
 ;;; Player generation
@@ -133,7 +130,7 @@
 
 (defun new-test-player ()
   "RETURNS a new PLAYER with its player-id as its name."
-  (let ((player (make-player)))
+  (let ((player (make-instance '<player>)))
     (setf (name player) (format nil "Player~d" (player-id player)))
     player))
 
