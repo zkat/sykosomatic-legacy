@@ -32,16 +32,21 @@
     :initform ""
     :accessor name
     :documentation "Base name for the object")
+   (aliases
+    :initarg :aliases
+    :initform nil
+    :accessor aliases
+    :documentation "A list of aliases that can be used in place of NAME")
+   (adjectives
+    :initarg :adjectives
+    :initform nil
+    :accessor adjectives
+    :documentation "List of adjectives that apply to this object. Different from name and aliases.")
    (desc
     :initarg :desc
     :initform ""
     :accessor desc
     :documentation "A description of the object")
-   (tags
-    :initarg :tags
-    :initform nil
-    :accessor tags
-    :documentation "A list of string tags that target this object. First string is the name")
    (prox
     :initarg :prox
     :accessor prox
@@ -53,11 +58,19 @@
     :documentation "A list of OBJECTS that add more little details, all targetable."))
   (:documentation "Master game object. Contains base capabilities of all other objects in the game."))
 
+
+;;;
+;;; Info
+;;;
+(defgeneric look-description (game-object)
+  (:documentation "Function that generates the appropriate LOOK-level description string."))
+
+(defgeneric examine-description (game-object)
+  (:documentation "Function that generates the appropriate EXAMINE-level description string."))
+
 ;;;
 ;;; Load/Save
 ;;;
-;;; Note: I think save-objects and load-objects could eventually be moved to a new db.lisp. The
-;;;       file should do something else as well, though, so these will reside here, for now.
 
 ;;; Save
 
@@ -69,28 +82,18 @@
   (loop for obj in obj-list
        do (obj->file obj path)))
 
-(defun save-objects ()
-  (save-players)
-  (save-rooms)
-  (format t "I think everything got saved. Hopefully, it did..."))
-
 ;;; Load
 
 ;; NOTE: It's alright for now, but we should, at some point, assert that the objects being
 ;;       loaded are of the appropriate type. This can be a vulnerability.
-
 (defun file->obj (filepath)
   "Takes the FILEPATH of a file, returns the OBJECT it represents."
   (cl-store:restore filepath))
 
+;; NOTE: This loads files indiscriminately. The files are currently not deleted if the object
+;;       is deleted in-engine. Database stuff is going to need some major work.
 (defun files-in-path->obj-list (path file-extension)
   "Takes -all- files in PATH and collects them into a LIST of OBJECTS."
   (let ((files (directory (merge-pathnames (format nil "*.~a" file-extension) path))))
     (loop for file in files
 	 collect (cl-store:restore file))))
-
-(defun load-objects ()
-  (load-players)
-  (load-rooms)
-  (format t "Apparently, everything got loaded."))
-

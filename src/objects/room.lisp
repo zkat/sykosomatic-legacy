@@ -18,8 +18,8 @@
 ;; room.lisp
 ;;
 ;; Contains the <room> and <door> classes. Also holds functions that handle room generation from
-;; file, saving/loading of rooms, setting of exits, getting of information about contents of room
-;; (like who the players are within the room), and getting the location of an <entity>
+;; file, saving/loading of rooms, setting of exits, getting of information about contents of room,
+;; etc.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
@@ -47,9 +47,11 @@
     :accessor contents
     :documentation "All contents of this room, including entities")
    (room-id
-    :initform (incf *max-room-id*)
+    :initform (incf *max-room-id*) ;NOTE: I wasn't sure it was important, but this isn't thread safe.
     :reader room-id
-    :documentation "Universal room ID number")))
+    :documentation "Universal room ID number"))
+  (:documentation "Base class for rooms. This class adds a contents
+ and room-id slot to a standard game object."))
 
 (defclass <door> (<game-object>)
   ((name
@@ -68,19 +70,10 @@
     :initarg :next-room
     :initform nil
     :accessor next-room
-    :documentation "Room object this exit points to")))
-
-;;;
-;;; Room generation
-;;;
-
-(defun make-rooms-from-file (file)
-  "Generates rooms from a raw text FILE. Returns a list with all the generated rooms."
-  (let ((rooms (with-open-file (in file)
-		  (loop for line = (read in nil)
-		     while line
-		     collect line))))
-    (mapcar #'eval rooms)))
+    :documentation "Room object this exit points to"))
+  (:documentation "A door is something -- anything, that leads from one place
+to another. In general, this can be an actual door, but it can also be used as 
+a mixin to make regular items (or even players) into portals and such."))
 
 ;;;
 ;;; Info
@@ -93,6 +86,7 @@
 ;;;
 
 ;; NOTE: There should be something like a reflexive set-exit.
+;; FIXME: This is obsolete with the new movement system
 (defun set-exit (from-room to-room direction)
   ;;FIXME: This is still doing too much.
   "Checks if there is already an EXIT in DIRECTION, then creates an exit leading to TO-ROOM."
@@ -120,17 +114,20 @@
 ;;; Loading
 
 (defun restore-max-room-id ()
-  "Loads the highest room-id. Uses existing rooms to find it."
-  (setf *max-room-id*
-	(apply #'max
-	       (mapcar #'room-id *rooms*))))
+  "Loads the highest room-id."
+  (let ((room-ids (or (mapcar #'room-id *rooms*) '(0))))
+    (setf *max-room-id* 
+	  (apply #'max room-ids))))
 
+;; NOTE: This breaks if tries to load an object that was created with an obsolete class.
 (defun load-rooms ()
   "Loads saved rooms into the *rooms* list."
   (setf *rooms* (files-in-path->obj-list *rooms-directory* "room"))
   (restore-max-room-id))
 
+;;;
 ;;; Testing
+;;;
 
 (defun new-test-room ()
   "Returns a new ROOM with its room-id in its name."
@@ -147,3 +144,11 @@
   (loop
      for i upto (1- num-rooms)
      collect (make-room)))
+
+(defun make-rooms-from-file (file)
+  "Generates rooms from a raw text FILE. Returns a list with all the generated rooms."
+  (let ((rooms (with-open-file (in file)
+		  (loop for line = (read in nil)
+		     while line
+		     collect line))))
+    (mapcar #'eval rooms)))

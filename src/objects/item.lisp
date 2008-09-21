@@ -40,4 +40,6 @@
     :initarg :effects
     :accessor effects
     :documentation "Any special effects of the item"))
-  (:documentation "Master class for items."))
+  (:documentation "Master class for items. Mainly defines some basic things
+that you can do with items, such as whether it's wearable, movable, or whether
+it has any special effects."))
