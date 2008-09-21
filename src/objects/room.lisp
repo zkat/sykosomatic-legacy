@@ -39,7 +39,9 @@
 ;;;
 
 (defclass <room> (<game-object>)
-  ((contents
+  ((name
+    :initform "NoRoomName")
+   (contents
     :initarg :contents
     :initform nil
     :accessor contents
@@ -49,14 +51,10 @@
     :reader room-id
     :documentation "Universal room ID number")))
 
-(defun make-room (&key (name "NoRoomName") (desc "") (desc-long "") features)
-  "Simple constructor function for creating a room."
-  (make-instance '<room> 
-		 :name name :desc desc 
-		 :desc-long desc-long :features features))
-
 (defclass <door> (<game-object>)
-  ((open-p
+  ((name
+    :initform "door")
+   (open-p
     :initarg :open-p
     :initform t
     :accessor open-p
@@ -71,12 +69,6 @@
     :initform nil
     :accessor next-room
     :documentation "Room object this exit points to")))
-
-(defun make-door (&key (name "door") (desc "") (desc-long "") features next-room)
-  "Standard constructor for <door> objects."
-  (make-instance '<door> 
-		 :name name :desc desc :desc-long desc-long 
-		 :features features :next-room next-room))
 
 ;;;
 ;;; Room generation
@@ -106,7 +98,7 @@
   "Checks if there is already an EXIT in DIRECTION, then creates an exit leading to TO-ROOM."
   (if (assoc direction (exits from-room) :test #'string-equal)
       (error "Room already exists in that direction.")
-      (let ((door (make-door :next-room to-room)))
+      (let ((door (make-instance '<door> :next-room to-room)))
 	(pushnew (cons direction door) (exits from-room)))))
 
 ;;;
@@ -142,7 +134,7 @@
 
 (defun new-test-room ()
   "Returns a new ROOM with its room-id in its name."
-  (let ((room (make-room)))
+  (let ((room (make-instance '<room>)))
     (setf (name room) (format nil "Room #~a" (room-id room)))
     room))
 
