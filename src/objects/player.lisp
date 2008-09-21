@@ -41,26 +41,15 @@
     :initform "NoNamePlayer")
    (player-id
     :initarg :player-id
-    :initform (incf *max-player-id*)
+    :initform (incf *max-player-id*);NOTE: I wasn't sure it was important, but this isn't thread safe.
     :reader player-id
     :documentation "A unique player id.")
    (current-client
     :initarg :current-client
     :initform nil
     :accessor current-client
-    :documentation "The <client> currently associated with this <player>")))
-
-;;;
-;;; Player generation
-;;;
-
-(defun make-players-from-file (file)
-  "Generates players from a raw text FILE. Returns a list of player objects." 
-  (let ((players (with-open-file (in file)
-		  (loop for line = (read in nil)
-		     while line
-		     collect line))))
-    (mapcar #'eval players)))
+    :documentation "The <client> currently associated with this <player>"))
+  (:documentation ""))
 
 ;;;
 ;;; Info
@@ -121,10 +110,12 @@
     (setf *max-player-id* 
 	  (apply #'max player-ids))))
 
+;; NOTE: This breaks if tries to load an object that was created with an obsolete class.(as it should)
 (defun load-players ()
   "Takes care of loading all players into the *players* list"
   (setf *players* (files-in-path->obj-list *players-directory* "player"))
   (restore-max-player-id))
+
 
 ;;; Testing
 
@@ -143,3 +134,13 @@
   (loop 
      for i upto (1- num-players)
      collect (new-player)))
+
+;;; Useless? It's more likely than you think.
+(defun make-players-from-file (file)
+  "Generates players from a raw text FILE. Returns a list of player objects." 
+  (let ((players (with-open-file (in file)
+		  (loop for line = (read in nil)
+		     while line
+		     collect line))))
+    (mapcar #'eval players)))
+
