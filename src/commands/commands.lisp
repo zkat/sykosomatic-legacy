@@ -79,7 +79,7 @@
 (defgeneric action-look (entity ast)
   (:documentation "Represents the action of ENTITY looking, optionally at DIRECT-OBJECT."))
 
-(defmethod action-look ((player <player>) )
+(defmethod action-look ((player <player>) ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let ((noun-phrase (cadr ast)))
     (let* ((current-room (location player))
