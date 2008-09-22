@@ -26,7 +26,9 @@
 ;;; Item class
 ;;;
 (defclass <item> (<entity>)
-  ((equippable
+  ((name
+    :initform "NoNameItem")
+   (equippable
     :initarg :equip-p
     :initform nil
     :accessor equip-p

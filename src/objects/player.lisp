@@ -33,11 +33,13 @@
 (defvar *max-player-id* 0
   "Contains the highest available player-id")
 
-(defvar *player-id-lock* (bordeaux-threads:make-lock))
+(defvar *player-id-lock* (bordeaux-threads:make-lock)
+  "This lock should be held by anything that wants to manipulate *max-room-id*")
 
 ;;;
 ;;; Player class
 ;;;
+
 (defclass <player> (<mobile>)
   ((name
     :initform "NoNamePlayer")
@@ -109,15 +111,15 @@
 (defun restore-max-player-id ()
   "Loads the highest player-id."
   (let ((player-ids (or (mapcar #'player-id *players*) '(0))))
-    (setf *max-player-id* 
-	  (apply #'max player-ids))))
+    (with-lock-held (*player-id-lock*)
+      (setf *max-player-id* 
+	    (apply #'max player-ids)))))
 
 ;; NOTE: This breaks if tries to load an object that was created with an obsolete class.(as it should)
 (defun load-players ()
   "Takes care of loading all players into the *players* list"
   (setf *players* (files-in-path->obj-list *players-directory* "player"))
   (restore-max-player-id))
-
 
 ;;; Testing
 
@@ -129,7 +131,8 @@
 
 (defun reset-max-player-id ()
   "Sets the highest player-id to 0."
-  (setf *max-player-id* 0))
+  (with-lock-held (*player-id-lock*)
+    (setf *max-player-id* 0)))
 
 (defun generate-test-players (num-players)
   "Returns a LIST containing NUM-PLAYERS generic instances of <player>."

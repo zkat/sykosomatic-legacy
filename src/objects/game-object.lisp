@@ -29,7 +29,7 @@
 (defclass <game-object> ()
   ((name
     :initarg :name
-    :initform ""
+    :initform "NoNameObject"
     :accessor name
     :documentation "Base name for the object")
    (aliases
@@ -44,7 +44,7 @@
     :documentation "List of adjectives that apply to this object. Different from name and aliases.")
    (desc
     :initarg :desc
-    :initform ""
+    :initform "An object without a description"
     :accessor desc
     :documentation "A description of the object")
    (prox
