@@ -33,6 +33,8 @@
 (defvar *max-player-id* 0
   "Contains the highest available player-id")
 
+(defvar *player-id-lock* (bordeaux-threads:make-lock))
+
 ;;;
 ;;; Player class
 ;;;
@@ -41,7 +43,7 @@
     :initform "NoNamePlayer")
    (player-id
     :initarg :player-id
-    :initform (incf *max-player-id*);NOTE: I wasn't sure it was important, but this isn't thread safe.
+    :initform (with-lock-held (*player-id-lock*) (incf *max-player-id*))
     :reader player-id
     :documentation "A unique player id.")
    (current-client

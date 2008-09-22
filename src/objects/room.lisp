@@ -34,6 +34,8 @@
 (defvar *max-room-id* 0
   "Highest available room-id")
 
+(defvar *room-id-lock* (bordeaux-threads:make-lock))
+
 ;;;
 ;;; Room-related classes
 ;;;
@@ -47,7 +49,7 @@
     :accessor contents
     :documentation "All contents of this room, including entities")
    (room-id
-    :initform (incf *max-room-id*) ;NOTE: I wasn't sure it was important, but this isn't thread safe.
+    :initform (with-lock-held (*room-id-lock*) (incf *max-room-id*))
     :reader room-id
     :documentation "Universal room ID number"))
   (:documentation "Base class for rooms. This class adds a contents
