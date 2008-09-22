@@ -118,7 +118,7 @@ a mixin to make regular items (or even players) into portals and such."))
 
 (defun restore-max-room-id ()
   "Loads the highest room-id."
-  (let ((room-ids (or (mapcar #'room-id *rooms*) '(0))))
+  (let ((room-ids (or (mapcar #'room-id *rooms*) '(0)))) ;reset to 0 if there are no rooms available.
     (with-lock-held (*room-id-lock*)
       (setf *max-room-id* 
 	    (apply #'max room-ids)))))

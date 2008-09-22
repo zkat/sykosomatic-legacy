@@ -46,11 +46,7 @@
     :initarg :desc
     :initform "An object without a description"
     :accessor desc
-    :documentation "A description of the object")
-   (prox
-    :initarg :prox
-    :accessor prox
-    :documentation "Object that this object is close to")
+    :documentation "A description of the object.")
    (features
     :initarg :features
     :initform nil
@@ -62,6 +58,8 @@
 ;;;
 ;;; Info
 ;;;
+
+;;TODO: Rethink naming scheme for these) I don't like it.
 (defgeneric look-description (game-object)
   (:documentation "Function that generates the appropriate LOOK-level description string."))
 
