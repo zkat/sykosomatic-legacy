@@ -28,7 +28,9 @@
 ;;; Entity class
 ;;;
 (defclass <entity> (<game-object>)
-  ((location
+  ((name
+    :initform "NoNameEntity")
+   (location
     :initarg :location
     :initform nil
     :accessor location

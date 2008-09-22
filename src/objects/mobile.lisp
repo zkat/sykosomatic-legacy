@@ -26,7 +26,9 @@
 ;;; Mobile class
 ;;;
 (defclass <mobile> (<entity>)
-  ((species
+  ((name
+    :initform "NoNameMobile")
+   (species
     :initarg :species
     :accessor species
     :documentation "Mobile's species")

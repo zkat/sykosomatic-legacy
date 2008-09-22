@@ -34,7 +34,8 @@
 (defvar *max-room-id* 0
   "Highest available room-id")
 
-(defvar *room-id-lock* (bordeaux-threads:make-lock))
+(defvar *room-id-lock* (bordeaux-threads:make-lock)
+  "This lock should be held by anything that wants to manipulate *max-room-id*")
 
 ;;;
 ;;; Room-related classes
@@ -42,7 +43,7 @@
 
 (defclass <room> (<game-object>)
   ((name
-    :initform "NoRoomName")
+    :initform "NoNameRoom")
    (contents
     :initarg :contents
     :initform nil
@@ -118,8 +119,9 @@ a mixin to make regular items (or even players) into portals and such."))
 (defun restore-max-room-id ()
   "Loads the highest room-id."
   (let ((room-ids (or (mapcar #'room-id *rooms*) '(0))))
-    (setf *max-room-id* 
-	  (apply #'max room-ids))))
+    (with-lock-held (*room-id-lock*)
+      (setf *max-room-id* 
+	    (apply #'max room-ids)))))
 
 ;; NOTE: This breaks if tries to load an object that was created with an obsolete class.
 (defun load-rooms ()
@@ -139,7 +141,8 @@ a mixin to make regular items (or even players) into portals and such."))
 
 (defun reset-max-room-id ()
   "Sets the highest room-id to 0."
-  (setf *max-room-id* 0))
+  (with-lock-held (*room-id-lock*)
+    (setf *max-room-id* 0)))
 
 (defun generate-test-rooms (num-rooms)
   "Returns a LIST containing NUM-ROOMS generic instances of <room>."
