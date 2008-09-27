@@ -34,7 +34,7 @@
 
 (defun bind-noun-phrase (noun-phrase scope-list)
   "Binds a noun-phrase into a single object, based on SCOPE."
- )
+  nil)
 
 ;;;
 ;;; Scope
@@ -58,7 +58,7 @@
   (:documentation "Returns a list of objects that belong to OBJECT."))
 
 (defmethod belongings ((object <game-object>))
-  ())
+  nil)
 
 ;;;
 ;;; Sexy builder
