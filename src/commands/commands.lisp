@@ -73,8 +73,10 @@
   (:documentation "Outputs the verb in action form. No other actions take place."))
 
 (defmethod action-emote ((player <player>) ast)
-  (write-to-player player "You ~a.~%" verb)
-  (write-to-others-in-room "~a ~a." (name player) (present-tense verb)))
+  "If the emote has to do with a player, write to that player, as well as anyone in room" ;; uh.. no?
+  (let ((verb (verb ast)))
+    (write-to-player player "You ~a.~%" verb)
+   (write-to-others-in-room "~a ~a.~%" (name player) (present-tense verb))))
 
 (defgeneric action-look (entity ast)
   (:documentation "Represents the action of ENTITY looking, optionally at DIRECT-OBJECT."))
@@ -106,6 +108,8 @@
 	  (progn (write-to-player player "You begin to examine ~a.~%" (name current-room))
 		 (sleep 0.8)
 		 (write-to-player player "~a" (desc-long current-room)))))))
+
+;; NOTE: OMG CODE REPETITION :< --Kat
 
 (defun pc-go (player ast)
   "Moves PLAYER in DIRECTION."
