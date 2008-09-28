@@ -73,18 +73,14 @@
 ;;; Player functions
 ;;;
 
-(defun write-to-player (player format-string &rest format-args)
+(defmethod write-to-target ((player <player>) format-string &rest format-args)
   "Sends output to a player."
   (let ((player-client (current-client player)))
-    (apply #'write-to-client player-client format-string format-args)))
+    (if player-client
+	(apply #'write-to-client player-client format-string format-args)
+	(error "Player is not connected."))))
 
-(defun write-to-others-in-room (player format-string &rest format-args)
-  "Sends output to everyone in PLAYER'S room except to PLAYER."
-  ;; TODO: Test this. I haven't actually tested it, although it should work.
-  (let* ((all-players (get-players (location player)))
-	 (others (remove player all-players)))
-    (apply #'write-to-player others format-string format-args)))
-
+;; NOTE: Should the player be saved, too? Anything else?
 (defun disconnect-player (player)
   "Disconnects the given player from the game."
   (disconnect-client (current-client player))
@@ -148,4 +144,3 @@
 		     while line
 		     collect line))))
     (mapcar #'eval players)))
-

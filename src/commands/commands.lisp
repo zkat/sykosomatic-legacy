@@ -47,15 +47,12 @@
 	  (t 
 	   (concatenate 'string verb "s")))))
 
-(defun breakdown-ast (ast)
-  "Returns the desired contents of AST"
-  t)
 
 ;;;
 ;;; Base Commands
 ;;;
 
-;; TODO - What should a call to a defmacro command look like?
+;; TODO - What should a call to a defcommand/verb macro look like?
 ;;
 ;; This is what all commands receive as argument:
 ;; (<caller-object> ast)
@@ -69,19 +66,28 @@
 ;;       It should also handle adding the command to the *verbs* hash table, and redifining them
 ;;       as necessary.
 
-(defgeneric action-emote (entity ast)
+;; What does a verb have to do?
+;; 1. Apply a certain effect to several items
+;; 2. spit out a message to all relevant targets
+;; 3. manage multiple targets, and multiple effects per target.
+;;
+;; How are these achieved?
+;; 1, 3, write methods that specifically act upon single targets, map them to the targets
+;; 2. define 1st person, 2nd person, and 3rd person messages as necessary (only defined ones get spit out)
+;;
+(defgeneric game-action-emote (entity ast)
   (:documentation "Outputs the verb in action form. No other actions take place."))
 
-(defmethod action-emote ((player <player>) ast)
+(defmethod game-action-emote ((player <player>) ast)
   "If the emote has to do with a player, write to that player, as well as anyone in room" ;; uh.. no?
   (let ((verb (verb ast)))
     (write-to-player player "You ~a.~%" verb)
-   (write-to-others-in-room "~a ~a.~%" (name player) (present-tense verb))))
+    (write-to-others-in-room "~a ~a.~%" (name player) (present-tense verb))))
 
-(defgeneric action-look (entity ast)
+(defgeneric game-action-look (entity ast)
   (:documentation "Represents the action of ENTITY looking, optionally at DIRECT-OBJECT."))
 
-(defmethod action-look ((player <player>) ast)
+(defmethod game-action-look ((player <player>) ast)
   "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
   (let ((noun-phrase (cadr ast)))
     (let* ((current-room (location player))
@@ -90,68 +96,6 @@
       (if target
 	  (write-to-player player "~a" (desc target))
 	  (write-to-player player "~a" (desc current-room))))))
-
-(defun pc-quit (player ast)
-  "Takes care of quitting the game."
-  (disconnect-player player))
-
-(defun pc-examine (player ast)
-  "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (let ((noun-phrase (cadr ast)))
-    (let* ((current-room (location player))
-	   (target-string (car (car noun-phrase)))
-	   (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
-      (if target
-	  (progn (write-to-player player "You begin to examine ~a.~%" (name target))
-		 (sleep 0.8)
-		 (write-to-player player "~a" (desc-long target)))
-	  (progn (write-to-player player "You begin to examine ~a.~%" (name current-room))
-		 (sleep 0.8)
-		 (write-to-player player "~a" (desc-long current-room)))))))
-
-;; NOTE: OMG CODE REPETITION :< --Kat
-
-(defun pc-go (player ast)
-  "Moves PLAYER in DIRECTION."
-  (let ((direction (car (car (cadr ast)))))
-    (let ((curr-room (location player)))
-      (if curr-room
-	  (let ((exit (assoc direction
-			     (exits curr-room) :test #'string-equal)))
-	    (if exit
-		(let ((next-room
-		       (next-room (cdr exit))))
-		  (if next-room
-		      (progn
-			(put-entity player next-room)
-			(write-to-player player "You begin to enter ~a." (name (cdr exit)))
-			(sleep 0.7)
-			(write-to-player player "~%~a" (desc (location player)))
-			(sleep 0.7))
-		      (write-to-player player "There's nowhere to go through there.")))
-		(write-to-player player "No exit in that direction.")))
-	  (write-to-player player "Player can't move. He isn't anywhere to begin with!")))))
-
-(defun pc-cardinal-move (player ast)
-  "Moves PLAYER in DIRECTION."
-  (let ((direction (car ast))) ;;the emote itself is the direction.
-    (let ((curr-room (location player)))
-      (if curr-room
-	  (let ((exit (assoc direction
-			     (exits curr-room) :test #'string-equal)))
-	    (if exit
-		(let ((next-room (next-room
-				  (cdr exit))))
-		  (if next-room
-		      (progn
-			(put-entity player next-room)
-			(write-to-player player "You begin to enter ~a." (name (cdr exit)))
-			(sleep 0.7)
-			(write-to-player player "~%~a" (desc (location player)))
-			(sleep 0.7))
-		      (write-to-player player "There's nowhere to go through there.")))
-		(write-to-player player "No exit in that direction.")))
-	  (write-to-player player "Player can't move. He isn't anywhere to begin with!")))))
 
 ;;;
 ;;; Utils
@@ -172,4 +116,4 @@ removing all previous associations with STRING"
   (add-verb string function))
 
 (defun add-emote (string)
-  (add-verb string #'pc-emote))
+  (add-verb string #'game-action-emote))
