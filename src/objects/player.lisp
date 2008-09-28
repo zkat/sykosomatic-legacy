@@ -66,8 +66,7 @@
 
 (defun get-players (room)
   "Fetches a list of players currently in ROOM."
-  (with-accessors ((contents contents)) room
-    (mapcar #'player-p contents)))
+  (remove-if-not #'player-p (contents room)))
 
 ;;;
 ;;; Player functions
