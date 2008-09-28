@@ -115,6 +115,15 @@
     :initform nil
     :type string)))
 
+(defmethod direct-objects ((sentence <sentence>))
+  (direct-objects (noun-clause sentence)))
+
+(defmethod indirect-objects ((sentence <sentence>))
+  (indirect-objects (noun-clause sentence)))
+
+(defmethod prepositions ((sentence <sentence>))
+  (prepositions (noun-clause sentence)))
+
 (defclass <noun-clause> ()
   ((direct-objects 
     :accessor direct-objects

@@ -85,6 +85,18 @@ a mixin to make regular items (or even players) into portals and such."))
 ; functions that grab info specifically about a room go here.
 
 ;;;
+;;; Messages
+;;;
+
+(defun write-to-others-in-room (player format-string &rest format-args)
+  "Sends output to everyone in PLAYER'S room except to PLAYER."
+  ;; TODO: Test this. I haven't actually tested it, although it should work.
+  ;; NOTE: This doesn't handle message-sending to anything besides players. Fix it.
+  (let* ((all-players (get-players (location player)))
+	 (others (remove player all-players)))
+    (apply #'write-to-target others format-string format-args)))
+
+;;;
 ;;; Room manipulation
 ;;;
 

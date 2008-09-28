@@ -59,12 +59,28 @@
 ;;; Info
 ;;;
 
-;;TODO: Rethink naming scheme for these) I don't like it.
-(defgeneric look-description (game-object)
+(defgeneric short-description (game-object)
   (:documentation "Function that generates the appropriate LOOK-level description string."))
 
-(defgeneric examine-description (game-object)
+;; TODO
+(defmethod short-description ((object <game-object>))
+  t)
+
+(defgeneric long-description (game-object)
   (:documentation "Function that generates the appropriate EXAMINE-level description string."))
+
+(defmethod long-description ((object <game-object>))
+  t)
+
+;;;
+;;; Messages
+;;;
+
+(defgeneric write-to-target (target format-string &rest format-args)
+  (:documentation "Formats a string and sends it to target game-object."))
+
+(defmethod write-to-target ((target <game-object>) format-string &rest format-args)
+  t)
 
 ;;;
 ;;; Load/Save
