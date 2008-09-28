@@ -56,9 +56,9 @@
   (:documentation "Base class for rooms. This class adds a contents
  and room-id slot to a standard game object."))
 
-(defclass <door> (<game-object>)
+(defclass <exit> (<game-object>)
   ((name
-    :initform "door")
+    :initform "exit")
    (open-p
     :initarg :open-p
     :initform t
@@ -68,47 +68,41 @@
     :initarg :locked-p
     :initform nil
     :accessor locked-p
-    :documentation "Is the door locked?")
+    :documentation "Is the exit locked?")
    (next-room
     :initarg :next-room
     :initform nil
     :accessor next-room
     :documentation "Room object this exit points to"))
-  (:documentation "A door is something -- anything, that leads from one place
-to another. In general, this can be an actual door, but it can also be used as 
+  (:documentation "A exit is something -- anything, that leads from one place
+to another. In general, this can be an actual exit, but it can also be used as 
 a mixin to make regular items (or even players) into portals and such."))
 
 ;;;
 ;;; Info
 ;;;
 
-; functions that grab info specifically about a room go here.
+(defun room-p (obj)
+  "Returns T if a given OBJ is an instance of <room>"
+  (eq (class-name (class-of obj))
+      '<room>))
 
-;;;
-;;; Messages
-;;;
+(defun exit-p (obj)
+  "Returns T if a given OBJ is an instance of <exit>."
+  (eq (class-name (class-of obj))
+      '<exit>))
 
-(defun write-to-others-in-room (player format-string &rest format-args)
-  "Sends output to everyone in PLAYER'S room except to PLAYER."
-  ;; TODO: Test this. I haven't actually tested it, although it should work.
-  ;; NOTE: This doesn't handle message-sending to anything besides players. Fix it.
-  (let* ((all-players (get-players (location player)))
-	 (others (remove player all-players)))
-    (apply #'write-to-target others format-string format-args)))
+(defun get-exits (room)
+  "Returns a list of <exit> objects that the room contains."
+  (let ((obj-list (append (contents room)
+			  (features room))))
+    (remove-if-not #'exit-p obj-list)))
 
 ;;;
 ;;; Room manipulation
 ;;;
 
-;; NOTE: There should be something like a reflexive set-exit.
-;; FIXME: This is obsolete with the new movement system
-(defun set-exit (from-room to-room direction)
-  ;;FIXME: This is still doing too much.
-  "Checks if there is already an EXIT in DIRECTION, then creates an exit leading to TO-ROOM."
-  (if (assoc direction (exits from-room) :test #'string-equal)
-      (error "Room already exists in that direction.")
-      (let ((door (make-instance '<door> :next-room to-room)))
-	(pushnew (cons direction door) (exits from-room)))))
+;; Put something here that makes new exits.
 
 ;;;
 ;;; Load/Save
@@ -160,7 +154,7 @@ a mixin to make regular items (or even players) into portals and such."))
   "Returns a LIST containing NUM-ROOMS generic instances of <room>."
   (loop
      for i upto (1- num-rooms)
-     collect (make-room)))
+     collect (make-instance '<room>)))
 
 (defun make-rooms-from-file (file)
   "Generates rooms from a raw text FILE. Returns a list with all the generated rooms."
