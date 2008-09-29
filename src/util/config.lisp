@@ -41,7 +41,8 @@
 ;;; Server options
 (defvar *default-server-address* "0.0.0.0")
 (defvar *default-server-port* 4000)
-(defvar *max-client-idle-time* (* 60 20))
+(defvar *max-client-idle-time* (* 60 20)
+  "How many seconds is a client allowed to idle before they're disconnected by the server?")
 
 ;;;
 ;;; Functions
