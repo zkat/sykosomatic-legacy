@@ -47,7 +47,6 @@
 	  (t 
 	   (concatenate 'string verb "s")))))
 
-
 ;;;
 ;;; Base Commands
 ;;;
@@ -75,14 +74,20 @@
 ;; 1, 3, write methods that specifically act upon single targets, map them to the targets
 ;; 2. define 1st person, 2nd person, and 3rd person messages as necessary (only defined ones get spit out)
 ;;
+
+;; TODO
+(defun write-to-others-in-room (caller format-string &rest format-args)
+  (let ((others (get-players (location caller))))
+    (apply #'write-to-target)))
+
 (defgeneric game-action-emote (entity ast)
   (:documentation "Outputs the verb in action form. No other actions take place."))
 
 (defmethod game-action-emote ((player <player>) ast)
-  "If the emote has to do with a player, write to that player, as well as anyone in room" ;; uh.. no?
-  (let ((verb (verb ast)))
-    (write-to-player player "You ~a.~%" verb)
-    (write-to-others-in-room "~a ~a.~%" (name player) (present-tense verb))))
+  "If the emote has to do with a player, write to that player, as well as anyone in room"
+  (with-accessors ((verb verb) (dir-objs direct-objects) (ind-objs indirect-objects)) ast
+    (write-to-target player "You ~a.~%" verb)
+   (write-to-others-in-room "~a ~a.~%" (name player) (present-tense verb))))
 
 (defgeneric game-action-look (entity ast)
   (:documentation "Represents the action of ENTITY looking, optionally at DIRECT-OBJECT."))
@@ -96,6 +101,7 @@
       (if target
 	  (write-to-player player "~a" (desc target))
 	  (write-to-player player "~a" (desc current-room))))))
+
 
 ;;;
 ;;; Utils
@@ -116,4 +122,4 @@ removing all previous associations with STRING"
   (add-verb string function))
 
 (defun add-emote (string)
-  (add-verb string #'game-action-emote))
+  (add-verb string #'pc-emote))
