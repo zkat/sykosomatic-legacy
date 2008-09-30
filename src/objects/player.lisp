@@ -48,10 +48,10 @@
     :initform (with-lock-held (*player-id-lock*) (incf *max-player-id*))
     :reader player-id
     :documentation "A unique player id.")
-   (current-client
-    :initarg :current-client
+   (client
+    :initarg :client
     :initform nil
-    :accessor current-client
+    :accessor client
     :documentation "The <client> currently associated with this <player>"))
   (:documentation ""))
 
@@ -136,10 +136,4 @@
      collect (new-player)))
 
 ;;; Useless? It's more likely than you think.
-(defun make-players-from-file (file)
-  "Generates players from a raw text FILE. Returns a list of player objects." 
-  (let ((players (with-open-file (in file)
-		  (loop for line = (read in nil)
-		     while line
-		     collect line))))
-    (mapcar #'eval players)))
+

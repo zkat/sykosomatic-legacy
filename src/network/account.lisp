@@ -77,21 +77,41 @@
 ;;; Account Login
 ;;;
 
-(defun/cc account-menu (client)
-  "Simple selection menu that new clients once they've logged into an account."
-  (write-to-client client "~&Choose your destiny: ~%")
-  (write-to-client client "-----------------------~%")
-  (write-to-client client "1. Create a new character~%")
-  (write-to-client client "2. Enter existing character~%")
-  (write-to-client client "-----------------------~%~%")
-  (let ((choice (prompt-client client "Your choice: ")))
-    (cond ((equal choice "1")
-	   (create-an-avatar client))
-	  ((equal choice "2")
-	   (choose-avatar client))
+(defun/cc login-menu (client)
+  "Top-level menu for client login."
+  (write-to-client client "~&Welcome to SykoSoMaTIC!~%")
+  (write-to-client client "Take your pick: ~%")
+  (write-to-client client "------------------------~%")
+  (write-to-client client "[L]og in to your account.~%")
+  (write-to-client client "[C]reate a new account.~%")
+  (write-to-client client "[Q]uit~%")
+  (write-to-client client "-------------------------~%~%")
+  (let ((choice (prompt-client client "> ")))
+    (cond ((string-equal choice "L")
+	   (login-client client))
+	  ((string-equal choice "C")
+	   (create-new-account client))
+	  ((string-equal choice "Q")
+	   (disconnect-client client))
 	  (t
-	   (write-to-client client "~&Invalid choice.")
-	   (account-menu client)))))
+	   (write-to-client client "~&Invalid choice. Try again.")))))
+
+(defun/cc account-menu (account)
+  "Simple selection menu that new clients once they've logged into an account."
+  (write-to-client (client account) "~&Choose your destiny: ~%")
+  (write-to-client (client account) "-----------------------~%")
+  (write-to-client (client account) "1. Create a new character~%")
+  (write-to-client (client account) "2. Enter existing character~%")
+  (write-to-client (client account) "-----------------------~%~%")
+  (let ((choice (prompt-client (client account) "Your choice: ")))
+    (cond ((equal choice "1")
+	   (create-an-avatar account)
+	   (account-menu account))
+	  ((equal choice "2")
+	   (choose-avatar account))
+	  (t
+	   (write-to-client (client account) "~&Invalid choice.")
+	   (account-menu account)))))
 
 (defun get-account-by-name (username)
   "Fetches an account using a username."
@@ -104,7 +124,7 @@
       (setf (account client) account)
       (setf (client account) client)
       (pushnew (ip client) (know-ips account))
-      (account-menu client))))
+      (account-menu account))))
 
 (defun/cc prompt-username (client)
   "Prompts a client for a username, returns a valid account."
@@ -130,7 +150,7 @@
     (loop for avatar in avatars
        do (write-to-client client "~&~a~&" (name avatar)))))
 
-;; TODO - player-main-loop thing is borked.
+
 ;; (defun choose-avatar (client)
 ;;   "Lets a player choose an existing avatar to play on."
 ;;   (print-available-avatars client)
@@ -180,19 +200,23 @@
   "Prompts client for a password."
   (let ((password (prompt-client client "~%Choose a password: "))
 	(pass-confirm (prompt-client client "Retype your password: ")))
-    (if (and (equal password pass-confirm)
-	     (confirm-password-sanity password))
-	(hash-password password)
-      (progn
-	(write-to-client client "~&Passwords did not match, try again.~%")
-	(setup-password client)))))
+
+    (if (not (equal password pass-confirm))
+	(progn
+	  (write-to-client client "~&Passwords did not match, try again.~%")
+	  (setup-password client))
+	(if (confirm-password-sanity password)
+	    (hash-password password)
+	    (progn
+	      (write-to-client client "~&Password contains illegal characters.~%")
+	      (setup-password client))))))
 
 (defun/cc setup-email (client)
   "Prompts client for a correct e-mail address."
   (let ((email (prompt-client client "~%Please enter your email address: ")))
     (if (confirm-email-sanity email)
 	(progn
-	  (write-to-client "~%You chose ~a as your email address.~%" email)
+	  (write-to-client client  "~%You chose ~a as your email address.~%" email)
 	  (if (client-y-or-n-p client "Is this email address correct?")
 	      email
 	    (setup-email client)))
@@ -215,6 +239,39 @@
 
 ;;NIL
 
+;;;
+;;; Character Selection
+;;;
+(defun/cc choose-avatar (account)
+  (write-to-client (client account) "~&Choose a character: ~%")
+  (write-to-client (client account) "---------------------~%")
+  (write-to-client (client account) "1. ~a~%" (name (first (avatars account))))
+  (write-to-client (client account) "---------------------~%")
+  (write-to-client (client account) "[B]ack~%")
+  (write-to-client (client account) "[Q]uit~%")
+  (let ((choice (prompt-client (client account) "Your choice: ")))
+    (cond ((equal choice "1")
+	   (let ((avatar (first (avatars account))))
+	     (setf (client avatar) (client account))
+	     (player-main-loop avatar)))
+	  ((equal choice "B")
+	   (account-menu account))
+	  ((equal choice "Q")
+	   (disconnect-client (client account)))
+	  (t
+	   (write-to-client (client account) "~&Invalid choice, try again.~%")
+	   (choose-avatar account)))))
+
+;; temp
+(defun/cc player-main-loop (avatar)
+  (client-echo-input (client avatar))
+  (player-main-loop avatar))
+
+;;;
+;;; Character Creation
+;;;
+(defun/cc create-avatar (account)
+  (pushnew (make-instance '<player>) (avatars account)))
 
 ;;;
 ;;; Load/Save
@@ -268,7 +325,7 @@ be composed of alphanumeric characters."
 (defun confirm-password-sanity (password)
   "Confirms password is acceptable. Password needs to be 8 to 32 chars long, and may only contain
 a set of characters defined as CL's standard-char type."
-  (and (>= (length password) 8)
+  (and (>= (length password) 6)
        (<= (length password) 32)
        (not (find-if-not #'standard-char-p password))))
 
