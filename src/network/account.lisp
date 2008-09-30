@@ -253,6 +253,10 @@
     (cond ((equal choice "1")
 	   (let ((avatar (first (avatars account))))
 	     (setf (client avatar) (client account))
+	     (write-to-client (client account) "You are in an imaginary room that doesn't exist.
+It's so imaginary, that it isn't even a room object. This is really only a message to give you a
+false sense of security.~%
+You see a flask. What do you do?~%")
 	     (player-main-loop avatar)))
 	  ((equal choice "B")
 	   (account-menu account))
