@@ -22,7 +22,7 @@ REQUIREMENTS
 * ironclad (http://method-combination.net/lisp/ironclad/)
 * xmls (http://common-lisp.net/project/xmls/)
 * fiveam (http://common-lisp.net/project/bese/FiveAM.html)
-* SBCL (http://www.sbcl.org/http://www.sbcl.org/) no other lisp is supported right now.
+* SBCL (http://www.sbcl.org/) >= 1.0.20
 * Linux x86, probably x64 (untested).
 
 INSTALLATION
