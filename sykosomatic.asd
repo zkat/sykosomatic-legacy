@@ -25,13 +25,6 @@
 		       (:file "xml-import")
 		       (:file "logger")))
 
-	     (:module network
-		      :serial t
-		      :components
-		      ((:file "server")
-		       (:file "client")
-		       (:file "account")))
-
 	     (:module objects
 		      :serial t
 		      :components
@@ -42,6 +35,15 @@
 		       (:file "item")
 		       (:file "player")))
 
+	     (:module network
+		      :serial t
+		      :components
+		      ((:file "server")
+		       (:file "client")
+		       (:file "account")
+		       (:file "login")
+		       (:file "avatar")))
+	     
 	     (:module commands
 		      :serial t
 		      :components

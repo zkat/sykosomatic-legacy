@@ -167,7 +167,7 @@ Assuming disconnection."))))
 (defun/cc client-y-or-n-p (client string)
   "y-or-n-p that sends the question over to the client."
   (write-to-client client string)
-  (let ((answer (prompt-client client "(y or n)")))
+  (let ((answer (prompt-client client " (y or n)")))
     (cond ((string-equal "y" (char answer 0))
 	   t)
 	  ((string-equal "n" (char answer 0))
@@ -213,7 +213,9 @@ Assuming disconnection."))))
 (defun client-init (client)
   "Initializes a client, and sets the main function to step through."
   (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
-  (setf (client-step client) (make-client-step-with-continuations client #'client-main)))
+  (setf (client-step client) (make-client-step-with-continuations 
+			      client
+			      #'(lambda (client) (client-main client)))))
 
 (defun/cc client-main (client)
   "Main function to run clients through."

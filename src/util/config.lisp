@@ -45,7 +45,7 @@
   "How many seconds is a client allowed to idle before they're disconnected by the server?")
 
 ;;; Main
-(defvar *main-function* (lambda (client) (login-client client)))
+(defvar *main-function* (lambda (client) (login-menu client)))
 
 ;;;
 ;;; Functions

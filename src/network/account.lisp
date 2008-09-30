@@ -33,6 +33,8 @@
 
 (defvar *max-account-id* 0)
 
+(defvar *account-id-lock* (bordeaux-threads:make-lock))
+
 ;;;
 ;;; Account class
 ;;;
@@ -47,17 +49,17 @@
     :initarg :email
     :accessor email)
    (id
-    :initform (incf *max-account-id*)
+    :initform (bordeaux-threads:with-lock-held (*account-id-lock*) (incf *max-account-id*))
     :reader id
     :documentation "Unique account ID number.")
    (avatars
     :accessor avatars
     :initform nil
     :documentation "Characters belonging to this account.")
-   (client
-    :accessor client
+   (current-clients
+    :accessor clients
     :initform nil
-    :documentation "Client currently associated with this account.")
+    :documentation "Clients currently associated with this account.")
    (account-type
     :accessor account-type
     :initarg :account-type
@@ -69,111 +71,14 @@
     :initform nil
     :documentation "All IPs this account has been known no use.")))
 
-(defun make-account (&key username password email)
-  "Generic constructor"
-  (make-instance '<account> :username username :password password :email email))
-
-;;;
-;;; Account Login
-;;;
-
-(defun/cc login-menu (client)
-  "Top-level menu for client login."
-  (write-to-client client "~&Welcome to SykoSoMaTIC!~%")
-  (write-to-client client "Take your pick: ~%")
-  (write-to-client client "------------------------~%")
-  (write-to-client client "[L]og in to your account.~%")
-  (write-to-client client "[C]reate a new account.~%")
-  (write-to-client client "[Q]uit~%")
-  (write-to-client client "-------------------------~%~%")
-  (let ((choice (prompt-client client "> ")))
-    (cond ((string-equal choice "L")
-	   (login-client client))
-	  ((string-equal choice "C")
-	   (create-new-account client))
-	  ((string-equal choice "Q")
-	   (disconnect-client client))
-	  (t
-	   (write-to-client client "~&Invalid choice. Try again.")))))
-
-(defun/cc account-menu (account)
-  "Simple selection menu that new clients once they've logged into an account."
-  (write-to-client (client account) "~&Choose your destiny: ~%")
-  (write-to-client (client account) "-----------------------~%")
-  (write-to-client (client account) "1. Create a new character~%")
-  (write-to-client (client account) "2. Enter existing character~%")
-  (write-to-client (client account) "-----------------------~%~%")
-  (let ((choice (prompt-client (client account) "Your choice: ")))
-    (cond ((equal choice "1")
-	   (create-an-avatar account)
-	   (account-menu account))
-	  ((equal choice "2")
-	   (choose-avatar account))
-	  (t
-	   (write-to-client (client account) "~&Invalid choice.")
-	   (account-menu account)))))
-
-(defun get-account-by-name (username)
-  "Fetches an account using a username."
-  (gethash username *accounts*))
-
-(defun/cc login-client (client)
-  "Logs a user into their account"
-  (let ((account (validate-login client (prompt-username client))))
-    (when account
-      (setf (account client) account)
-      (setf (client account) client)
-      (pushnew (ip client) (know-ips account))
-      (account-menu account))))
-
-(defun/cc prompt-username (client)
-  "Prompts a client for a username, returns a valid account."
-  (let* ((account-name (prompt-client client "~%Username: "))
-	 (account (get-account-by-name account-name)))
-    (if account
-	account
-	(progn
-	  (write-to-client client "~&Invalid username, please try again.")
-	  (prompt-username client)))))
- 
-(defun/cc validate-login (client account)
-  "Prompts the user for a password, and validates the login."
-  (let ((password (prompt-client client "~&Password: ")))
-    (if (equal (hash-password password) (password account))
-	account
-	(validate-login client account))))
-
-(defun print-available-avatars (client)
-  "Prints a list of available avatars."
-  (let ((avatars (avatars (account client))))
-    (write-to-client client "~%Characters:~%-----------~%~%")
-    (loop for avatar in avatars
-       do (write-to-client client "~&~a~&" (name avatar)))))
-
-
-;; (defun choose-avatar (client)
-;;   "Lets a player choose an existing avatar to play on."
-;;   (print-available-avatars client)
-;;   (let* ((avatars (avatars (account client)))
-;; 	 (avatar-choice (prompt-client client "~%~%Choose your destiny: "))
-;; 	 (avatar (find avatar-choice avatars :test #'string-equal)))
-;;     (if avatar
-;; 	(progn
-;; 	  (setf (avatar client) avatar)
-;; 	  (player-main-loop client))
-;; 	(progn
-;; 	  (write-to-client client "~&No such character, please try again.~%")
-;; 	  (choose-avatar client)))))
-
 ;;;
 ;;; Account Creation
 ;;;
 
 (defun/cc create-new-account (client)
   "Creates a new account and adds it to available accounts."
-  (let ((account (setup-account client)))
-    (unless (gethash (username account) *accounts*)
-      (setf (gethash (username account) *accounts*) account))))
+  (let ((new-account (setup-account client)))
+    (setf (gethash (username new-account) *accounts*) new-account)))
 
 (defun/cc setup-account (client)
   "Sets up user account."
@@ -181,7 +86,7 @@
   (let* ((username (setup-username client))
 	 (password (setup-password client))
 	 (email (setup-email client)))
-    (make-account :username username :password password :email email)))
+    (make-instance '<account> :username username :password password :email email)))
 
 (defun/cc setup-username (client)
   "Prompts client for a username."
@@ -190,16 +95,20 @@
 	(progn
 	  (write-to-client client "~%It seems that you chose username ~a.~%" username)
 	  (if (client-y-or-n-p client "Would you like to use this username? ")
-	      username
+	      (if (user-exists-p username)
+		  (progn 
+		    (write-to-client client "~&An account with that username already exists.~%")
+		    (setup-username client))
+		  username)
 	      (setup-username client)))
 	(progn
-	  (write-to-client client "Username too long (must be under 16 chars)~%")
+	  (write-to-client client "~&Username must between 4 and 16 characters long and contain only letters and numbers.~%~%")
 	  (setup-username client)))))
 
 (defun/cc setup-password (client)
   "Prompts client for a password."
   (let ((password (prompt-client client "~%Choose a password: "))
-	(pass-confirm (prompt-client client "Retype your password: ")))
+	(pass-confirm (prompt-client client "~&Retype your password: ")))
 
     (if (not (equal password pass-confirm))
 	(progn
@@ -208,7 +117,7 @@
 	(if (confirm-password-sanity password)
 	    (hash-password password)
 	    (progn
-	      (write-to-client client "~&Password contains illegal characters.~%")
+	      (write-to-client client "~&Password must be between 6 and 32 characters in length.~%~%")
 	      (setup-password client))))))
 
 (defun/cc setup-email (client)
@@ -240,44 +149,6 @@
 ;;NIL
 
 ;;;
-;;; Character Selection
-;;;
-(defun/cc choose-avatar (account)
-  (write-to-client (client account) "~&Choose a character: ~%")
-  (write-to-client (client account) "---------------------~%")
-  (write-to-client (client account) "1. ~a~%" (name (first (avatars account))))
-  (write-to-client (client account) "---------------------~%")
-  (write-to-client (client account) "[B]ack~%")
-  (write-to-client (client account) "[Q]uit~%")
-  (let ((choice (prompt-client (client account) "Your choice: ")))
-    (cond ((equal choice "1")
-	   (let ((avatar (first (avatars account))))
-	     (setf (client avatar) (client account))
-	     (write-to-client (client account) "You are in an imaginary room that doesn't exist.
-It's so imaginary, that it isn't even a room object. This is really only a message to give you a
-false sense of security.~%
-You see a flask. What do you do?~%")
-	     (player-main-loop avatar)))
-	  ((equal choice "B")
-	   (account-menu account))
-	  ((equal choice "Q")
-	   (disconnect-client (client account)))
-	  (t
-	   (write-to-client (client account) "~&Invalid choice, try again.~%")
-	   (choose-avatar account)))))
-
-;; temp
-(defun/cc player-main-loop (avatar)
-  (client-echo-input (client avatar))
-  (player-main-loop avatar))
-
-;;;
-;;; Character Creation
-;;;
-(defun/cc create-avatar (account)
-  (pushnew (make-instance '<player>) (avatars account)))
-
-;;;
 ;;; Load/Save
 ;;;
 
@@ -306,6 +177,10 @@ You see a flask. What do you do?~%")
 ;;;
 ;;; Utils
 ;;;
+
+(defun user-exists-p (username)
+  "Checks if the username is already being used"
+  (gethash username *accounts*))
 
 ;; This is still probably not very safe. That, or the way I'm handling it might be wrong.
 (defun hash-password (password)
@@ -338,3 +213,13 @@ a set of characters defined as CL's standard-char type."
   (cl-ppcre:scan 
    "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
    email))
+
+;;; Conditions
+(define-condition account-creation-error (error)
+  ((text :initarg :text :reader text))
+  (:documentation "Signaled when some condition happens during account creation."))
+
+(define-condition account-exists-error (account-creation-error)
+  ((text :initarg :text :reader text))
+  (:documentation "Signaled if an account with this data already exists."))
+

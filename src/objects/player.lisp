@@ -52,8 +52,14 @@
     :initarg :client
     :initform nil
     :accessor client
-    :documentation "The <client> currently associated with this <player>"))
-  (:documentation ""))
+    :documentation "Client currently associated with this character.")
+   (account
+    :initarg :account
+    :initform nil
+    :accessor account
+    :documentation "Account this <player> object belongs to."))
+  (:documentation "Standard PLAYER for sykosomatic. Simply adds enough to make it different from
+a mobile. This is what players will inhabit."))
 
 ;;;
 ;;; Info
