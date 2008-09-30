@@ -199,8 +199,8 @@ Assuming disconnection."))))
 	      (loop for byte in bytes
 		 do (write-byte byte stream)
 		 finally (finish-output stream)))
-	  (sb-int:simple-stream-error () (error 'client-disconnected-error 
-						:text "Broken pipe. Can't write to client."))
+	  (sb-int:closed-stream-error () (error 'client-disconnected-error 
+						:text "Stream was closed. Can't write to client."))
 	  (simple-error () (error 'client-disconnected-error 
 				  :text "Got a simple error while trying to write to client. Assuming disconnection.")))
 	(error 'client-disconnected-error 
@@ -215,15 +215,16 @@ Assuming disconnection."))))
   (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
   (setf (client-step client) (make-client-step-with-continuations client #'client-main)))
 
-(defun client-main (client)
+(defun/cc client-main (client)
   "Main function to run clients through."
   ;;Keep it simple at first. Grab input, echo something back.
   ;; Later on, allow clients to enter players, and run in the main player loop.
   ;; Then start getting fancy from there.
-  (client-echo-ast client))
+  (client-echo-input client))
 
 (defun make-client-step-with-continuations (client function)
-  "Wrap some CPS transformed function of one argument (client) handling client IO with continuation handler."
+  "Wrap some CPS transformed function of one argument (client) handling client IO
+ with continuation handler."
   (lambda ()
     (if (client-continuation client)
 	(unless (queue-empty-p (read-lines client))
@@ -239,7 +240,7 @@ Assuming disconnection."))))
   (let ((input (prompt-client client "~~> ")))
     (if (string-equal input "quit")
 	(disconnect-client client)
-	(write-to-client client "You wrote: ~a~%~%" input))))
+	(write-to-client client "You wrote: '~a'~%~%" input))))
 
 (defun/cc client-echo-ast (client)
   "Prompts client for input and sends the client the AST the parser generated based on input."
