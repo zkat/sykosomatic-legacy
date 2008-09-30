@@ -220,7 +220,7 @@ Assuming disconnection."))))
   ;;Keep it simple at first. Grab input, echo something back.
   ;; Later on, allow clients to enter players, and run in the main player loop.
   ;; Then start getting fancy from there.
-  (client-echo-input client))
+  (funcall *main-function* client))
 
 (defun make-client-step-with-continuations (client function)
   "Wrap some CPS transformed function of one argument (client) handling client IO
