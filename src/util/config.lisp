@@ -44,6 +44,9 @@
 (defvar *max-client-idle-time* (* 60 20)
   "How many seconds is a client allowed to idle before they're disconnected by the server?")
 
+;;; Main
+(defvar *main-function* (lambda (client) (login-client client)))
+
 ;;;
 ;;; Functions
 ;;;
