@@ -31,6 +31,8 @@
 (defvar *rooms* nil
   "List of available rooms. Rooms are also linked as a graph.")
 
+
+
 (defvar *max-room-id* 0
   "Highest available room-id")
 
