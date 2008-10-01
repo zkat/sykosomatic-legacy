@@ -83,10 +83,6 @@ any). Also contains several slots that handle asynchronous client i/o."))
 ;;; Connection
 ;;;
 
-(define-condition client-disconnected-error (error)
-  ((text :initarg :text :reader text))
-  (:documentation "Called whenever it's assumed that the client is disconnected."))
-
 (defun connect-new-client ()
   "Connects a new client to the main server."
   (let ((socket (usocket:socket-accept (socket *server*))))
@@ -120,6 +116,13 @@ any). Also contains several slots that handle asynchronous client i/o."))
   "Updates the activity time of client to now."
   (with-accessors ((activity last-active)) client
     (setf activity (get-universal-time))))
+
+;;; Conditions
+
+(define-condition client-disconnected-error (error)
+  ((text :initarg :text :reader text))
+  (:documentation "Called whenever it's assumed that the client is disconnected."))
+
 
 ;;;
 ;;; Client i/o
@@ -219,9 +222,6 @@ Assuming disconnection."))))
 
 (defun/cc client-main (client)
   "Main function to run clients through."
-  ;;Keep it simple at first. Grab input, echo something back.
-  ;; Later on, allow clients to enter players, and run in the main player loop.
-  ;; Then start getting fancy from there.
   (funcall *main-function* client))
 
 (defun make-client-step-with-continuations (client function)
@@ -235,7 +235,10 @@ Assuming disconnection."))))
 	    (funcall client-continuation (read-line-from-client client))))
 	(funcall function client))))
 
-;; Temporary
+;;; Testing
+;;;
+
+;;; dummy mains
 
 (defun/cc client-echo-input (client)
   "Prompts client for input, and echoes back whatever client wrote."
@@ -244,17 +247,7 @@ Assuming disconnection."))))
 	(disconnect-client client)
 	(write-to-client client "You wrote: '~a'~%~%" input))))
 
-(defun/cc client-echo-ast (client)
-  "Prompts client for input and sends the client the AST the parser generated based on input."
-  (let ((input (prompt-client client "~~> ")))
-    (if (string-equal input "quit")
-	(disconnect-client client)
-	(write-to-client client "Parsed AST: ~a~%~&" (parse-string input)))))
-
-;;;
-;;; Evil stress-test of doom
-;;;
-
+;; stress test
 (defvar *test-clients* nil)
 
 (defclass <test-client> ()
