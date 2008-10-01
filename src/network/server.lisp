@@ -99,7 +99,9 @@ connected to *server* and handles their input once per tick. Stops with stop-ser
 			(update-activity client)
 			(maybe-read-line-from-client client))
 		      (if (> (client-idle-time client) (max-idle-time server))
-			  (signal 'client-disconnected-error)
+			  (progn
+			    (write-to-client client "~%You have been idle for too long, disconnecting you.~%")
+			    (signal 'client-disconnected-error))
 			  (funcall (client-step client))))
 		  (client-disconnected-error ()
 		    (progn

@@ -69,7 +69,7 @@
 
 ;; temp
 (defun/cc player-main-loop (avatar)
-  (write-to-client (client avatar) "~%You see a flask here.~%")
+  (write-to-client (client avatar) "~&You see a flask~%")
   (client-echo-input (client avatar))
   (player-main-loop avatar))
 
