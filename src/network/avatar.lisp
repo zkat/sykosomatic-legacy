@@ -46,6 +46,7 @@
 		    (avatar (unless (> number-choice (length (avatars account))) 
 			      (elt (avatars account) (1- number-choice)))))
 	       (setf (client avatar) client)
+	       (setf (avatar client) avatar)
 	       (player-main-loop avatar)))
 	    ((string-equal choice "b")
 	     (account-menu client))
