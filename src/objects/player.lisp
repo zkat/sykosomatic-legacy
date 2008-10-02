@@ -80,16 +80,15 @@ a mobile. This is what players will inhabit."))
 
 (defmethod write-to-target ((player <player>) format-string &rest format-args)
   "Sends output to a player."
-  (let ((player-client (current-client player)))
+  (let ((player-client (client player)))
     (if player-client
 	(apply #'write-to-client player-client format-string format-args)
 	(error "Player is not connected."))))
 
-;; NOTE: Should the player be saved, too? Anything else?
 (defun disconnect-player (player)
   "Disconnects the given player from the game."
-  (disconnect-client (current-client player))
-  (setf (current-client player) nil))
+  (disconnect-client (client player))
+  (setf (client player) nil))
 
 ;;;
 ;;; Load/Save

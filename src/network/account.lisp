@@ -197,7 +197,7 @@
 (defun confirm-username-sanity (username)
   "Confirms username sanity. Usernames have to be between 6 and 16 chars long, and may only
 be composed of alphanumeric characters."
-  (and (>= (length username) 6)
+  (and (>= (length username) 4)
        (<= (length username) 16)
        (not (find-if-not #'alphanumericp username))))
 
