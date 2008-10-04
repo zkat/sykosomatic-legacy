@@ -9,7 +9,7 @@
   :long-description "A heavily-extensible, simple, powerful text-based online game engine."
   :license "AGPL, see COPYING"
   :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads 
-	       #:cl-cont #:ironclad #:xmls #:fiveam)
+	       #:cl-cont #:ironclad #:xmls #:fiveam #:bknr.datastore)
   :components 
   ((:module src
 	    :serial t
