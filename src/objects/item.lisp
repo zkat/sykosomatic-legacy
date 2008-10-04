@@ -25,20 +25,24 @@
 ;;;
 ;;; Item class
 ;;;
-(defclass <item> (<entity>)
+(define-persistent-class <item> (<entity>)
   ((name
+    :update
     :initform "NoNameItem")
    (equippable
+    :update
     :initarg :equip-p
     :initform nil
     :accessor equip-p
     :documentation "Can item be equipped?")
    (moveable
+    :update
     :initarg :moveable
     :initform t
     :accessor moveable-p
     :documentation "Is this object movable? If nil, player cannot pick up")
    (effects
+    :update
     :initarg :effects
     :accessor effects
     :documentation "Any special effects of the item"))

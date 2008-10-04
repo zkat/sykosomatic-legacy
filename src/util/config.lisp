@@ -33,9 +33,11 @@
 (defvar *game-directory* (merge-pathnames #P".sykosomatic/" (user-homedir-pathname))
   "Configures the base directory for the game.")
 
-(defvar *rooms-directory* (merge-pathnames #P"rooms/" *game-directory*))
-(defvar *players-directory* (merge-pathnames #P"players/" *game-directory*))
-(defvar *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*))
+(defvar *db-directory* (merge-pathnames #P"db/" *game-directory*))
+
+(make-instance 'mp-store :directory *db-directory*
+	       :subsystems (list (make-instance 'store-object-subsystem)))
+
 (defvar *log-directory* (merge-pathnames #P"logs/" *game-directory*))
 
 ;;; Server options

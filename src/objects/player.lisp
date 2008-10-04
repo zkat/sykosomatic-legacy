@@ -40,20 +40,24 @@
 ;;; Player class
 ;;;
 
-(defclass <player> (<mobile>)
+(define-persistent-class <player> (<mobile>)
   ((name
+    :update
     :initform "NoNamePlayer")
    (player-id
+    :update
     :initarg :player-id
     :initform (with-lock-held (*player-id-lock*) (incf *max-player-id*))
     :reader player-id
     :documentation "A unique player id.")
    (client
-    :initarg :client
+    :update
+    :transient t
     :initform nil
     :accessor client
     :documentation "Client currently associated with this character.")
    (account
+    :update
     :initarg :account
     :initform nil
     :accessor account
