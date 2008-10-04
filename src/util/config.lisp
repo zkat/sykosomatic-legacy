@@ -35,9 +35,6 @@
 
 (defvar *db-directory* (merge-pathnames #P"db/" *game-directory*))
 
-(make-instance 'mp-store :directory *db-directory*
-	       :subsystems (list (make-instance 'store-object-subsystem)))
-
 (defvar *log-directory* (merge-pathnames #P"logs/" *game-directory*))
 
 ;;; Server options
