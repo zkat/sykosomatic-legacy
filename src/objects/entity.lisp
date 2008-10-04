@@ -27,20 +27,24 @@
 ;;;
 ;;; Entity class
 ;;;
-(defclass <entity> (<game-object>)
+(define-persistent-class <entity> (<game-object>)
   ((name
+    :update
     :initform "NoNameEntity")
    (location
+    :update
     :initarg :location
     :initform nil
     :accessor location
     :documentation "Current location of the entity -- <room> object.")
    (invul-p
+    :update
     :initarg invul-p
     :initform nil
     :accessor invul-p
     :documentation "Can entity take damage?")
    (hp
+    :update
     :initarg :hp
     :initform 1 ;;everything should start with 1hp, if it's an entity. (= 0 DEATH)
     :accessor hp))

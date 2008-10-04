@@ -43,35 +43,42 @@
 ;;; Room-related classes
 ;;;
 
-(defclass <room> (<game-object>)
+(define-persistent-class <room> (<game-object>)
   ((name
+    :update
     :initform "NoNameRoom")
    (contents
+    :update
     :initarg :contents
     :initform nil
     :accessor contents
     :documentation "All contents of this room, including entities")
    (room-id
+    :update
     :initform (with-lock-held (*room-id-lock*) (incf *max-room-id*))
     :reader room-id
     :documentation "Universal room ID number"))
   (:documentation "Base class for rooms. This class adds a contents
  and room-id slot to a standard game object."))
 
-(defclass <exit> (<game-object>)
+(define-persistent-class <exit> (<game-object>)
   ((name
+    :update
     :initform "exit")
    (open-p
+    :update
     :initarg :open-p
     :initform t
     :accessor open-p
     :documentation "Is this exit open or closed?")
    (locked-p
+    :update
     :initarg :locked-p
     :initform nil
     :accessor locked-p
     :documentation "Is the exit locked?")
    (next-room
+    :update
     :initarg :next-room
     :initform nil
     :accessor next-room
