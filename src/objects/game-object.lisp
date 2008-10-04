@@ -26,28 +26,33 @@
 ;;;
 ;;; Base Game Object
 ;;;
-(defclass <game-object> ()
+(define-persistent-class <game-object> ()
   ((name
+    :update
     :initarg :name
     :initform "NoNameObject"
     :accessor name
     :documentation "Base name for the object")
    (aliases
+    :update
     :initarg :aliases
     :initform nil
     :accessor aliases
     :documentation "A list of aliases that can be used in place of NAME")
    (adjectives
+    :update
     :initarg :adjectives
     :initform nil
     :accessor adjectives
     :documentation "List of adjectives that apply to this object. Different from name and aliases.")
    (desc
+    :update
     :initarg :desc
     :initform "An object without a description"
     :accessor desc
     :documentation "A description of the object.")
    (features
+    :update
     :initarg :features
     :initform nil
     :accessor features
