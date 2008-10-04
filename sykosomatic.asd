@@ -33,8 +33,9 @@
 		       (:file "entity")
 		       (:file "mobile")
 		       (:file "item")
-		       (:file "player")))
-
+		       (:file "player")
+		       (:file "db")))
+	     
 	     (:module network
 		      :serial t
 		      :components
