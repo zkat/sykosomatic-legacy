@@ -86,33 +86,3 @@
 
 (defmethod write-to-target ((target <game-object>) format-string &rest format-args)
   t)
-
-;;;
-;;; Load/Save
-;;;
-
-;;; Save
-
-(defgeneric obj->file (obj path)
-  (:documentation "Saves OBJECT to a file within PATH."))
-
-(defun obj-list->files-in-dir (obj-list path)
-  "Saves all OBJECTS in OBJECT-LIST into files within PATH"
-  (loop for obj in obj-list
-       do (obj->file obj path)))
-
-;;; Load
-
-;; NOTE: It's alright for now, but we should, at some point, assert that the objects being
-;;       loaded are of the appropriate type. This can be a vulnerability.
-(defun file->obj (filepath)
-  "Takes the FILEPATH of a file, returns the OBJECT it represents."
-  (cl-store:restore filepath))
-
-;; NOTE: This loads files indiscriminately. The files are currently not deleted if the object
-;;       is deleted in-engine. Database stuff is going to need some major work.
-(defun files-in-path->obj-list (path file-extension)
-  "Takes -all- files in PATH and collects them into a LIST of OBJECTS."
-  (let ((files (directory (merge-pathnames (format nil "*.~a" file-extension) path))))
-    (loop for file in files
-	 collect (cl-store:restore file))))

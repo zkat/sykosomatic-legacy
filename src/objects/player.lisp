@@ -30,12 +30,6 @@
 (defvar *players* nil
   "List of existing players. Nice as a backup of the ones existing in accounts.")
 
-(defvar *max-player-id* 0
-  "Contains the highest available player-id")
-
-(defvar *player-id-lock* (bordeaux-threads:make-lock)
-  "This lock should be held by anything that wants to manipulate *max-room-id*")
-
 ;;;
 ;;; Player class
 ;;;
@@ -44,12 +38,6 @@
   ((name
     :update
     :initform "NoNamePlayer")
-   (player-id
-    :update
-    :initarg :player-id
-    :initform (with-lock-held (*player-id-lock*) (incf *max-player-id*))
-    :reader player-id
-    :documentation "A unique player id.")
    (client
     :update
     :transient t
@@ -93,56 +81,4 @@ a mobile. This is what players will inhabit."))
   "Disconnects the given player from the game."
   (disconnect-client (client player))
   (setf (client player) nil))
-
-;;;
-;;; Load/Save
-;;;
-
-;;; Save
-
-(defmethod obj->file ((player <player>) path)
-  (cl-store:store player (ensure-directories-exist
-			  (merge-pathnames
-			   (format nil "player-~a.player" (player-id player))
-			   path))))
-
-(defun save-players ()
-  "Saves all players in *players* to individual files."
-  (obj-list->files-in-dir *players* *players-directory*))
-
-;;; Load
-
-(defun restore-max-player-id ()
-  "Loads the highest player-id."
-  (let ((player-ids (or (mapcar #'player-id *players*) '(0))))
-    (with-lock-held (*player-id-lock*)
-      (setf *max-player-id* 
-	    (apply #'max player-ids)))))
-
-;; NOTE: This breaks if tries to load an object that was created with an obsolete class.(as it should)
-(defun load-players ()
-  "Takes care of loading all players into the *players* list"
-  (setf *players* (files-in-path->obj-list *players-directory* "player"))
-  (restore-max-player-id))
-
-;;; Testing
-
-(defun new-test-player ()
-  "RETURNS a new PLAYER with its player-id as its name."
-  (let ((player (make-instance '<player>)))
-    (setf (name player) (format nil "Player~d" (player-id player)))
-    player))
-
-(defun reset-max-player-id ()
-  "Sets the highest player-id to 0."
-  (with-lock-held (*player-id-lock*)
-    (setf *max-player-id* 0)))
-
-(defun generate-test-players (num-players)
-  "Returns a LIST containing NUM-PLAYERS generic instances of <player>."
-  (loop 
-     for i upto (1- num-players)
-     collect (new-player)))
-
-;;; Useless? It's more likely than you think.
 
