@@ -18,9 +18,8 @@
 ;; config.lisp
 ;;
 ;; Configuration file. Contains variables that handle configuration-related things. Right now,
-;; it's just directories to which things are saved. It is recommended that only *game-directory*
-;; be changed, if possible. By default, the game data directory is saved to .sykosomatic, in the
-;; user's home directory.
+;; it's just directories to which things are saved. By default, the game data directory is saved
+;; to .sykosomatic, in the user's home directory.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
@@ -33,9 +32,11 @@
 (defvar *game-directory* (merge-pathnames #P".sykosomatic/" (user-homedir-pathname))
   "Configures the base directory for the game.")
 
-(defvar *db-directory* (merge-pathnames #P"db/" *game-directory*))
+(defvar *db-directory* (merge-pathnames #P"db/" *game-directory*)
+  "Database directory.")
 
-(defvar *log-directory* (merge-pathnames #P"logs/" *game-directory*))
+(defvar *log-directory* (merge-pathnames #P"logs/" *game-directory*)
+  "Directory where log files are stored")
 
 ;;; Server options
 (defvar *default-server-address* "0.0.0.0")
@@ -45,11 +46,3 @@
 
 ;;; Main
 (defvar *main-function* (lambda (client) (login-menu client)))
-
-;;;
-;;; Functions
-;;;
-
-;; (defun read-config-from-file (file)
-;;   "Reads a configuration FILE and loads the appropriate values into their respective globals"
-;;   )
