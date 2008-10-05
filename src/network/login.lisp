@@ -63,14 +63,8 @@
   (let ((account (validate-login client (prompt-username client))))
     (when account
       (setf (account client) account)
-      ;; FIXME: it's broken. I don't know why.
-      ;; (register-ip-with-account client account)
+      (register-ip-with-account (ip client) account)
       (account-menu client))))
-
-;; FIXME: this didn't help
-(defun register-client-ip-with-account (client account)
-  (with-transaction ()
-    (pushnew (ip client) (known-ips account))))
 
 (defun/cc validate-login (client account)
   "Prompts the user for a password, and validates the login."
@@ -78,18 +72,8 @@
     (if (equal (hash-password password) (password account))
 	account
 	(validate-login client account))))
-
-(defun print-available-avatars (client)
-  "Prints a list of available avatars."
-  (let ((avatars (avatars (account client))))
-    (write-to-client client "~%Characters:~%-----------~%~%")
-    (loop for avatar in avatars
-       do (write-to-client client "~&~a~&" (name avatar)))))
-
-;;;
-;;; Utilities
-;;;
 (defun/cc prompt-username (client)
+
   "Prompts a client for a username, returns a valid account."
   (let* ((account-name (prompt-client client "~%Username: "))
 	 (account (account-with-name account-name)))
@@ -98,3 +82,18 @@
 	(progn
 	  (write-to-client client "~&Invalid username, please try again.")
 	  (prompt-username client)))))
+
+;;;
+;;; Utilities
+;;;
+
+(defun print-available-avatars (client)
+  "Prints a list of available avatars."
+  (let ((avatars (avatars (account client))))
+    (write-to-client client "~%Characters:~%-----------~%~%")
+    (loop for avatar in avatars
+       do (write-to-client client "~&~a~&" (name avatar)))))
+
+(defun register-client-ip-with-account (ip account)
+  (with-transaction ()
+    (pushnew ip (known-ips account))))

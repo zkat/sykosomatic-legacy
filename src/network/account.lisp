@@ -64,7 +64,6 @@
     :index-type hash-index
     :index-reader accounts-with-type
     :documentation "The type of account. Used to determine access levels.")
-   ;;FIXME: The following slot is broken right now. Pushing stuff into it doesn't work (in login.lisp)
    (known-ips
     :update
     :initarg :known-ips
