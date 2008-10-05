@@ -79,6 +79,9 @@ any). Also contains several slots that handle asynchronous client i/o."))
   "Generic constructor for <client>"
   (make-instance '<client> :socket socket :ip ip))
 
+(defun format-ip (ip)
+  (format nil "~{~d~^.~}" (loop for ip-part across ip
+				 collect ip-part)))
 ;;;
 ;;; Connection
 ;;;
@@ -86,7 +89,7 @@ any). Also contains several slots that handle asynchronous client i/o."))
 (defun connect-new-client ()
   "Connects a new client to the main server."
   (let ((socket (usocket:socket-accept (socket *server*))))
-    (let ((client (make-client socket (usocket:get-peer-address socket))))
+    (let ((client (make-client socket (format-ip (usocket:get-peer-address socket)))))
       (client-init client)
       (log-message :CLIENT "New client: ~a" (ip client))
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
