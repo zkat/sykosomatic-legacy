@@ -22,9 +22,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
-(defvar *noob-area* (make-instance '<room> 
-				   :name "NewbieArea" 
-				   :desc "A starting area for new characters"))
 ;;;
 ;;; Character Selection
 ;;;
@@ -80,8 +77,9 @@
 (defun/cc create-avatar (client)
   (let ((name (prompt-client client "~&Name your character: "))
 	(account (account client)))
-    (pushnew (make-instance '<player> :name name :account account :location *noob-area*) 
-	     (avatars account))
+    (with-transaction ()
+      (pushnew (make-instance '<player> :name name :account account) 
+	       (avatars account)))
     (write-to-client client "~&Generic character created~%")))
 
 

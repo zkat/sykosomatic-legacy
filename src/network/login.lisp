@@ -63,8 +63,14 @@
   (let ((account (validate-login client (prompt-username client))))
     (when account
       (setf (account client) account)
-      (pushnew (ip client) (know-ips account))
+      ;; FIXME: it's broken. I don't know why.
+      ;; (register-ip-with-account client account)
       (account-menu client))))
+
+;; FIXME: this didn't help
+(defun register-client-ip-with-account (client account)
+  (with-transaction ()
+    (pushnew (ip client) (known-ips account))))
 
 (defun/cc validate-login (client account)
   "Prompts the user for a password, and validates the login."
@@ -83,15 +89,10 @@
 ;;;
 ;;; Utilities
 ;;;
-
-(defun get-account-by-name (username)
-  "Fetches an account using a username."
-  (gethash username *accounts*))
-
 (defun/cc prompt-username (client)
   "Prompts a client for a username, returns a valid account."
   (let* ((account-name (prompt-client client "~%Username: "))
-	 (account (get-account-by-name account-name)))
+	 (account (account-with-name account-name)))
     (if account
 	account
 	(progn
