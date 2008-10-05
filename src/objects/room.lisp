@@ -33,6 +33,7 @@
     :update
     :initform "NoNameRoom"
     :index-type hash-index
+    :index-initargs (:test #'equalp)
     :index-reader rooms-with-name
     :index-values all-rooms)   
    (contents
@@ -49,6 +50,7 @@
     :update
     :initform "exit"
     :index-type hash-index
+    :index-initargs (:test #'equalp)
     :index-reader exits-with-name
     :index-values all-exits)
    (open-p

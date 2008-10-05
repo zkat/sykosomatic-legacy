@@ -32,6 +32,7 @@
     :update
     :initform "NoNameEntity"
     :index-type hash-index
+    :index-initargs (:test #'equalp)
     :index-reader entities-with-name
     :index-values all-entities)
    (location

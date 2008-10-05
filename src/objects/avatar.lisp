@@ -34,6 +34,7 @@
     :update
     :initform "NoNameAvatar"
     :index-type string-unique-index
+    :index-initargs (:test #'equalp)
     :index-reader avatar-with-name
     :index-values all-avatars)
    (client
