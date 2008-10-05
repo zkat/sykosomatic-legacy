@@ -60,12 +60,6 @@
   nil)
 
 ;;;
-;;; Sexy builder
-;;;
-;;; - Builds the final s-expressions to be run by the event system.
-
-
-;;;
 ;;; Util
 ;;;
 

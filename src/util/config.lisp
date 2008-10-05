@@ -35,6 +35,9 @@
 (defvar *db-directory* (merge-pathnames #P"db/" *game-directory*)
   "Database directory.")
 
+(defvar *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*)
+  "Vocabulary directory")
+
 (defvar *log-directory* (merge-pathnames #P"logs/" *game-directory*)
   "Directory where log files are stored")
 
@@ -44,5 +47,9 @@
 (defvar *max-client-idle-time* (* 60 20)
   "How many seconds is a client allowed to idle before they're disconnected by the server?")
 
+;;; Newbies
+(defvar *newbie-area* nil
+  "Room where avatars are dropped into by default")
+
 ;;; Main
-(defvar *main-function* (lambda (client) (login-menu client)))
+(defvar *main-function* #'(lambda (client) (login-menu client)))
