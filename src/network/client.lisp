@@ -126,7 +126,6 @@ any). Also contains several slots that handle asynchronous client i/o."))
   ((text :initarg :text :reader text))
   (:documentation "Called whenever it's assumed that the client is disconnected."))
 
-
 ;;;
 ;;; Client i/o
 ;;;
@@ -170,10 +169,11 @@ Assuming disconnection."))))
 	(setf (client-continuation client) k))
       (read-line-from-client client)))
 
+;; TODO: This is inconsistent. No reason why it wouldn't accept regular format arguments.
 (defun/cc client-y-or-n-p (client string)
   "y-or-n-p that sends the question over to the client."
   (write-to-client client string)
-  (let ((answer (prompt-client client " (y or n)")))
+  (let ((answer (prompt-client client " (y or n) ")))
     (cond ((string-equal "y" (char answer 0))
 	   t)
 	  ((string-equal "n" (char answer 0))
@@ -182,10 +182,6 @@ Assuming disconnection."))))
 	   (progn
 	     (write-to-client client "Please answer y or n.~%")
 	     (client-y-or-n-p client string))))))
-
-;; test client-y-or-n-p by printing the return value to the console when it's received
-(defun/cc print-client-y-or-n-p (client string)
-  (print (client-y-or-n-p client string)))
 
 ;;; Output
 
