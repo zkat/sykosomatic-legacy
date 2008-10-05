@@ -55,5 +55,5 @@
     :initarg :inventory
     :initform nil
     :accessor inventory
-    :documentation "A list of items in the player's possession"))
+    :documentation "A list of items in the mobile's possession"))
   (:documentation "Living things."))

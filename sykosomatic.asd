@@ -33,8 +33,7 @@
 		       (:file "entity")
 		       (:file "mobile")
 		       (:file "item")
-		       (:file "player")
-		       ))
+		       (:file "avatar")))
 	     
 	     (:module network
 		      :serial t
@@ -43,7 +42,7 @@
 		       (:file "client")
 		       (:file "account")
 		       (:file "login")
-		       (:file "avatar")))
+		       (:file "login-avatar")))
 	     
 	     (:module commands
 		      :serial t
