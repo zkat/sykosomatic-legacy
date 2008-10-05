@@ -99,6 +99,8 @@ a mixin to make regular items (or even avatars) into portals and such."))
 ;;;
 ;;; Room manipulation
 ;;;
+(defgeneric remove-object-from-room (object)
+  (:documentation "Removes a target object from a room."))
 
 ;; Put something here that makes new exits.
 

@@ -23,6 +23,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
 
+(defvar *main-event-queue* nil)
 ;;;
 ;;; Event class
 ;;;
@@ -42,9 +43,11 @@
   "Creates a new event, with PAYLOAD being a lambda that contains everything to be executed.
 It also accepts a DELAY, in milliseconds, until the event is ready to go. Otherwise, it's
  ready immediately"
-  (make-instance '<event> 
-		 :payload payload 
-		 :exec-time (+ (get-internal-real-time) delay)))
+  (priority-queue-insert 
+   *main-event-queue*
+   (make-instance '<event> 
+		  :payload payload 
+		  :exec-time (+ (get-internal-real-time) delay))))
 
 ;;;
 ;;; Event processing
@@ -53,10 +56,11 @@ It also accepts a DELAY, in milliseconds, until the event is ready to go. Otherw
 (defun process-event (event-queue)
   "Processes the next event in EVENT-QUEUE, executing it if it's 'baked'."
   (let ((next-event (priority-queue-minimum event-queue)))
-    (when (<= (exec-time next-event)
-	      (get-internal-real-time))
-      (let ((event (priority-queue-extract-minimum event-queue)))
-	(execute-event event)))))
+    (when next-event
+      (when (<= (exec-time next-event)
+		(get-internal-real-time))
+	(let ((event (priority-queue-extract-minimum event-queue)))
+	  (execute-event event))))))
 
 (defun execute-event (event)
   "Executes an event."
@@ -66,4 +70,4 @@ It also accepts a DELAY, in milliseconds, until the event is ready to go. Otherw
 ;;; Util
 ;;;
 
-(defvar *test-event-queue* (make-priority-queue :key #'exec-time))
+

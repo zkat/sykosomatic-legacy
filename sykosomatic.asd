@@ -65,6 +65,8 @@
 		      :components
 		      ((:file "db")))
 	     
+	     (:file "engine")
+	     	     
 	     (:module tests
 		      :serial t
 		      :components
