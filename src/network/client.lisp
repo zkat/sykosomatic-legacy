@@ -75,21 +75,21 @@
 the client's IP address, last activity time, associated account (if any), and associated avatar (if 
 any). Also contains several slots that handle asynchronous client i/o."))
 
-(defun make-client (socket ip)
-  "Generic constructor for <client>"
-  (make-instance '<client> :socket socket :ip ip))
-
-(defun format-ip (ip)
-  (format nil "~{~d~^.~}" (loop for ip-part across ip
-				 collect ip-part)))
 ;;;
 ;;; Connection
 ;;;
 
+(defun format-ip (ip)
+  "Converts an IP in array format into a string."
+  (format nil "~{~d~^.~}" (loop for ip-part across ip
+				 collect ip-part)))
+
 (defun connect-new-client ()
   "Connects a new client to the main server."
   (let ((socket (usocket:socket-accept (socket *server*))))
-    (let ((client (make-client socket (format-ip (usocket:get-peer-address socket)))))
+    (let ((client (make-instance '<client> 
+				 :socket socket
+				 :ip (format-ip (usocket:get-peer-address socket)))))
       (client-init client)
       (log-message :CLIENT "New client: ~a" (ip client))
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
@@ -241,6 +241,7 @@ Assuming disconnection."))))
 ;;; Testing
 ;;;
 
+;;; TODO: Move these to a testing area.
 ;;; dummy mains
 
 (defun/cc client-echo-input (client)
