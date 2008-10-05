@@ -31,7 +31,10 @@
 (define-persistent-class <room> (<game-object>)
   ((name
     :update
-    :initform "NoNameRoom")
+    :initform "NoNameRoom"
+    :index-type hash-index
+    :index-reader rooms-with-name
+    :index-values all-rooms)   
    (contents
     :update
     :initarg :contents
@@ -44,7 +47,10 @@
 (define-persistent-class <exit> (<game-object>)
   ((name
     :update
-    :initform "exit")
+    :initform "exit"
+    :index-type hash-index
+    :index-reader exits-with-name
+    :index-values all-exits)
    (open-p
     :update
     :initarg :open-p
@@ -62,6 +68,8 @@
     :initarg :next-room
     :initform nil
     :accessor next-room
+    :index-type hash-index
+    :index-reader exits-that-lead-to
     :documentation "Room object this exit points to"))
   (:documentation "A exit is something -- anything, that leads from one place
 to another. In general, this can be an actual exit, but it can also be used as 
