@@ -10,7 +10,6 @@ accounts. It also includes a parser and basic game-object classes
 like room, mobile, avatar, item, etc, that can be built upon to create
 any online text-based game in a fairly short amount of time.
 
-
 REQUIREMENTS
 ------------
 
@@ -23,7 +22,7 @@ REQUIREMENTS
 * ironclad (http://method-combination.net/lisp/ironclad/)
 * xmls (http://common-lisp.net/project/xmls/)
 * fiveam (http://common-lisp.net/project/bese/FiveAM.html)
-* SBCL (http://www.sbcl.org/) >= 1.0.20
+* Steel Bank Common Lisp (http://www.sbcl.org/) >= 1.0.20
 * Linux x86, probably x64 (untested).
 
 INSTALLATION
@@ -69,14 +68,14 @@ with :address "127.0.0.1".
 Telnet clients can connect with 'telnet <address> <port>', and the
 engine can currently handle all the garbage telnet likes sending (I
 think).  The current function in the client loop echoes back the
-generated abstract syntax tree from whatever the client sends in.
+whatever it receives from the user.
 
 You can prompt a client for input, but since the netcode uses
 continuations, you'll have to defun/cc anything that uses
 prompt-client, and toss the input into a variable that you can check
 out afterward. You can't just have it output straight into the repl.
 
-Logs are all tossed into ~/.sykosomatic/logs/sykosomatic.log right
+Logs are all tossed into ~/.sykosomatic/logs/server.log right
 now.
 
 Oh, and if you want to change any directories, read through
