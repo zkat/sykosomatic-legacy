@@ -75,22 +75,21 @@
 the client's IP address, last activity time, associated account (if any), and associated avatar (if 
 any). Also contains several slots that handle asynchronous client i/o."))
 
-(defun make-client (socket ip)
-  "Generic constructor for <client>"
-  (make-instance '<client> :socket socket :ip ip))
-
 ;;;
 ;;; Connection
 ;;;
 
-(define-condition client-disconnected-error (error)
-  ((text :initarg :text :reader text))
-  (:documentation "Called whenever it's assumed that the client is disconnected."))
+(defun format-ip (ip)
+  "Converts an IP in array format into a string."
+  (format nil "~{~d~^.~}" (loop for ip-part across ip
+				 collect ip-part)))
 
 (defun connect-new-client ()
   "Connects a new client to the main server."
   (let ((socket (usocket:socket-accept (socket *server*))))
-    (let ((client (make-client socket (usocket:get-peer-address socket))))
+    (let ((client (make-instance '<client> 
+				 :socket socket
+				 :ip (format-ip (usocket:get-peer-address socket)))))
       (client-init client)
       (log-message :CLIENT "New client: ~a" (ip client))
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
@@ -120,6 +119,12 @@ any). Also contains several slots that handle asynchronous client i/o."))
   "Updates the activity time of client to now."
   (with-accessors ((activity last-active)) client
     (setf activity (get-universal-time))))
+
+;;; Conditions
+
+(define-condition client-disconnected-error (error)
+  ((text :initarg :text :reader text))
+  (:documentation "Called whenever it's assumed that the client is disconnected."))
 
 ;;;
 ;;; Client i/o
@@ -164,10 +169,11 @@ Assuming disconnection."))))
 	(setf (client-continuation client) k))
       (read-line-from-client client)))
 
+;; TODO: This is inconsistent. No reason why it wouldn't accept regular format arguments.
 (defun/cc client-y-or-n-p (client string)
   "y-or-n-p that sends the question over to the client."
   (write-to-client client string)
-  (let ((answer (prompt-client client "(y or n)")))
+  (let ((answer (prompt-client client " (y or n) ")))
     (cond ((string-equal "y" (char answer 0))
 	   t)
 	  ((string-equal "n" (char answer 0))
@@ -176,10 +182,6 @@ Assuming disconnection."))))
 	   (progn
 	     (write-to-client client "Please answer y or n.~%")
 	     (client-y-or-n-p client string))))))
-
-;; test client-y-or-n-p by printing the return value to the console when it's received
-(defun/cc print-client-y-or-n-p (client string)
-  (print (client-y-or-n-p client string)))
 
 ;;; Output
 
@@ -199,8 +201,8 @@ Assuming disconnection."))))
 	      (loop for byte in bytes
 		 do (write-byte byte stream)
 		 finally (finish-output stream)))
-	  (sb-int:simple-stream-error () (error 'client-disconnected-error 
-						:text "Broken pipe. Can't write to client."))
+	  (sb-int:closed-stream-error () (error 'client-disconnected-error 
+						:text "Stream was closed. Can't write to client."))
 	  (simple-error () (error 'client-disconnected-error 
 				  :text "Got a simple error while trying to write to client. Assuming disconnection.")))
 	(error 'client-disconnected-error 
@@ -213,17 +215,17 @@ Assuming disconnection."))))
 (defun client-init (client)
   "Initializes a client, and sets the main function to step through."
   (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
-  (setf (client-step client) (make-client-step-with-continuations client #'client-main)))
+  (setf (client-step client) (make-client-step-with-continuations 
+			      client
+			      #'(lambda (client) (client-main client)))))
 
-(defun client-main (client)
+(defun/cc client-main (client)
   "Main function to run clients through."
-  ;;Keep it simple at first. Grab input, echo something back.
-  ;; Later on, allow clients to enter players, and run in the main player loop.
-  ;; Then start getting fancy from there.
-  (client-echo-ast client))
+  (funcall *main-function* client))
 
 (defun make-client-step-with-continuations (client function)
-  "Wrap some CPS transformed function of one argument (client) handling client IO with continuation handler."
+  "Wrap some CPS transformed function of one argument (client) handling client IO
+ with continuation handler."
   (lambda ()
     (if (client-continuation client)
 	(unless (queue-empty-p (read-lines client))
@@ -232,26 +234,20 @@ Assuming disconnection."))))
 	    (funcall client-continuation (read-line-from-client client))))
 	(funcall function client))))
 
-;; Temporary
+;;; Testing
+;;;
+
+;;; TODO: Move these to a testing area.
+;;; dummy mains
 
 (defun/cc client-echo-input (client)
   "Prompts client for input, and echoes back whatever client wrote."
   (let ((input (prompt-client client "~~> ")))
     (if (string-equal input "quit")
 	(disconnect-client client)
-	(write-to-client client "You wrote: ~a~%~%" input))))
+	(write-to-client client "You wrote: '~a'~%~%" input))))
 
-(defun/cc client-echo-ast (client)
-  "Prompts client for input and sends the client the AST the parser generated based on input."
-  (let ((input (prompt-client client "~~> ")))
-    (if (string-equal input "quit")
-	(disconnect-client client)
-	(write-to-client client "Parsed AST: ~a~%~&" (parse-string input)))))
-
-;;;
-;;; Evil stress-test of doom
-;;;
-
+;; stress test
 (defvar *test-clients* nil)
 
 (defclass <test-client> ()

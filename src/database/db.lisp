@@ -1,3 +1,4 @@
+
 ;; Copyright 2008 Kat Marchan
 
 ;; This file is part of sykosomatic
@@ -15,37 +16,13 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; item.lisp
+;; db.lisp
 ;;
-;; Stuff related to items.
+;; Does stuff with the main game db.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :sykosomatic)
 
-;;;
-;;; Item class
-;;;
-(define-persistent-class <item> (<entity>)
-  ((name
-    :update
-    :initform "NoNameItem")
-   (equippable
-    :update
-    :initarg :equip-p
-    :initform nil
-    :accessor equip-p
-    :documentation "Can item be equipped?")
-   (moveable
-    :update
-    :initarg :moveable
-    :initform t
-    :accessor moveable-p
-    :documentation "Is this object movable? If nil, avatar cannot pick up")
-   (effects
-    :update
-    :initarg :effects
-    :accessor effects
-    :documentation "Any special effects of the item"))
-  (:documentation "Master class for items. Mainly defines some basic things
-that you can do with items, such as whether it's wearable, movable, or whether
-it has any special effects."))
+;; initialize the database
+(make-instance 'mp-store :directory *db-directory*
+ :subsystems (list (make-instance 'store-object-subsystem)))

@@ -26,76 +26,65 @@
 ;;;
 ;;; Base Game Object
 ;;;
-(defclass <game-object> ()
+(define-persistent-class <game-object> ()
   ((name
+    :update
     :initarg :name
-    :initform ""
+    :initform "NoNameObject"
     :accessor name
+    :index-type hash-index
+    :index-reader objects-with-name
     :documentation "Base name for the object")
-   (desc
-    :initarg :desc
-    :initform ""
-    :accessor desc
-    :documentation "A description of the object")
-   (desc-long
-    :initarg :desc-long
-    :initform ""
-    :accessor desc-long
-    :documentation "Long, detailed description of the object")
-   (tags ;;not used in anything yet, but nifty idea
-    :initarg :tags
+   (aliases
+    :update
+    :initarg :aliases
     :initform nil
-    :accessor tags
-    :documentation "A list of string tags that target this object. First string is the name")
-   (prox
-    :initarg :prox
-    :accessor prox
-    :documentation "Object that this object is close to")
+    :accessor aliases
+    :documentation "A list of aliases that can be used in place of NAME")
+   (adjectives
+    :update
+    :initarg :adjectives
+    :initform nil
+    :accessor adjectives
+    :documentation "List of adjectives that apply to this object. Different from name and aliases.")
+   (desc
+    :update
+    :initarg :desc
+    :initform "An object without a description"
+    :accessor desc
+    :documentation "A description of the object.")
    (features
+    :update
     :initarg :features
     :initform nil
     :accessor features
-    :documentation "A list of OBJECTS that add more little details, all targetable :3"))
+    :documentation "A list of OBJECTS that add more little details, all targetable."))
   (:documentation "Master game object. Contains base capabilities of all other objects in the game."))
 
+
 ;;;
-;;; Load/Save
+;;; Info
 ;;;
-;;; Note: I think save-objects and load-objects could eventually be moved to a new db.lisp. The
-;;;       file should do something else as well, though, so these will reside here, for now.
 
-;;; Save
+(defgeneric short-description (game-object)
+  (:documentation "Function that generates the appropriate LOOK-level description string."))
 
-(defgeneric obj->file (obj path)
-  (:documentation "Saves OBJECT to a file within PATH."))
+;; TODO
+(defmethod short-description ((object <game-object>))
+  t)
 
-(defun obj-list->files-in-dir (obj-list path)
-  "Saves all OBJECTS in OBJECT-LIST into files within PATH"
-  (loop for obj in obj-list
-       do (obj->file obj path)))
+(defgeneric long-description (game-object)
+  (:documentation "Function that generates the appropriate EXAMINE-level description string."))
 
-(defun save-objects ()
-  (save-players)
-  (save-rooms)
-  (format t "I think everything got saved. Hopefully, it did..."))
+(defmethod long-description ((object <game-object>))
+  t)
 
-;;; Load
+;;;
+;;; Messages
+;;;
 
-;; NOTE: It's alright for now, but we should, at some point, assert that the objects being
-;;       loaded are of the appropriate type. This can be a vulnerability.
+(defgeneric write-to-target (target format-string &rest format-args)
+  (:documentation "Formats a string and sends it to target game-object."))
 
-(defun file->obj (filepath)
-  "Takes the FILEPATH of a file, returns the OBJECT it represents."
-  (cl-store:restore filepath))
-
-(defun files-in-path->obj-list (path file-extension)
-  "Takes -all- files in PATH and collects them into a LIST of OBJECTS."
-  (let ((files (directory (merge-pathnames (format nil "*.~a" file-extension) path))))
-    (loop for file in files
-	 collect (cl-store:restore file))))
-
-(defun load-objects ()
-  (load-players)
-  (load-rooms)
-  (format t "Apparently, everything got loaded."))
-
+(defmethod write-to-target ((target <game-object>) format-string &rest format-args)
+  t)

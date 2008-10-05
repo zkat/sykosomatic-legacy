@@ -9,7 +9,7 @@
   :long-description "A heavily-extensible, simple, powerful text-based online game engine."
   :license "AGPL, see COPYING"
   :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads 
-	       #:cl-cont #:ironclad #:xmls #:fiveam)
+	       #:cl-cont #:ironclad #:xmls #:fiveam #:bknr.datastore #:bknr.indices)
   :components 
   ((:module src
 	    :serial t
@@ -25,13 +25,6 @@
 		       (:file "xml-import")
 		       (:file "logger")))
 
-	     (:module network
-		      :serial t
-		      :components
-		      ((:file "server")
-		       (:file "client")
-		       (:file "account")))
-
 	     (:module objects
 		      :serial t
 		      :components
@@ -40,8 +33,17 @@
 		       (:file "entity")
 		       (:file "mobile")
 		       (:file "item")
-		       (:file "player")))
-
+		       (:file "avatar")))
+	     
+	     (:module network
+		      :serial t
+		      :components
+		      ((:file "server")
+		       (:file "client")
+		       (:file "account")
+		       (:file "login")
+		       (:file "login-avatar")))
+	     
 	     (:module commands
 		      :serial t
 		      :components
@@ -54,6 +56,11 @@
 		       (:file "binder")
 		       (:file "commands")))
 
+	     (:module database
+		      :serial t
+		      :components
+		      ((:file "db")))
+	     
 	     (:module tests
 		      :serial t
 		      :components

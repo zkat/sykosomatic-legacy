@@ -22,7 +22,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package #:sykosomatic)
 
-
 ;;;
 ;;; Binder
 ;;;
@@ -32,13 +31,9 @@
   "Checks if VERB is a VERB. Returns a FUNCTION."
   (gethash verb *verbs*))
 
-(defun bind-noun-group (noun-group scope-list)
-  "Binds a noun-group within PLAYER's scope."
-  )
-
 (defun bind-noun-phrase (noun-phrase scope-list)
   "Binds a noun-phrase into a single object, based on SCOPE."
-  )
+  nil)
 
 ;;;
 ;;; Scope
@@ -58,18 +53,17 @@
   (append (contents (location mobile))
 	  (inventory mobile)))
 
+(defgeneric belongings (object)
+  (:documentation "Returns a list of objects that belong to OBJECT."))
+
+(defmethod belongings ((object <game-object>))
+  nil)
+
 ;;;
 ;;; Sexy builder
 ;;;
 ;;; - Builds the final s-expressions to be run by the event system.
 
-(defun parse-tree->sexp (player tree)
-  "Takes a parsed TREE of tokens and returns a runnable S-EXP"
-  t)
-
-(defun string->sexp (player string)
-  "Takes a STRING and turns it into a valid S-EXP to run."
-  (parse-tree->sexp player (parse-string string)))
 
 ;;;
 ;;; Util

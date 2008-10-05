@@ -25,27 +25,35 @@
 ;;;
 ;;; Mobile class
 ;;;
-(defclass <mobile> (<entity>)
-  ((species
+(define-persistent-class <mobile> (<entity>)
+  ((name
+    :update
+    :initform "NoNameMobile")
+   (species
+    :update
     :initarg :species
     :accessor species
     :documentation "Mobile's species")
    (killcount
+    :update
     :initform 0
     :documentation "MURDER! DESTROY! BARSH!")
    (level
+    :update
     :initarg :level
     :initform 1
     :accessor level
     :documentation "Power level (must be less than 9000)")
    (skills
+    :update
     :initarg :skills
     :initform nil
     :accessor skills
     :documentation "A list of skills belonging to mobile")
    (inventory
+    :update
     :initarg :inventory
     :initform nil
     :accessor inventory
-    :documentation "A list of items in the player's possession"))
+    :documentation "A list of items in the mobile's possession"))
   (:documentation "Living things."))
