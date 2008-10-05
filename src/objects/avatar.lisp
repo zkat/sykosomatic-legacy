@@ -17,10 +17,7 @@
 
 ;; avatar.lisp
 ;;
-;; Holds the <avatar> class. Also contains some functions for character loading/saving.
-;; Some management functions exist, too, but those could be moved out.
-;;
-;; TODO: Rename all mentions of <avatar> and avatar to avatar
+;; Holds the <avatar> class. Some management functions exist, too, but those could be moved out.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
