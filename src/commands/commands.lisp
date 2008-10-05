@@ -17,7 +17,7 @@
 
 ;; commands.lisp
 ;;
-;; Currently, it's an amalgamation of a sort of binder, vocabulary handler, and several player
+;; Currently, it's an amalgamation of a sort of binder, vocabulary handler, and several avatar
 ;; functions, along with commands to execute them. Very nasty stuff.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -28,8 +28,8 @@
 ;;;
 
 ;; TODO
-(defun execute-command (player string)
-  "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
+(defun execute-command (avatar string)
+  "Takes a STRING and EXECUTES the appropriate command within AVATAR's context."
   t)
 
 ;;;
@@ -77,30 +77,30 @@
 
 ;; TODO
 (defun write-to-others-in-room (caller format-string &rest format-args)
-  (let ((others (get-players (location caller))))
+  (let ((others (get-avatars (location caller))))
     (apply #'write-to-target)))
 
 (defgeneric game-action-emote (entity ast)
   (:documentation "Outputs the verb in action form. No other actions take place."))
 
-(defmethod game-action-emote ((player <player>) ast)
-  "If the emote has to do with a player, write to that player, as well as anyone in room"
+(defmethod game-action-emote ((avatar <avatar>) ast)
+  "If the emote has to do with a avatar, write to that avatar, as well as anyone in room"
   (with-accessors ((verb verb) (dir-objs direct-objects) (ind-objs indirect-objects)) ast
-    (write-to-target player "You ~a.~%" verb)
-   (write-to-others-in-room "~a ~a.~%" (name player) (present-tense verb))))
+    (write-to-target avatar "You ~a.~%" verb)
+   (write-to-others-in-room "~a ~a.~%" (name avatar) (present-tense verb))))
 
 (defgeneric game-action-look (entity ast)
   (:documentation "Represents the action of ENTITY looking, optionally at DIRECT-OBJECT."))
 
-(defmethod game-action-look ((player <player>) ast)
-  "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
+(defmethod game-action-look ((avatar <avatar>) ast)
+  "Returns OBJECT's DESC. If no OBJECT is passed, it returns AVATAR LOCATION's DESC instead"
   (let ((noun-phrase (cadr ast)))
-    (let* ((current-room (location player))
+    (let* ((current-room (location avatar))
 	   (target-string (car (car noun-phrase)))
 	   (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
       (if target
-	  (write-to-player player "~a" (desc target))
-	  (write-to-player player "~a" (desc current-room))))))
+	  (write-to-avatar avatar "~a" (desc target))
+	  (write-to-avatar avatar "~a" (desc current-room))))))
 
 
 ;;;

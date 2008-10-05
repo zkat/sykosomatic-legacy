@@ -65,7 +65,7 @@
     :documentation "Room object this exit points to"))
   (:documentation "A exit is something -- anything, that leads from one place
 to another. In general, this can be an actual exit, but it can also be used as 
-a mixin to make regular items (or even players) into portals and such."))
+a mixin to make regular items (or even avatars) into portals and such."))
 
 ;;;
 ;;; Info

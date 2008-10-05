@@ -159,7 +159,7 @@
  
 ;; AST Generation
 (defun parse-string (string)
-    "Parses a STRING that was entered by PLAYER and returns an Abstract Syntax Tree"
+    "Parses a STRING that was entered by AVATAR and returns an Abstract Syntax Tree"
     (parse-sentence (string->token-list string)))
 
 (defun parse-sentence (token-list)
@@ -306,7 +306,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
   (read-line))
 
 (defun test-the-parser ()
-  "Runs a loop that asks for player input and returns whatever gets parsed. Quits on 'quit'."
+  "Runs a loop that asks for avatar input and returns whatever gets parsed. Quits on 'quit'."
   (let ((current-input (prompt-user)))
     (if (string-equal current-input "quit")
 	(format t "Bye bye!")

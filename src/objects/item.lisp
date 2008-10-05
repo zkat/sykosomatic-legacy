@@ -40,7 +40,7 @@
     :initarg :moveable
     :initform t
     :accessor moveable-p
-    :documentation "Is this object movable? If nil, player cannot pick up")
+    :documentation "Is this object movable? If nil, avatar cannot pick up")
    (effects
     :update
     :initarg :effects
