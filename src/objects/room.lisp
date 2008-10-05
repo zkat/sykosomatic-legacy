@@ -17,9 +17,8 @@
 
 ;; room.lisp
 ;;
-;; Contains the <room> and <door> classes. Also holds functions that handle room generation from
-;; file, saving/loading of rooms, setting of exits, getting of information about contents of room,
-;; etc.
+;; Contains the <room> and <door> classes. Holds functions that handle
+;; setting of exits, getting of information about contents of room, etc.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
