@@ -34,6 +34,7 @@
     :accessor name
     :index-type hash-index
     :index-reader objects-with-name
+    :index-values all-objects
     :documentation "Base name for the object")
    (aliases
     :update
@@ -60,7 +61,6 @@
     :accessor features
     :documentation "A list of OBJECTS that add more little details, all targetable."))
   (:documentation "Master game object. Contains base capabilities of all other objects in the game."))
-
 
 ;;;
 ;;; Info
