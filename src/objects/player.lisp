@@ -20,15 +20,10 @@
 ;; Holds the <player> class. Also contains some functions for character loading/saving.
 ;; Some management functions exist, too, but those could be moved out.
 ;;
+;; TODO: Rename all mentions of <player> and player to avatar
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
-
-;;;
-;;; Player vars
-;;;
-
-(defvar *players* nil
-  "List of existing players. Nice as a backup of the ones existing in accounts.")
 
 ;;;
 ;;; Player class
@@ -37,7 +32,10 @@
 (define-persistent-class <player> (<mobile>)
   ((name
     :update
-    :initform "NoNamePlayer")
+    :initform "NoNamePlayer"
+    :index-type string-unique-index
+    :index-reader player-with-name
+    :index-values all-players)
    (client
     :update
     :transient t

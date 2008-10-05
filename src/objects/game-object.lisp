@@ -32,6 +32,8 @@
     :initarg :name
     :initform "NoNameObject"
     :accessor name
+    :index-type hash-index
+    :index-reader objects-with-name
     :documentation "Base name for the object")
    (aliases
     :update
