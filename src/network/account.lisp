@@ -25,49 +25,50 @@
 (in-package :sykosomatic)
 
 ;;;
-;;; Account vars
-;;;
-
-(defvar *accounts* (make-hash-table :test #'equalp)
-  "Hash table holding all existing accounts.")
-
-(defvar *max-account-id* 0)
-
-(defvar *account-id-lock* (bordeaux-threads:make-lock))
-
-;;;
 ;;; Account class
 ;;;
-(defclass <account> ()
+(define-persistent-class <account> ()
   ((username
+    :update
     :initarg :username
-    :reader username)
+    :reader username
+    :index-type string-unique-index
+    :index-reader account-with-name
+    :index-values all-accounts)
    (password
+    :update
     :initarg :password
     :accessor password)
    (email
+    :update
     :initarg :email
-    :accessor email)
-   (id
-    :initform (bordeaux-threads:with-lock-held (*account-id-lock*) (incf *max-account-id*))
-    :reader id
-    :documentation "Unique account ID number.")
+    :accessor email
+    :index-type string-unique-index
+    :index-reader account-with-email)
    (avatars
+    :update
     :accessor avatars
     :initform nil
     :documentation "Characters belonging to this account.")
    (current-clients
-    :accessor clients
+    :update
+    :transient t
     :initform nil
+    :accessor clients
     :documentation "Clients currently associated with this account.")
    (account-type
+    :update
     :accessor account-type
     :initarg :account-type
-    :initform nil
+    :initform :basic
+    :index-type hash-index
+    :index-reader accounts-with-type
     :documentation "The type of account. Used to determine access levels.")
+   ;;FIXME: The following slot is broken right now. Pushing stuff into it doesn't work (in login.lisp)
    (known-ips
+    :update
     :initarg :known-ips
-    :accessor know-ips
+    :accessor known-ips
     :initform nil
     :documentation "All IPs this account has been known no use.")))
 
@@ -76,11 +77,6 @@
 ;;;
 
 (defun/cc create-new-account (client)
-  "Creates a new account and adds it to available accounts."
-  (let ((new-account (setup-account client)))
-    (setf (gethash (username new-account) *accounts*) new-account)))
-
-(defun/cc setup-account (client)
   "Sets up user account."
   (write-to-client client "Alright, let's set up your account...~%")
   (let* ((username (setup-username client))
@@ -149,38 +145,12 @@
 ;;NIL
 
 ;;;
-;;; Load/Save
-;;;
-
-;;; Save
-(defun save-accounts ()
-  "Saves the account database into *account*"
-  (cl-store:store *accounts* (ensure-directories-exist
-			      (merge-pathnames
-			       "accounts.sy"
-			       *game-directory*))))
-
-;;; Load
-(defun load-accounts ()
-  "Loads the account database into *accounts*"
-  (setf *accounts* (cl-store:restore (ensure-directories-exist 
-				      (merge-pathnames
-				       "accounts.sy"
-				       *game-directory*)))))
-(defun restore-max-account-id ()
-  "Loads the highest account id"
-  (let ((account-ids (or (loop for account being each hash-value of *accounts*
-			 collect (id account))
-			 '(0))))
-    (apply #'max account-ids)))
-
-;;;
 ;;; Utils
 ;;;
 
 (defun user-exists-p (username)
   "Checks if the username is already being used"
-  (gethash username *accounts*))
+  (account-with-name username))
 
 ;; This is still probably not very safe. That, or the way I'm handling it might be wrong.
 (defun hash-password (password)
