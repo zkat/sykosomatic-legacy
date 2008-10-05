@@ -25,143 +25,63 @@
 (in-package :sykosomatic)
 
 ;;;
-;;; Account vars
-;;;
-
-(defvar *accounts* (make-hash-table :test #'equalp)
-  "Hash table holding all existing accounts.")
-
-(defvar *max-account-id* 0)
-
-;;;
 ;;; Account class
 ;;;
-(defclass <account> ()
+(define-persistent-class <account> ()
   ((username
+    :update
     :initarg :username
-    :reader username)
+    :reader username
+    :index-type string-unique-index
+    :index-reader account-with-name
+    :index-values all-accounts)
    (password
+    :update
     :initarg :password
     :accessor password)
    (email
+    :update
     :initarg :email
-    :accessor email)
-   (id
-    :initform (incf *max-account-id*)
-    :reader id
-    :documentation "Unique account ID number.")
+    :accessor email
+    :index-type string-unique-index
+    :index-reader account-with-email)
    (avatars
+    :update
     :accessor avatars
     :initform nil
     :documentation "Characters belonging to this account.")
-   (client
-    :accessor client
+   (current-clients
+    :update
+    :transient t
     :initform nil
-    :documentation "Client currently associated with this account.")
+    :accessor clients
+    :documentation "Clients currently associated with this account.")
    (account-type
+    :update
     :accessor account-type
     :initarg :account-type
-    :initform nil
+    :initform :basic
+    :index-type hash-index
+    :index-reader accounts-with-type
     :documentation "The type of account. Used to determine access levels.")
    (known-ips
+    :update
     :initarg :known-ips
-    :accessor know-ips
+    :accessor known-ips
     :initform nil
     :documentation "All IPs this account has been known no use.")))
-
-(defun make-account (&key username password email)
-  "Generic constructor"
-  (make-instance '<account> :username username :password password :email email))
-
-;;;
-;;; Account Login
-;;;
-
-(defun/cc account-menu (client)
-  "Simple selection menu that new clients once they've logged into an account."
-  (write-to-client client "~&Choose your destiny: ~%")
-  (write-to-client client "-----------------------~%")
-  (write-to-client client "1. Create a new character~%")
-  (write-to-client client "2. Enter existing character~%")
-  (write-to-client client "-----------------------~%~%")
-  (let ((choice (prompt-client client "Your choice: ")))
-    (cond ((equal choice "1")
-	   (create-an-avatar client))
-	  ((equal choice "2")
-	   (choose-avatar client))
-	  (t
-	   (write-to-client client "~&Invalid choice.")
-	   (account-menu client)))))
-
-(defun get-account-by-name (username)
-  "Fetches an account using a username."
-  (gethash username *accounts*))
-
-(defun/cc login-client (client)
-  "Logs a user into their account"
-  (let ((account (validate-login client (prompt-username client))))
-    (when account
-      (setf (account client) account)
-      (setf (client account) client)
-      (pushnew (ip client) (know-ips account))
-      (account-menu client))))
-
-(defun/cc prompt-username (client)
-  "Prompts a client for a username, returns a valid account."
-  (let* ((account-name (prompt-client client "~%Username: "))
-	 (account (get-account-by-name account-name)))
-    (if account
-	account
-	(progn
-	  (write-to-client client "~&Invalid username, please try again.")
-	  (prompt-username client)))))
- 
-(defun/cc validate-login (client account)
-  "Prompts the user for a password, and validates the login."
-  (let ((password (prompt-client client "~&Password: ")))
-    (if (equal (hash-password password) (password account))
-	account
-	(validate-login client account))))
-
-(defun print-available-avatars (client)
-  "Prints a list of available avatars."
-  (let ((avatars (avatars (account client))))
-    (write-to-client client "~%Characters:~%-----------~%~%")
-    (loop for avatar in avatars
-       do (write-to-client client "~&~a~&" (name avatar)))))
-
-;; TODO - player-main-loop thing is borked.
-;; (defun choose-avatar (client)
-;;   "Lets a player choose an existing avatar to play on."
-;;   (print-available-avatars client)
-;;   (let* ((avatars (avatars (account client)))
-;; 	 (avatar-choice (prompt-client client "~%~%Choose your destiny: "))
-;; 	 (avatar (find avatar-choice avatars :test #'string-equal)))
-;;     (if avatar
-;; 	(progn
-;; 	  (setf (avatar client) avatar)
-;; 	  (player-main-loop client))
-;; 	(progn
-;; 	  (write-to-client client "~&No such character, please try again.~%")
-;; 	  (choose-avatar client)))))
 
 ;;;
 ;;; Account Creation
 ;;;
 
 (defun/cc create-new-account (client)
-  "Creates a new account and adds it to available accounts."
-  (let ((account (setup-account client)))
-    (unless (gethash (username account) *accounts*)
-      (setf (gethash (username account) *accounts*) account))))
-
-(defun/cc setup-account (client)
   "Sets up user account."
   (write-to-client client "Alright, let's set up your account...~%")
   (let* ((username (setup-username client))
 	 (password (setup-password client))
 	 (email (setup-email client)))
-    (make-account :username username :password password :email email)))
+    (make-instance '<account> :username username :password password :email email)))
 
 (defun/cc setup-username (client)
   "Prompts client for a username."
@@ -170,29 +90,37 @@
 	(progn
 	  (write-to-client client "~%It seems that you chose username ~a.~%" username)
 	  (if (client-y-or-n-p client "Would you like to use this username? ")
-	      username
+	      (if (user-exists-p username)
+		  (progn 
+		    (write-to-client client "~&An account with that username already exists.~%")
+		    (setup-username client))
+		  username)
 	      (setup-username client)))
 	(progn
-	  (write-to-client client "Username too long (must be under 16 chars)~%")
+	  (write-to-client client "~&Username must between 4 and 16 characters long and contain only letters and numbers.~%~%")
 	  (setup-username client)))))
 
 (defun/cc setup-password (client)
   "Prompts client for a password."
   (let ((password (prompt-client client "~%Choose a password: "))
-	(pass-confirm (prompt-client client "Retype your password: ")))
-    (if (and (equal password pass-confirm)
-	     (confirm-password-sanity password))
-	(hash-password password)
-      (progn
-	(write-to-client client "~&Passwords did not match, try again.~%")
-	(setup-password client)))))
+	(pass-confirm (prompt-client client "~&Retype your password: ")))
+
+    (if (not (equal password pass-confirm))
+	(progn
+	  (write-to-client client "~&Passwords did not match, try again.~%")
+	  (setup-password client))
+	(if (confirm-password-sanity password)
+	    (hash-password password)
+	    (progn
+	      (write-to-client client "~&Password must be between 6 and 32 characters in length.~%~%")
+	      (setup-password client))))))
 
 (defun/cc setup-email (client)
   "Prompts client for a correct e-mail address."
   (let ((email (prompt-client client "~%Please enter your email address: ")))
     (if (confirm-email-sanity email)
 	(progn
-	  (write-to-client "~%You chose ~a as your email address.~%" email)
+	  (write-to-client client  "~%You chose ~a as your email address.~%" email)
 	  (if (client-y-or-n-p client "Is this email address correct?")
 	      email
 	    (setup-email client)))
@@ -215,36 +143,13 @@
 
 ;;NIL
 
-
-;;;
-;;; Load/Save
-;;;
-
-;;; Save
-(defun save-accounts ()
-  "Saves the account database into *account*"
-  (cl-store:store *accounts* (ensure-directories-exist
-			      (merge-pathnames
-			       "accounts.sy"
-			       *game-directory*))))
-
-;;; Load
-(defun load-accounts ()
-  "Loads the account database into *accounts*"
-  (setf *accounts* (cl-store:restore (ensure-directories-exist 
-				      (merge-pathnames
-				       "accounts.sy"
-				       *game-directory*)))))
-(defun restore-max-account-id ()
-  "Loads the highest account id"
-  (let ((account-ids (or (loop for account being each hash-value of *accounts*
-			 collect (id account))
-			 '(0))))
-    (apply #'max account-ids)))
-
 ;;;
 ;;; Utils
 ;;;
+
+(defun user-exists-p (username)
+  "Checks if the username is already being used"
+  (account-with-name username))
 
 ;; This is still probably not very safe. That, or the way I'm handling it might be wrong.
 (defun hash-password (password)
@@ -261,14 +166,14 @@
 (defun confirm-username-sanity (username)
   "Confirms username sanity. Usernames have to be between 6 and 16 chars long, and may only
 be composed of alphanumeric characters."
-  (and (>= (length username) 6)
+  (and (>= (length username) 4)
        (<= (length username) 16)
        (not (find-if-not #'alphanumericp username))))
 
 (defun confirm-password-sanity (password)
   "Confirms password is acceptable. Password needs to be 8 to 32 chars long, and may only contain
 a set of characters defined as CL's standard-char type."
-  (and (>= (length password) 8)
+  (and (>= (length password) 6)
        (<= (length password) 32)
        (not (find-if-not #'standard-char-p password))))
 
@@ -277,3 +182,13 @@ a set of characters defined as CL's standard-char type."
   (cl-ppcre:scan 
    "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
    email))
+
+;;; Conditions
+(define-condition account-creation-error (error)
+  ((text :initarg :text :reader text))
+  (:documentation "Signaled when some condition happens during account creation."))
+
+(define-condition account-exists-error (account-creation-error)
+  ((text :initarg :text :reader text))
+  (:documentation "Signaled if an account with this data already exists."))
+

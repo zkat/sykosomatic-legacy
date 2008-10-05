@@ -92,14 +92,16 @@ connected to *server* and handles their input once per tick. Stops with stop-ser
 	   (loop for client in (clients server)
 		 for stream = (usocket:socket-stream (socket client))
 	      do
-		(handler-case 
+		(handler-case
 		    (progn
 		      (when (and (open-stream-p stream)
 				 (listen stream))
 			(update-activity client)
 			(maybe-read-line-from-client client))
 		      (if (> (client-idle-time client) (max-idle-time server))
-			  (signal 'client-disconnected-error)
+			  (progn
+			    (write-to-client client "~%You have been idle for too long, disconnecting you.~%")
+			    (signal 'client-disconnected-error))
 			  (funcall (client-step client))))
 		  (client-disconnected-error ()
 		    (progn
@@ -121,20 +123,24 @@ connected to *server* and handles their input once per tick. Stops with stop-ser
 (defun start-server (&key (address *default-server-address*) (port *default-server-port*))
   "Takes care of starting up the server."
   (log-message :SERVER "Starting server...")
-  (let* ((socket (usocket:socket-listen address port :reuse-address t :element-type '(unsigned-byte 8))) 
+  (let* ((socket (usocket:socket-listen
+		  address port
+		  :reuse-address t
+		  :element-type '(unsigned-byte 8)))
 	 (server (make-instance '<server>
 				:socket socket)))
     (setf *server* server)
     (log-message :SERVER "Creating server connection thread.")
     (setf (connection-thread *server*)
 	  (bordeaux-threads:make-thread
-	   (lambda () (loop 
+	   (lambda () (loop
 			 (handler-case (connect-new-client)
 			   (sb-bsd-sockets:not-connected-error ()
 			     (log-message :HAX "Got a not-connected-error.")))))
 	   :name "sykosomatic-server-connection-thread"))
     (setf (clients-thread *server*)
-	  (bordeaux-threads:make-thread (make-clients-thread *server*)))
+	  (bordeaux-threads:make-thread (make-clients-thread *server*)
+					:name "sykosomatic-client-handler-thread"))
     (log-message :SERVER "Server started successfully.")))
 
 ;;; Stop

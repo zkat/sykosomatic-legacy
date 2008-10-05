@@ -7,7 +7,7 @@ SykoSoMaTIC is a fairly general, flexible, powerful, and all-around
 awesome game engine meant mainly for text-based online games. Chunks
 of it can be used for other purposes, like simple chat servers with
 accounts. It also includes a parser and basic game-object classes
-like room, mobile, player, item, etc, that can be built upon to create
+like room, mobile, avatar, item, etc, that can be built upon to create
 any online text-based game in a fairly short amount of time.
 
 
@@ -15,6 +15,7 @@ REQUIREMENTS
 ------------
 
 * cl-store (http://common-lisp.net/project/cl-store/)
+* bknr (http://bknr.net) (more specifically, bknr.datastore and bknr.indices)
 * cl-ppcre (http://weitz.de/cl-ppcre/)
 * cl-cont (http://common-lisp.net/project/cl-cont/)
 * bordeaux-threads (http://common-lisp.net/project/bordeaux-threads/)
@@ -22,7 +23,7 @@ REQUIREMENTS
 * ironclad (http://method-combination.net/lisp/ironclad/)
 * xmls (http://common-lisp.net/project/xmls/)
 * fiveam (http://common-lisp.net/project/bese/FiveAM.html)
-* SBCL (http://www.sbcl.org/http://www.sbcl.org/) no other lisp is supported right now.
+* SBCL (http://www.sbcl.org/) >= 1.0.20
 * Linux x86, probably x64 (untested).
 
 INSTALLATION
@@ -81,13 +82,3 @@ now.
 Oh, and if you want to change any directories, read through
 config.lisp. You can set the base game directory there.
 
-
-TESTING THE PARSER
-------------------
-
-The parser doesn't generate anything until you give it some verbs to
-work with. A nice basic one is (add-verb "smile" #'pc-emote) (the same
-effect can be achieved with (add-emote "smile"). That will add the
-verb "smile" to the vocabulary, and you can write a bunch of other
-verbs to see what else happens. Take a look at commands.lisp for
-currently available functions.

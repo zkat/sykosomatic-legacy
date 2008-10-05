@@ -17,7 +17,7 @@
 
 ;; commands.lisp
 ;;
-;; Currently, it's an amalgamation of a sort of binder, vocabulary handler, and several player
+;; Currently, it's an amalgamation of a sort of binder, vocabulary handler, and several avatar
 ;; functions, along with commands to execute them. Very nasty stuff.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,106 +27,80 @@
 ;;; Executor
 ;;;
 
-(defun execute-command (player string)
-  "Takes a STRING and EXECUTES the appropriate command within PLAYER's context."
-  (let ((sexp (string->sexp player string)))
-    (if (functionp (car sexp))
-	(apply (car sexp) (cdr sexp)))))
+;; TODO
+(defun execute-command (avatar string)
+  "Takes a STRING and EXECUTES the appropriate command within AVATAR's context."
+  t)
+
+;;;
+;;; Base functions
+;;;
+
+(defun present-tense (verb)
+  "Converts a verb in imperative form to its present tense form."
+  (let ((verb-ending (elt verb (- (length verb) 1))))
+    (cond ((string-equal verb-ending "h")
+	   (concatenate 'string verb "es"))
+	  ((string-equal verb-ending "y")
+	   (let ((verb (string-right-trim "y" verb))) ;could cause problems.
+	     (concatenate 'string verb "ies")))
+	  (t 
+	   (concatenate 'string verb "s")))))
 
 ;;;
 ;;; Base Commands
 ;;;
 
-;; TODO - What should a call to a defmacro command look like?
+;; TODO - What should a call to a defcommand/verb macro look like?
 ;;
 ;; This is what all commands receive as argument:
-;; (<player> (emote rest-of-predicate adverbs chat-string))
-
+;; (<caller-object> ast)
 
 ;; NOTE: Here's an example of how commands should be handled. Any object that needs a special action
 ;; performed upon it should define either an overriding method, or something to do before calling
 ;; (call-next-method)
 
-(defgeneric pc-example (entity direct-object indirect-object)
-  )
-(defmethod pc-example ((player <player>) (item <item>) (noob <player>))
-  (format t "foo"))
+;; NOTE: The defverb macro should provide a pretty simple, uber-abstracted interface for
+;;       defining new game commands. It should also try to remain as flexible as possible.
+;;       It should also handle adding the command to the *verbs* hash table, and redifining them
+;;       as necessary.
 
-;;; NOTE: The following are obsolete
-(defun pc-emote (player ast)
-  "Emotes an EMOTE-STRING."
-  (let ((emote (car ast)))
-    (write-to-player player "You ~a.~%" emote)))
+;; What does a verb have to do?
+;; 1. Apply a certain effect to several items
+;; 2. spit out a message to all relevant targets
+;; 3. manage multiple targets, and multiple effects per target.
+;;
+;; How are these achieved?
+;; 1, 3, write methods that specifically act upon single targets, map them to the targets
+;; 2. define 1st person, 2nd person, and 3rd person messages as necessary (only defined ones get spit out)
+;;
 
-(defun pc-quit (player ast)
-  "Takes care of quitting the game."
-  (disconnect-player player))
+;; TODO
+(defun write-to-others-in-room (caller format-string &rest format-args)
+  (let ((others (get-avatars (location caller))))
+    (apply #'write-to-target)))
 
-(defun pc-look (player ast)
-  "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
+(defgeneric game-action-emote (entity ast)
+  (:documentation "Outputs the verb in action form. No other actions take place."))
+
+(defmethod game-action-emote ((avatar <avatar>) ast)
+  "If the emote has to do with a avatar, write to that avatar, as well as anyone in room"
+  (with-accessors ((verb verb) (dir-objs direct-objects) (ind-objs indirect-objects)) ast
+    (write-to-target avatar "You ~a.~%" verb)
+   (write-to-others-in-room "~a ~a.~%" (name avatar) (present-tense verb))))
+
+(defgeneric game-action-look (entity ast)
+  (:documentation "Represents the action of ENTITY looking, optionally at DIRECT-OBJECT."))
+
+(defmethod game-action-look ((avatar <avatar>) ast)
+  "Returns OBJECT's DESC. If no OBJECT is passed, it returns AVATAR LOCATION's DESC instead"
   (let ((noun-phrase (cadr ast)))
-    (let* ((current-room (location player))
+    (let* ((current-room (location avatar))
 	   (target-string (car (car noun-phrase)))
 	   (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
       (if target
-	  (write-to-player player "~a" (desc target))
-	  (write-to-player player "~a" (desc current-room))))))
-
-(defun pc-examine (player ast)
-  "Returns OBJECT's DESC. If no OBJECT is passed, it returns PLAYER LOCATION's DESC instead"
-  (let ((noun-phrase (cadr ast)))
-    (let* ((current-room (location player))
-	   (target-string (car (car noun-phrase)))
-	   (target (find target-string (contents current-room) :key #'name :test #'string-equal)))
-      (if target
-	  (progn (write-to-player player "You begin to examine ~a.~%" (name target))
-		 (sleep 0.8)
-		 (write-to-player player "~a" (desc-long target)))
-	  (progn (write-to-player player "You begin to examine ~a.~%" (name current-room))
-		 (sleep 0.8)
-		 (write-to-player player "~a" (desc-long current-room)))))))
-
-(defun pc-go (player ast)
-  "Moves PLAYER in DIRECTION."
-  (let ((direction (car (car (cadr ast)))))
-    (let ((curr-room (location player)))
-      (if curr-room
-	  (let ((exit (assoc direction
-			     (exits curr-room) :test #'string-equal)))
-	    (if exit
-		(let ((next-room
-		       (next-room (cdr exit))))
-		  (if next-room
-		      (progn
-			(put-entity player next-room)
-			(write-to-player player "You begin to enter ~a." (name (cdr exit)))
-			(sleep 0.7)
-			(write-to-player player "~%~a" (desc (location player)))
-			(sleep 0.7))
-		      (write-to-player player "There's nowhere to go through there.")))
-		(write-to-player player "No exit in that direction.")))
-	  (write-to-player player "Player can't move. He isn't anywhere to begin with!")))))
-
-(defun pc-cardinal-move (player ast)
-  "Moves PLAYER in DIRECTION."
-  (let ((direction (car ast))) ;;the emote itself is the direction.
-    (let ((curr-room (location player)))
-      (if curr-room
-	  (let ((exit (assoc direction
-			     (exits curr-room) :test #'string-equal)))
-	    (if exit
-		(let ((next-room (next-room
-				  (cdr exit))))
-		  (if next-room
-		      (progn
-			(put-entity player next-room)
-			(write-to-player player "You begin to enter ~a." (name (cdr exit)))
-			(sleep 0.7)
-			(write-to-player player "~%~a" (desc (location player)))
-			(sleep 0.7))
-		      (write-to-player player "There's nowhere to go through there.")))
-		(write-to-player player "No exit in that direction.")))
-	  (write-to-player player "Player can't move. He isn't anywhere to begin with!")))))
+	  (write-to-avatar avatar "~a" (desc target))
+	  (write-to-avatar avatar "~a" (desc current-room))))))
 
 
 ;;;
