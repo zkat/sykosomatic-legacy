@@ -30,6 +30,7 @@
     :update
     :initform "NoNameItem"
     :index-type hash-index
+    :index-initargs (:test #'equalp)
     :index-reader items-with-name
     :index-values all-items)
    (equippable

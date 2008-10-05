@@ -33,6 +33,7 @@
     :initform "NoNameObject"
     :accessor name
     :index-type hash-index
+    :index-initargs (:test #'equalp)
     :index-reader objects-with-name
     :index-values all-objects
     :documentation "Base name for the object")

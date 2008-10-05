@@ -30,6 +30,7 @@
     :update
     :initform "NoNameMobile"
     :index-type hash-index
+    :index-initargs (:test #'equalp)
     :index-reader mob-with-name
     :index-values all-mobs)
    (species
