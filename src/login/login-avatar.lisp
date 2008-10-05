@@ -44,6 +44,7 @@
 			      (elt (avatars account) (1- number-choice)))))
 	       (setf (client avatar) client)
 	       (setf (avatar client) avatar)
+	       (initialize-avatar avatar)
 	       (avatar-main-loop avatar)))
 	    ((string-equal choice "b")
 	     (account-menu client))
@@ -67,9 +68,14 @@
 
 ;; temp
 (defun/cc avatar-main-loop (avatar)
-  (write-to-client (client avatar) "~&You see a flask~%")
-  (client-echo-input (client avatar))
-  (avatar-main-loop avatar))
+  (loop
+   (handle-avatar-input avatar)))
+
+(defun/cc handle-avatar-input (avatar)
+  (let ((input (prompt-client (client avatar) "")))
+    (if (string-equal input "quit")
+	(disconnect-avatar avatar)
+	(process-avatar-input avatar input))))
 
 ;;;
 ;;; Character Creation
@@ -78,8 +84,8 @@
   (let ((name (prompt-client client "~&Name your character: "))
 	(account (account client)))
     (with-transaction ()
-      (pushnew (make-instance '<avatar> :name name :account account) 
+      (pushnew (make-instance '<avatar> :name name :account account :location *newbie-area*) 
 	       (avatars account)))
-    (write-to-client client "~&Generic character created~%")))
+    (write-to-client client "~&Generic character created~%~%")))
 
 

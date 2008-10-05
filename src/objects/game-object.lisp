@@ -72,13 +72,13 @@
 
 ;; TODO
 (defmethod short-description ((object <game-object>))
-  t)
+  (desc object))
 
 (defgeneric long-description (game-object)
   (:documentation "Function that generates the appropriate EXAMINE-level description string."))
 
 (defmethod long-description ((object <game-object>))
-  t)
+  (desc object))
 
 ;;;
 ;;; Messages

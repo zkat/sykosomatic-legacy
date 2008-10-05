@@ -34,6 +34,11 @@
     :index-initargs (:test #'equalp)
     :index-reader avatar-with-name
     :index-values all-avatars)
+   (last-location
+    :update
+    :initform nil
+    :accessor last-location
+    :documentation "Last place where this avatar was before disconnection.")
    (client
     :update
     :transient t
@@ -65,6 +70,14 @@ a mobile. This is what avatars will inhabit."))
 ;;;
 ;;; Avatar functions
 ;;;
+(defmethod remove-object-from-room ((avatar <avatar>))
+  "Removes avatar from its current location"
+  (let ((room (location avatar)))
+    (with-transaction ()
+     (setf (last-location avatar) room)
+     (setf (location avatar) nil)
+     (when room
+       (setf (contents room) (remove avatar room))))))
 
 (defmethod write-to-target ((avatar <avatar>) format-string &rest format-args)
   "Sends output to a avatar."
@@ -73,8 +86,13 @@ a mobile. This is what avatars will inhabit."))
 	(apply #'write-to-client avatar-client format-string format-args)
 	(error "Avatar is not connected."))))
 
+(defun initialize-avatar (avatar)
+  (with-transaction ()
+    (setf (location avatar) (last-location avatar))))
+
 (defun disconnect-avatar (avatar)
   "Disconnects the given avatar from the game."
-  (disconnect-client (client avatar))
-  (setf (client avatar) nil))
-
+  (write-to-others-in-room avatar "OOC - ~a has disconnected" (name avatar))
+  (remove-object-from-room avatar)
+  (when (client avatar)
+    (disconnect-client (client avatar))))

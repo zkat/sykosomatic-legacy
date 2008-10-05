@@ -177,7 +177,7 @@
 	  (setf adverb-1 (pop token-list)))
 	(cond ((chat-string-p (car token-list))
 	       (setf verb "say")
-	       (setf chat-string (pop token-list)))
+	       (setf chat-string (remove-chat-string-tilde (pop token-list))))
 	      ((verb-p (car token-list))
 	       (setf verb (pop token-list))
 	       (multiple-value-setq 
@@ -288,6 +288,10 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 ;;;
 ;;; Util
 ;;;
+
+(defun remove-chat-string-tilde (chat-string)
+  "Gets rid of the damn tilde."
+  (cadr (cl-ppcre:split "'" chat-string)))
 
 (defun extract-noun-from-possessive (word)
   "Nabs the actual noun out of a possessive."

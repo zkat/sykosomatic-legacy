@@ -188,7 +188,8 @@ Assuming disconnection."))))
 (defun write-to-all-clients (format-string &rest format-args)
   "Sends a given string to all connected clients."
   (with-accessors ((clients clients)) *server*
-    (mapcar #'(lambda (client) (apply #'write-to-client client format-string format-args)) clients)))
+    (when clients
+      (mapcar #'(lambda (client) (apply #'write-to-client client format-string format-args)) clients))))
 
 (defun write-to-client (client format-string &rest format-args)
   "Sends a given STRING to a particular client."
