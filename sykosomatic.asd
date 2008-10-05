@@ -2,9 +2,9 @@
 
 (asdf:defsystem #:sykosomatic
   :name "SykoSoMaTIC"
-  :author "Kat M <kzm@sykosomatic.org>"
+  :author "Kat Marchan <kzm@sykosomatic.org>"
   :version "nil"
-  :maintainer "Kat M <kzm@sykosomatic.org>"
+  :maintainer "Kat Marchan <kzm@sykosomatic.org>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, powerful text-based online game engine."
   :license "AGPL, see COPYING"
@@ -39,8 +39,12 @@
 		      :serial t
 		      :components
 		      ((:file "server")
-		       (:file "client")
-		       (:file "account")
+		       (:file "client")))
+		       
+	     (:module login
+		      :serial t
+		      :components
+		      ((:file "account")
 		       (:file "login")
 		       (:file "login-avatar")))
 	     
