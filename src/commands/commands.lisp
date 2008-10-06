@@ -93,7 +93,7 @@
 
 ;;; string generation
 (defun format-noun-phrase (noun-phrase)
-  (when (noun (car noun-phrase))
+  (when noun-phrase
    (format nil "~{~#[~;~a~;~a and ~a~:;~@{~a~#[~;, and ~:;, ~]~}~]~}" (generate-names noun-phrase))))
 
 (defun generate-names (noun-phrase)

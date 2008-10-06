@@ -242,12 +242,14 @@ REST of the TOKEN-LIST."
 		     (string-equal "," (car token-list)))
 	     (error 'parser-error :text "Too many conjunctions."))
 	   (multiple-value-bind (other-noun-phrases token-list) (parse-noun-group token-list)
-	     (when noun-phrase
-	      (values (append (list noun-phrase) other-noun-phrases) token-list))))
+	     (if noun-phrase
+		 (values (append (list noun-phrase) other-noun-phrases) token-list)
+		 (values nil token-list))))
 	  
 	  (t
-	   (when noun-phrase
-	    (values (list noun-phrase) token-list))))))
+	   (if noun-phrase
+	       (values (list noun-phrase) token-list)
+	       (values nil token-list))))))
 
 (defun terminal-p (token)
   (or (possessive-p token)
@@ -267,9 +269,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
       (cond ((or (preposition-p (car token-list))
 		 (null (car token-list))
 		 (chat-string-p (car token-list))
-		 (adverb-p (car token-list))
-		 (conjunction-p (car token-list))
-		 (string-equal "," (car token-list)))
+		 (adverb-p (car token-list)))
 	     nil)
 	    ((pronoun-p (car token-list))
 	     (setf noun (pop token-list)))
@@ -285,7 +285,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 		 (progn
 		   (loop until (or (possessive-p (car token-list))
 					;(possessive-p (cadr token-list))
-				   (conjunction-p (cadr token-list))
+				   (conjunction-p (cadr token-list))				   
 				   (string-equal "," (car token-list))
 				   (string-equal "," (cadr token-list)) ;COMMA BAD!
 				   (preposition-p (cadr token-list))
@@ -299,8 +299,10 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 			 (multiple-value-setq (owns token-list)
 			   (parse-noun-phrase token-list)))
 		       (setf noun (pop token-list)))))))
-      (when noun
-       (values noun-phrase token-list)))))
+
+      (if noun
+	  (values noun-phrase token-list)
+	  (values nil token-list)))))
 
 ;;;
 ;;; Util
