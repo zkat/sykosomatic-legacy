@@ -83,14 +83,6 @@
 ;;; Utils
 ;;;
 
-;;NOTE: This should probably go elsewhere.
-(defun write-to-others-in-room (caller format-string &rest format-args)
-  "Works like FORMAT, writing its arguments to everyone in CALLER's location, except to CALLER."
-  (when (location caller)
-    (let ((other-avatars (remove caller (get-avatars (location caller)))))
-     (loop for avatar in other-avatars
-	do (write-to-target avatar format-string format-args)))))
-
 ;;; string generation
 (defun format-noun-phrase (noun-phrase)
   (when noun-phrase

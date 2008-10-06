@@ -112,7 +112,7 @@
    (chat-string
     :accessor chat-string
     :initarg :chat-string
-    :initform nil
+    :initform nil 
     :type string)))
 
 (defmethod direct-objects ((sentence <sentence>))
@@ -310,7 +310,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 
 (defun remove-chat-string-tilde (chat-string)
   "Gets rid of the damn tilde."
-  (cadr (cl-ppcre:split "'" chat-string)))
+  (cadr (cl-ppcre:split "'" chat-string :limit 2)))
 
 (defun extract-noun-from-possessive (word)
   "Nabs the actual noun out of a possessive."
