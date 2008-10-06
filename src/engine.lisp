@@ -46,8 +46,10 @@
   ;; (lock-event-queue *main-event-queue*)
   ;; (process-remaining-events *main-event-queue*)
   (stop-server)
+  (log-message :ENGINE "Snapshotting database...")
+  (save-vocabulary)
+  (snapshot)
   (close-store)
   (when *main-thread*
     (bordeaux-threads:destroy-thread *main-thread*)
     (setf *main-thread* nil)))
-
