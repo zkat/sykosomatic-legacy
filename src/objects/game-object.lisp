@@ -33,7 +33,9 @@
     :initform "NoNameObject"
     :accessor name
     :index-type hash-index
+    :index-initargs (:test #'equalp)
     :index-reader objects-with-name
+    :index-values all-objects
     :documentation "Base name for the object")
    (aliases
     :update
@@ -61,7 +63,6 @@
     :documentation "A list of OBJECTS that add more little details, all targetable."))
   (:documentation "Master game object. Contains base capabilities of all other objects in the game."))
 
-
 ;;;
 ;;; Info
 ;;;
@@ -71,13 +72,13 @@
 
 ;; TODO
 (defmethod short-description ((object <game-object>))
-  t)
+  (desc object))
 
 (defgeneric long-description (game-object)
   (:documentation "Function that generates the appropriate EXAMINE-level description string."))
 
 (defmethod long-description ((object <game-object>))
-  t)
+  (desc object))
 
 ;;;
 ;;; Messages
