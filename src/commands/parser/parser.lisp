@@ -186,7 +186,7 @@
 		 (when (adverb-p (car token-list))
 		   (setf adverb-4 (pop token-list)))
 		 (when (chat-string-p (car token-list))
-		   (setf chat-string (pop token-list)))
+		   (setf chat-string (remove-chat-string-tilde (pop token-list))))
 		 (when token-list
 		   (error 'parser-error 
 			  :text "Input failed to parse (stuff left after finishing parse)."))))
