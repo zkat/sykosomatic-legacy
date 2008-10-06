@@ -86,9 +86,7 @@ a mobile. This is what avatars will inhabit."))
       (let ((avatar-client (client avatar)))
 	(apply #'write-to-client avatar-client format-string format-args))
     (client-disconnected-error ()
-      (progn
-	(write-to-others-in-room avatar "~&OOC - ~a has disconnected~&" (name avatar))
-	(disconnect-avatar avatar)))))
+      (disconnect-avatar avatar))))
 
 (defun initialize-avatar (avatar)
   (if (last-location avatar)
@@ -97,6 +95,8 @@ a mobile. This is what avatars will inhabit."))
 
 (defun disconnect-avatar (avatar)
   "Disconnects the given avatar from the game."
-  (remove-object-from-room avatar)
-  (when (client avatar)
-    (disconnect-client (client avatar))))
+  (let ((avatar-room (location avatar)))
+    (remove-object-from-room avatar)
+    (write-to-room avatar-room "~&OOC - ~a has disconnected~&" (name avatar))
+    (when (client avatar)
+      (disconnect-client (client avatar)))))
