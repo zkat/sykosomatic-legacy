@@ -31,9 +31,15 @@
   "Checks if VERB is a VERB. Returns a FUNCTION."
   (gethash verb *verbs*))
 
-(defun bind-noun-phrase (noun-phrase scope-list)
-  "Binds a noun-phrase into a single object, based on SCOPE."
-  nil)
+;; TODO
+(defun bind-noun-clause-locally (caller noun-clause)
+  "Binds a noun-clause (a list of noun-phrases), and returns a list of objects."
+  )
+
+(defun bind-noun-phrase-locally (caller noun-phrase)
+  "Binds a noun-phrase into a single object."
+  )
+
 
 ;;;
 ;;; Scope
