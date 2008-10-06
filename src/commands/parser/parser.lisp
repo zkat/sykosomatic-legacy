@@ -233,17 +233,27 @@ phrases, joined by conjunctions) MULTIPLE RETURN VALUES: NOUN-GROUP and the
 REST of the TOKEN-LIST."
   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
     (cond ((or (conjunction-p (car token-list))
-	       (string-equal "," (car token-list))) ;VERY NO
+	       (string-equal "," (car token-list)))
 	   (when (and (string-equal "," (car token-list)) ;BAD COMMA, BAD
 		      (conjunction-p (cadr token-list)))
 	     (pop token-list))
 	   (pop token-list)
-	   (when (conjunction-p (car token-list))
+	   (when (or (conjunction-p (car token-list))
+		     (string-equal "," (car token-list)))
 	     (error 'parser-error :text "Too many conjunctions."))
 	   (multiple-value-bind (other-noun-phrases token-list) (parse-noun-group token-list)
 	     (values (append (list noun-phrase) other-noun-phrases) token-list)))
+	  
 	  (t
 	   (values (list noun-phrase) token-list)))))
+
+(defun terminal-p (token)
+  (or (possessive-p token)
+      (preposition-p token)
+      (chat-string-p token)
+      (adverb-p token)
+      (null token)
+      (string-equal "," token)))
 
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
