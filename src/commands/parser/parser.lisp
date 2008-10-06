@@ -94,6 +94,26 @@
 ;; -----------Where NOUN-PHRASE is (list-of-objects)
 
 ;; Classes for AST
+
+;; TODO
+(defmethod print-object ((sentence <sentence>) stream)
+  (print-unreadable-object (sentence stream :type t :identity t)
+    (format stream "~%verb: ~a~%" (verb sentence))
+    (when (direct-objects sentence)
+      )
+    (format stream "direct-objects: ~%")
+    (format)
+    (format stream "adverbs: ~a~%" (adverbs sentence))
+    (format stream "prepositions: ~a~%" (prepositions sentence))
+    (format stream "chat-string: ~a~%" (chat-string sentence))))
+
+(defmethod print-object ((noun-phrase <noun-phrase>) stream)
+  (print-unreadable-object (noun-phrase stream :type nil :identity nil)
+    (format stream "~%   noun: ~a~%" (noun noun-phrase))
+    (format stream "   adjectives: ~a~%" (adjectives noun-phrase))
+    (format stream "   own: ~a~%" (owns noun-phrase))))
+
+
 (defclass <sentence> ()
   ((verb        
     :accessor verb
