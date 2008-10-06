@@ -78,14 +78,17 @@ a mobile. This is what avatars will inhabit."))
      (setf (last-location avatar) room)
      (setf (location avatar) nil)
      (when room
-       (setf (contents room) (remove avatar room))))))
+       (setf (contents room) (remove avatar (contents room)))))))
 
 (defmethod write-to-target ((avatar <avatar>) format-string &rest format-args)
   "Sends output to a avatar."
-  (let ((avatar-client (client avatar)))
-    (if avatar-client
-	(apply #'write-to-client avatar-client format-string format-args)
-	(error "Avatar is not connected."))))
+  (handler-case
+      (let ((avatar-client (client avatar)))
+	(apply #'write-to-client avatar-client format-string format-args))
+    (client-disconnected-error ()
+      (progn
+	(write-to-others-in-room avatar "~&OOC - ~a has disconnected~&" (name avatar))
+	(disconnect-avatar avatar)))))
 
 (defun initialize-avatar (avatar)
   (if (last-location avatar)
@@ -94,7 +97,6 @@ a mobile. This is what avatars will inhabit."))
 
 (defun disconnect-avatar (avatar)
   "Disconnects the given avatar from the game."
-  (write-to-others-in-room avatar "OOC - ~a has disconnected" (name avatar))
   (remove-object-from-room avatar)
   (when (client avatar)
     (disconnect-client (client avatar))))
