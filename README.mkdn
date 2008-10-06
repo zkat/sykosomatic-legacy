@@ -26,18 +26,18 @@ Requirements
 * [Steel Bank Common Lisp][10] >= 1.0.20
 * [Linux][11] x86, probably x64 (untested).
 
-  [1] <http://common-lisp.net/project/cl-store/>
-  [2] <http://bknr.net>
-  [3] <http://weitz.de/cl-ppcre/>
-  [4] <http://common-lisp.net/project/cl-cont/>
-  [5] <http://common-lisp.net/project/bordeaux-threads/>
-  [6] <http://common-lisp.net/project/usocket/>
-  [7] <http://method-combination.net/lisp/ironclad/>
-  [8] <http://common-lisp.net/project/xmls/>
-  [9] <http://common-lisp.net/project/bese/FiveAM.html>
-  [10] <http://www.sbcl.org/>
-  [11] <http://www.archlinux.org>
-  [12] <http://sykosomatic.org> (SykoSoMaTIC Main Site)
+  [1]: <http://common-lisp.net/project/cl-store/>
+  [2]: <http://bknr.net>
+  [3]: <http://weitz.de/cl-ppcre/>
+  [4]: <http://common-lisp.net/project/cl-cont/>
+  [5]: <http://common-lisp.net/project/bordeaux-threads/>
+  [6]: <http://common-lisp.net/project/usocket/>
+  [7]: <http://method-combination.net/lisp/ironclad/>
+  [8]: <http://common-lisp.net/project/xmls/>
+  [9]: <http://common-lisp.net/project/bese/FiveAM.html>
+  [10]: <http://www.sbcl.org/>
+  [11]: <http://www.archlinux.org>
+  [12]: <http://sykosomatic.org> (SykoSoMaTIC Main Site)
 
 Installation
 ------------
