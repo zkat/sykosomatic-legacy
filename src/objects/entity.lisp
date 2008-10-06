@@ -30,7 +30,11 @@
 (define-persistent-class <entity> (<game-object>)
   ((name
     :update
-    :initform "NoNameEntity")
+    :initform "NoNameEntity"
+    :index-type hash-index
+    :index-initargs (:test #'equalp)
+    :index-reader entities-with-name
+    :index-values all-entities)
    (location
     :update
     :initarg :location

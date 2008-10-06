@@ -18,7 +18,7 @@
 ;; logger.lisp
 ;;
 ;; contains a function that can be called from anywhere (even threads), and writes messages
-;; to a log file in the .sykosomatic directory.
+;; to a log file in *log-directory*.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
@@ -31,11 +31,10 @@
 (defun log-message (type format-string &rest format-args)
   "Logs a message into a log file"
   (let ((message (apply #'format nil format-string format-args)))
-  ;; TODO - make it so this function can take a format-string, and format-args. ;Maybe this is good enough.
   ;; TODO - make this write to different files, depending on the type.
     (multiple-value-bind (second minute hour date month year) (get-decoded-time)
       (bordeaux-threads:with-lock-held (*log-lock*)
-	(with-open-file (s (ensure-directories-exist (merge-pathnames "sykosomatic.log" *log-directory*))
+	(with-open-file (s (ensure-directories-exist (merge-pathnames "server.log" *log-directory*))
 			   :direction :output 
 			   :if-does-not-exist :create
 			   :if-exists :append)

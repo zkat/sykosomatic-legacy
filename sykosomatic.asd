@@ -2,14 +2,14 @@
 
 (asdf:defsystem #:sykosomatic
   :name "SykoSoMaTIC"
-  :author "Kat M <kzm@sykosomatic.org>"
+  :author "Kat Marchan <kzm@sykosomatic.org>"
   :version "nil"
-  :maintainer "Kat M <kzm@sykosomatic.org>"
+  :maintainer "Kat Marchan <kzm@sykosomatic.org>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, powerful text-based online game engine."
   :license "AGPL, see COPYING"
-  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads 
-	       #:cl-cont #:ironclad #:xmls #:fiveam #:bknr.datastore #:bknr.indices)
+  :depends-on (#:cl-ppcre #:cl-store #:usocket #:bordeaux-threads #:fiveam
+	       #:cl-cont #:ironclad #:xmls #:bknr.datastore #:bknr.indices)
   :components 
   ((:module src
 	    :serial t
@@ -39,8 +39,12 @@
 		      :serial t
 		      :components
 		      ((:file "server")
-		       (:file "client")
-		       (:file "account")
+		       (:file "client")))
+		       
+	     (:module login
+		      :serial t
+		      :components
+		      ((:file "account")
 		       (:file "login")
 		       (:file "login-avatar")))
 	     
@@ -61,9 +65,19 @@
 		      :components
 		      ((:file "db")))
 	     
-	     (:module tests
-		      :serial t
-		      :components
-		      ((:file "account")
-		       (:file "parser")
-		       (:file "xml-import")))))))
+	     (:file "engine")))))
+
+(asdf:defsystem sykosomatic-tests
+  :version "0"
+  :description "Unit tests for SykoSoMaTIC"
+  :maintainer "Kat <zkat@Dagon>"
+  :author "Kat <zkat@Dagon>"
+  :licence "AGPL"
+  :depends-on (#:sykosomatic #:fiveam)
+  :components
+  ((:module tests
+	    :serial t
+	    :components
+	    ((:file "account")
+	     (:file "parser")
+	     (:file "xml-import")))))

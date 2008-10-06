@@ -28,7 +28,11 @@
 (define-persistent-class <item> (<entity>)
   ((name
     :update
-    :initform "NoNameItem")
+    :initform "NoNameItem"
+    :index-type hash-index
+    :index-initargs (:test #'equalp)
+    :index-reader items-with-name
+    :index-values all-items)
    (equippable
     :update
     :initarg :equip-p

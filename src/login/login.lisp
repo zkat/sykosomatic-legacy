@@ -63,7 +63,7 @@
   (let ((account (validate-login client (prompt-username client))))
     (when account
       (setf (account client) account)
-      (register-ip-with-account (ip client) account)
+      (register-client-ip-with-account (ip client) account)
       (account-menu client))))
 
 (defun/cc validate-login (client account)

@@ -23,6 +23,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
-;; initialize the database
-(make-instance 'mp-store :directory *db-directory*
- :subsystems (list (make-instance 'store-object-subsystem)))
+(defun init-database ()
+  (make-instance 'mp-store :directory *db-directory*
+		 :subsystems (list (make-instance 'store-object-subsystem)))
+  (load-vocabulary)
+  (setf *main-event-queue* (make-priority-queue :key #'exec-time))
+  (unless *newbie-area*
+    (setf *newbie-area* (create-newbie-area))))
+
+(defun create-newbie-area ()
+  (make-instance '<room> 
+		 :name "closet" :adjectives (list "scary" "dark")
+		 :desc "You can't see much of anything in this broom closet."
+		 :features (list (make-instance '<game-object> :name "flask" :adjectives (list "ye")
+						:desc "A flask with the word 'Ye' imprinted on it."))))
+
+

@@ -17,9 +17,8 @@
 
 ;; room.lisp
 ;;
-;; Contains the <room> and <door> classes. Also holds functions that handle room generation from
-;; file, saving/loading of rooms, setting of exits, getting of information about contents of room,
-;; etc.
+;; Contains the <room> and <door> classes. Holds functions that handle
+;; setting of exits, getting of information about contents of room, etc.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
@@ -31,7 +30,11 @@
 (define-persistent-class <room> (<game-object>)
   ((name
     :update
-    :initform "NoNameRoom")
+    :initform "NoNameRoom"
+    :index-type hash-index
+    :index-initargs (:test #'equalp)
+    :index-reader rooms-with-name
+    :index-values all-rooms)   
    (contents
     :update
     :initarg :contents
@@ -44,7 +47,11 @@
 (define-persistent-class <exit> (<game-object>)
   ((name
     :update
-    :initform "exit")
+    :initform "exit"
+    :index-type hash-index
+    :index-initargs (:test #'equalp)
+    :index-reader exits-with-name
+    :index-values all-exits)
    (open-p
     :update
     :initarg :open-p
@@ -62,6 +69,8 @@
     :initarg :next-room
     :initform nil
     :accessor next-room
+    :index-type hash-index
+    :index-reader exits-that-lead-to
     :documentation "Room object this exit points to"))
   (:documentation "A exit is something -- anything, that leads from one place
 to another. In general, this can be an actual exit, but it can also be used as 
@@ -90,6 +99,16 @@ a mixin to make regular items (or even avatars) into portals and such."))
 ;;;
 ;;; Room manipulation
 ;;;
+(defgeneric remove-object-from-room (object)
+  (:documentation "Removes a target object from a room."))
+
+(defgeneric put-object-in-room (object room)
+  (:documentation "Puts the given object into the contents of a room."))
+
+(defmethod put-object-in-room ((object <game-object>) room)
+  (with-transaction ()
+    (setf (location object) room)
+    (pushnew object (contents room) :test #'equal)))
 
 ;; Put something here that makes new exits.
 

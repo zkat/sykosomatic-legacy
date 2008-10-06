@@ -28,11 +28,17 @@
 (define-persistent-class <mobile> (<entity>)
   ((name
     :update
-    :initform "NoNameMobile")
+    :initform "NoNameMobile"
+    :index-type hash-index
+    :index-initargs (:test #'equalp)
+    :index-reader mob-with-name
+    :index-values all-mobs)
    (species
     :update
     :initarg :species
     :accessor species
+    :index-type hash-index
+    :index-reader mobs-of-species
     :documentation "Mobile's species")
    (killcount
     :update
@@ -43,6 +49,8 @@
     :initarg :level
     :initform 1
     :accessor level
+    :index-type hash-index
+    :index-reader mobs-with-level
     :documentation "Power level (must be less than 9000)")
    (skills
     :update
