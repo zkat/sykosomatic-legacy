@@ -27,8 +27,10 @@
 ;;; Executor
 ;;;
 (defun process-avatar-input (avatar input)
-  (let ((payload (process-command avatar input)))
-    (make-event payload)))
+  (handler-case
+      (let ((payload (process-command avatar input)))
+	(make-event payload))
+    (parser-error () (write-to-target avatar "parser error"))))
 
 (defun process-command (avatar input)
   (let* ((ast (parse-string input))
@@ -83,7 +85,7 @@
 (defun write-to-others-in-room (caller format-string &rest format-args)
   "Works like FORMAT, writing its arguments to everyone in CALLER's location, except to CALLER."
   (when (location caller)
-    (let ((other-avatars (get-avatars (location caller))))
+    (let ((other-avatars (remove caller (get-avatars (location caller)))))
      (loop for avatar in other-avatars
 	do (write-to-target avatar format-string format-args)))))
 
