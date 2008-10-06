@@ -86,10 +86,6 @@ a mobile. This is what avatars will inhabit."))
 	(apply #'write-to-client avatar-client format-string format-args)
 	(error "Avatar is not connected."))))
 
-(defun active-p (avatar)
-  "Is AVATAR in the game world?"
-  )
-
 (defun initialize-avatar (avatar)
   (if (last-location avatar)
       (put-object-in-room avatar (last-location avatar))
