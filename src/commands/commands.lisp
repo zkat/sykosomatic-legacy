@@ -26,16 +26,18 @@
 ;;;
 ;;; Executor
 ;;;
+
 (defun process-avatar-input (avatar input)
   (handler-case
       (let ((payload (process-command avatar input)))
 	(make-event payload))
-    (parser-error () (write-to-target avatar "parser error"))))
+    (parser-error () (write-to-target avatar "parser error~%"))))
 
 (defun process-command (avatar input)
   (let* ((ast (parse-string input))
 	 (function (bind-verb (verb ast))))
-    #'(lambda () (funcall function avatar ast))))
+    (when (and ast function)
+      #'(lambda () (funcall function avatar ast)))))
 
 ;;;
 ;;; Base functions

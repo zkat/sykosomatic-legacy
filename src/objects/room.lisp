@@ -102,5 +102,13 @@ a mixin to make regular items (or even avatars) into portals and such."))
 (defgeneric remove-object-from-room (object)
   (:documentation "Removes a target object from a room."))
 
+(defgeneric put-object-in-room (object room)
+  (:documentation "Puts the given object into the contents of a room."))
+
+(defmethod put-object-in-room ((object <game-object>) room)
+  (with-transaction ()
+    (setf (location object) room)
+    (pushnew object (contents room) :test #'equal)))
+
 ;; Put something here that makes new exits.
 
