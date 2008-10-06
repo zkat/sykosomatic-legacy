@@ -70,6 +70,7 @@ a mobile. This is what avatars will inhabit."))
 ;;;
 ;;; Avatar functions
 ;;;
+
 (defmethod remove-object-from-room ((avatar <avatar>))
   "Removes avatar from its current location"
   (let ((room (location avatar)))
