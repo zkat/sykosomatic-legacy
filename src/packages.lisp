@@ -126,8 +126,6 @@
    :<client>
    :ip
    :last-active
-   :account ; uh oh!
-   :avatar  ; hmm...
    :remove-client
    :client-idle-time
    :client-disconnected-error
