@@ -14,8 +14,8 @@
 
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
-
-(in-package #:sykosomatic)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(in-package :org.sykosomatic.test)
 
 (def-suite parser)
 
