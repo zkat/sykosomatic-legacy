@@ -22,7 +22,7 @@
 ;; to .sykosomatic, in the user's home directory.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :org.sykosomatic.core)
 
 ;;;
 ;;; Values
@@ -42,14 +42,11 @@
   "Directory where log files are stored")
 
 ;;; Server options
-(defvar *default-server-address* "0.0.0.0")
-(defvar *default-server-port* 4000)
-(defvar *max-client-idle-time* (* 60 20)
-  "How many seconds is a client allowed to idle before they're disconnected by the server?")
 
 ;;; Newbies
 (defvar *newbie-area* nil
   "Room where avatars are dropped into by default")
 
 ;;; Main
-(defvar *main-function* #'(lambda (client) (login-menu client)))
+(defvar *main-client-function* #'(lambda (client) (login-menu client)))
+

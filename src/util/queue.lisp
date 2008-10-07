@@ -21,7 +21,7 @@
 ;; Thread-safe queues. Taken from Monster Mountain's (with permission), since they're quite nice.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package #:org.sykosomatic.util)
 
 ;;;
 ;;; Queue
