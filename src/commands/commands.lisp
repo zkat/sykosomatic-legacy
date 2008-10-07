@@ -27,13 +27,20 @@
 ;;; Executor
 ;;;
 
+;; NOTE: I should probably make events be a lower-level thing in sykosomatic, so more things
+;;       can be handled through the event processor. This would be ideal, and elegant.
 (defun process-avatar-input (avatar input)
+  "Generates an event out of processed avatar input. Takes care of handling any conditions
+coming from the parser and/or binder."
   (handler-case
       (let ((payload (process-command avatar input)))
 	(make-event payload))
     (parser-error () (write-to-target avatar "parser error~%"))))
 
+;; FIXME: This does too much.
 (defun process-command (avatar input)
+  "Calls the parser on input, grabs a function out of the AST, presumably binds stuff,
+then proceeds to return a lambda it builds which will serve as a payload for an event."
   (let* ((ast (parse-string input))
 	 (function (bind-verb (verb ast))))
     (when (and ast function)
@@ -51,7 +58,7 @@
 	  ((string-equal verb-ending "y")
 	   (let ((verb (string-right-trim "y" verb))) ;NOTE: This murders verbs that end in yy...y.
 	     (concatenate 'string verb "ies")))
-	  (t 
+	  (t
 	   (concatenate 'string verb "s")))))
 
 ;;;
@@ -80,10 +87,9 @@
 	  (write-to-target avatar "~a" (desc current-room))))))
 
 ;;;
-;;; Utils
+;;; String Generation
 ;;;
 
-;;; string generation
 (defun format-noun-group (noun-group)
   "Takes a noun group and formats it in 'a, b, and c' form."
   (when noun-group
@@ -123,3 +129,7 @@
 (defun format-for-target (target-name ast)
   "Formats a sentence so that the target-name is replaced with 'you' or 'your' or such. (uh oh)"
   (format nil "foo"))
+
+;;;
+;;; Utils
+;;;
