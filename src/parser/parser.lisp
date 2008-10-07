@@ -20,7 +20,7 @@
 ;; Cleans up and parses a string, generating an abstract syntax tree.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :org.sykosomatic.core)
+(in-package :org.sykosomatic.parser)
 
 ;;;
 ;;; Pre-processing
@@ -95,11 +95,6 @@
 
 ;; Classes for AST
 
-;; TODO
-
-
-
-
 (defclass <sentence> ()
   ((verb        
     :accessor verb
@@ -162,8 +157,6 @@
     :accessor owns
     :initarg :owns
     :initform nil)))
-
-
 
 ;; AST Generation
 (defun parse-string (string)

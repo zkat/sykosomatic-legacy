@@ -15,6 +15,7 @@
 	      ((:module util
 			:serial t
 			:components
-			((:file "server")
+			((:file "packages")
+			 (:file "server")
 			 (:file "client")))))))
 
