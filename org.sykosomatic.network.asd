@@ -12,7 +12,7 @@
     ((:module src
 	      :serial t
 	      :components
-	      ((:module util
+	      ((:module network
 			:serial t
 			:components
 			((:file "packages")

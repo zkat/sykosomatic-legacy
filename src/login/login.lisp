@@ -62,7 +62,7 @@
   "Logs a user into their account"
   (let ((account (validate-login client (prompt-username client))))
     (when account
-      (setf (account client) account)
+      ;; active clients?
       (register-client-ip-with-account (ip client) account)
       (account-menu client))))
 
