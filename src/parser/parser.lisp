@@ -20,7 +20,7 @@
 ;; Cleans up and parses a string, generating an abstract syntax tree.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :org.sykosomatic.parser)
+(in-package :sykosomatic.parser)
 
 ;;;
 ;;; Pre-processing

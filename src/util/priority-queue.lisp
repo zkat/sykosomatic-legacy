@@ -26,7 +26,7 @@
 ;;       I find the file again. It's a BSD license.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :org.sykosomatic.util)
+(in-package :sykosomatic.util)
 
 ;;;
 ;;; Priority queue

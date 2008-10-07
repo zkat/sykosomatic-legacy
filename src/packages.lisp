@@ -2,9 +2,9 @@
 
 ;; This file is part of sykosomatic
 
-(defpackage #:org.sykosomatic.core
-  (:use :cl :org.sykosomatic.util :org.sykosomatic.network :cl-cont
-	:org.sykosomatic.parser :bknr.datastore :bknr.indices)
+(defpackage #:sykosomatic.core
+  (:use :cl :sykosomatic.util :sykosomatic.network :cl-cont
+	:sykosomatic.parser :bknr.datastore :bknr.indices)
   (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held)
   (:import-from :ironclad :byte-array-to-hex-string :digest-sequence :ascii-string-to-byte-array)
   (:export
