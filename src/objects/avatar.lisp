@@ -20,7 +20,7 @@
 ;; Holds the <avatar> class. Some management functions exist, too, but those could be moved out.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :org.sykosomatic.core)
+(in-package :sykosomatic.core)
 
 ;;;
 ;;; Avatar class

@@ -21,7 +21,7 @@
 ;; to a log file in *log-directory*.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :org.sykosomatic.util)
+(in-package :sykosomatic.util)
 
 ;;;
 ;;; Logging facility

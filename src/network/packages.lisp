@@ -2,8 +2,8 @@
 
 ;; This file is part of sykosomatic
 
-(defpackage #:org.sykosomatic.network
-  (:use :cl :org.sykosomatic.util :cl-cont :bordeaux-threads :usocket)
+(defpackage #:sykosomatic.network
+  (:use :cl :sykosomatic.util :cl-cont :bordeaux-threads :usocket)
   (:export
    
    ;; server.lisp

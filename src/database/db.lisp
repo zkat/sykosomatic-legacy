@@ -21,7 +21,7 @@
 ;; Does stuff with the main game db.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :org.sykosomatic.core)
+(in-package :sykosomatic.core)
 
 (defun init-database ()
   (make-instance 'mp-store :directory *db-directory*

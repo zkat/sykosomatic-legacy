@@ -2,8 +2,8 @@
 
 ;; This file is part of sykosomatic
 
-(defpackage #:org.sykosomatic.parser
-  (:use :cl :org.sykosomatic.util)
+(defpackage #:sykosomatic.parser
+  (:use :cl :sykosomatic.util)
   (:export
 
    ;; vocabulary.lisp

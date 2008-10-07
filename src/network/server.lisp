@@ -21,7 +21,7 @@
 ;; Also has the start-server and stop-server functions, and supporting functions for those.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :org.sykosomatic.network)
+(in-package :sykosomatic.network)
 
 ;;;
 ;;; Server configuration
