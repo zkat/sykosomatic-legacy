@@ -1,39 +1,4 @@
 ;; This file is part of sykosomatic
-(asdf:defsystem #:org.sykosomatic.util
-    :name "SykoSoMaTIC Utilities"
-    :author "Kat Marchan <kzm@sykosomatic.org>"
-    :version "1.0"
-    :maintainer "Kat Marchan <kzm@sykosomatic.org>"
-    :license "AGPL, see COPYING"
-    :depends-on (#:bordeaux-threads)
-    :components
-    ((:module src
-	      :serial t
-	      :components
-	      ((:module network
-			:serial t
-			:components
-		       ((:file "queue")
-			(:file "priority-queue")
-			(:file "logger")))))))
-
-(asdf:defsystem #:org.sykosomatic.network
-    :name "SykoSoMaTIC Network"
-    :author "Kat Marchan <kzm@sykosomatic.org>"
-    :version "1.0"
-    :maintainer "Kat Marchan <kzm@sykosomatic.org>"
-    :description "SykoSoMaTIC's standard server/client library."
-    :license "AGPL, see COPYING"
-    :depends-on (#:usocket #:bordeaux-threads #:cl-cont)
-    :components
-    ((:module src
-	      :serial t
-	      :components
-	     ((:module util
-		       :serial t
-		       :components
-			((:file "server")
-			 (:file "client")))))))
 
 (asdf:defsystem #:org.sykosomatic.core
   :name "SykoSoMaTIC"
@@ -88,17 +53,4 @@
 	     
 	     (:file "engine")))))
 
-(asdf:defsystem #:org.sykosomatic.test
-  :version "0"
-  :description "Unit tests for SykoSoMaTIC"
-  :maintainer "Kat <zkat@Dagon>"
-  :author "Kat <zkat@Dagon>"
-  :licence "AGPL"
-  :depends-on (#:sykosomatic #:fiveam)
-  :components
-  ((:module tests
-	    :serial t
-	    :components
-	    ((:file "account")
-	     (:file "parser")
-	     (:file "xml-import")))))
+
