@@ -14,7 +14,8 @@
 	      ((:module network
 			:serial t
 			:components
-			((:file "queue")
+			((:file "packages")
+			 (:file "queue")
 			 (:file "priority-queue")
 			 (:file "logger")))))))
 

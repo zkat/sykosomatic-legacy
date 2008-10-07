@@ -105,9 +105,6 @@ removing all previous associations with STRING"
   (add-verb string function)
   (save-vocabulary))
 
-(defun add-emote (string)
-  (add-verb string #'game-action-emote))
-
 ;;;
 ;;; Predicates
 ;;;

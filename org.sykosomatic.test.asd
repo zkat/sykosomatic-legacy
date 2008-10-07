@@ -12,6 +12,7 @@
     ((:module tests
 	      :serial t
 	      :components
-	      ((:file "account")
+	      ((:file "packages")
+	       (:file "account")
 	       (:file "parser")
 	       (:file "xml-import")))))
