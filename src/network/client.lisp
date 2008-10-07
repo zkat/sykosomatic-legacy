@@ -60,17 +60,7 @@
    (read-lines
     :initform (make-empty-queue)
     :accessor read-lines
-    :documentation "A queue of lines that have been read in from the client.")
-   (account
-    :initarg :account
-    :accessor account
-    :initform nil
-    :documentation "The account associated with this session.")
-   (avatar
-    :initarg :avatar
-    :accessor avatar
-    :initform nil
-    :documentation "The character linked to this client session."))
+    :documentation "A queue of lines that have been read in from the client."))
   (:documentation "Contains basic information about the current client like the connected socket,
 the client's IP address, last activity time, associated account (if any), and associated avatar (if 
 any). Also contains several slots that handle asynchronous client i/o."))
