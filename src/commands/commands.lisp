@@ -27,13 +27,20 @@
 ;;; Executor
 ;;;
 
+;; NOTE: I should probably make events be a lower-level thing in sykosomatic, so more things
+;;       can be handled through the event processor. This would be ideal, and elegant.
 (defun process-avatar-input (avatar input)
+  "Generates an event out of processed avatar input. Takes care of handling any conditions
+coming from the parser and/or binder."
   (handler-case
       (let ((payload (process-command avatar input)))
 	(make-event payload))
     (parser-error () (write-to-target avatar "parser error~%"))))
 
+;; FIXME: This does too much.
 (defun process-command (avatar input)
+  "Calls the parser on input, grabs a function out of the AST, presumably binds stuff,
+then proceeds to return a lambda it builds which will serve as a payload for an event."
   (let* ((ast (parse-string input))
 	 (function (bind-verb (verb ast))))
     (when (and ast function)
@@ -51,7 +58,7 @@
 	  ((string-equal verb-ending "y")
 	   (let ((verb (string-right-trim "y" verb))) ;NOTE: This murders verbs that end in yy...y.
 	     (concatenate 'string verb "ies")))
-	  (t 
+	  (t
 	   (concatenate 'string verb "s")))))
 
 ;;;
@@ -80,67 +87,55 @@
 	  (write-to-target avatar "~a" (desc current-room))))))
 
 ;;;
-;;; Utils
+;;; String Generation
 ;;;
+;;; NOTE: These should probably expect to be either more informed, or less informed.
+;;;       Meaning, it's possible that they might end up needing information from the binder.
+;;;       If not, then they should possibly be a little blinder than they are now and become
+;;;       more low-level tools for functions that -are- binder-aware.
 
-;;NOTE: This should probably go elsewhere.
-(defun write-to-others-in-room (caller format-string &rest format-args)
-  "Works like FORMAT, writing its arguments to everyone in CALLER's location, except to CALLER."
-  (when (location caller)
-    (let ((other-avatars (remove caller (get-avatars (location caller)))))
-     (loop for avatar in other-avatars
-	do (write-to-target avatar format-string format-args)))))
+(defun format-noun-group (noun-group)
+  "Takes a noun group and formats it in 'a, b, and c' form."
+  (when noun-group
+   (format nil "~{~#[~;~a~;~a and ~a~:;~@{~a~#[~;, and ~:;, ~]~}~]~}" (mapcar #'format-noun-phrase noun-group))))
 
-;;; string generation
 (defun format-noun-phrase (noun-phrase)
-  (when (noun (car noun-phrase))
-   (format nil "~{~#[~;~a~;~a and ~a~:;~@{~a~#[~;, and ~:;, ~]~}~]~}" (generate-names noun-phrase))))
-
-(defun generate-names (noun-phrase)
-  (mapcar #'noun noun-phrase))
+  "Converts a noun phrase into a proper adjectives+noun descriptor."
+  (noun noun-phrase))
 
 (defun format-for-caller (ast)
+  "Formats a sentence into its second-person form (for the caller)."
   (with-accessors ((verb verb) (dir-objs direct-objects) (ind-objs indirect-objects) 
 		   (preps prepositions) (advs adverbs) (chat chat-string))
       ast
     (format nil 
-	    "~@[~a, ~]You ~a~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[, \"~a\"~].~%" 
+	    "~@(~@[~a, ~]you~) ~a~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[, \"~a\"~].~%" 
 	    (first advs) verb (second advs)
-	    (first preps) (format-noun-phrase dir-objs)
+	    (first preps) (format-noun-group dir-objs)
 	    (third advs) (second preps)
-	    (format-noun-phrase ind-objs)
+	    (format-noun-group ind-objs)
 	    (fourth advs) chat)))
 
 (defun format-for-others-in-room (caller-name ast)
+  "Formats a sentence into its general third-person form."
   (with-accessors ((verb verb) (dir-objs direct-objects) (ind-objs indirect-objects) 
 		   (preps prepositions) (advs adverbs) (chat chat-string))
       ast
     (format nil
-	    "~@[~a, ~]~a ~a~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[, \"~a\"~].~%" 
+	    "~@(~@[~a, ~]~)~a ~a~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[, \"~a\"~].~%" 
 	    (first advs) caller-name (present-tense verb) (second advs)
-	    (first preps) (format-noun-phrase dir-objs)
+	    (first preps) (format-noun-group dir-objs)
 	    (third advs) (second preps)
-	    (format-noun-phrase ind-objs)
+	    (format-noun-group ind-objs)
 	    (fourth advs) chat)))
 
+;; TODO - right approach? Maybe not.
+(defun format-for-target (target-name ast)
+  "Formats a sentence so that the target-name is replaced with 'you' or 'your' or such. (uh oh)"
+  (format nil "foo"))
 
-;;; database
-(defun add-verb (string function)
-  "Associates STRING with FUNCTION and adds the new verb to *VERBS*"
-  (setf (gethash string *verbs*) function)
-  (save-vocabulary))
+;;;
+;;; Utils
+;;;
 
-(defun remove-verb (string)
-  "Removes the VERB that corresponds to STRING from *VERBS*"
-  (remhash string *verbs*)
-  (save-vocabulary))
-
-(defun refresh-verb (string function)
-  "Associates STRING with FUNCTION and adds it to *VERBS*,
-removing all previous associations with STRING"
-  (remove-verb string)
-  (add-verb string function)
-  (save-vocabulary))
-
-(defun add-emote (string)
-  (add-verb string #'game-action-emote))
+;; nil

@@ -110,5 +110,17 @@ a mixin to make regular items (or even avatars) into portals and such."))
     (setf (location object) room)
     (pushnew object (contents room) :test #'equal)))
 
+(defun write-to-others-in-room (caller format-string &rest format-args)
+  "Works like FORMAT, writing its arguments to everyone in CALLER's location, except to CALLER."
+  (when (location caller)
+    (let ((other-avatars (remove caller (get-avatars (location caller)))))
+     (loop for avatar in other-avatars
+	do (write-to-target avatar format-string format-args)))))
+
+(defun write-to-room (room format-string &rest format-args)
+  (let ((avatars (get-avatars room)))
+    (loop for avatar in avatars
+	 do (apply #'write-to-target avatar format-string format-args))))
+
 ;; Put something here that makes new exits.
 
