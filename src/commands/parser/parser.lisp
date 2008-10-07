@@ -96,29 +96,8 @@
 ;; Classes for AST
 
 ;; TODO
-(defmethod print-object ((sentence <sentence>) stream)
-  (print-unreadable-object (sentence stream :type t :identity t)
-    (format stream "~%verb: ~a" (verb sentence))
-    (when (direct-objects sentence)
-      (format stream "~%direct-objects: ~%")
-      (loop for noun-phrase in (direct-objects sentence)
-	   do (print-object noun-phrase stream)))
-    (when (indirect-objects sentence)
-      (format stream "~%indirect-objects: ~%")
-      (loop for noun-phrase in (indirect-objects sentence)
-	   do (print-object noun-phrase stream)))
-    (when (adverbs sentence)
-      (format stream "~%adverbs: ~a" (adverbs sentence)))
-    (when (prepositions sentence)
-      (format stream "~%prepositions: ~a" (prepositions sentence)))
-    (when (chat-string sentence)
-      (format stream "~%chat-string: ~a~%" (chat-string sentence)))))
 
-(defmethod print-object ((noun-phrase <noun-phrase>) stream)
-  (print-unreadable-object (noun-phrase stream :type t :identity t)
-    (format stream "~%   noun: ~a~%" (noun noun-phrase))
-    (format stream "   adjectives: ~a~%" (adjectives noun-phrase))
-    (format stream "   owns: ~a~%" (owns noun-phrase))))
+
 
 
 (defclass <sentence> ()
@@ -183,7 +162,9 @@
     :accessor owns
     :initarg :owns
     :initform nil)))
- 
+
+
+
 ;; AST Generation
 (defun parse-string (string)
     "Parses a STRING that was entered by AVATAR and returns an Abstract Syntax Tree"
@@ -351,9 +332,32 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
   (:report (lambda (condition stream)
 	     (format stream "~a" (text condition)))))
 
-(defun prompt-user ()
-  (format t "~~>")
-  (read-line))
+(defmethod print-object ((sentence <sentence>) stream)
+  "Prints out <sentence> objects in a more readable way. This should help
+with AST inspection a lot."
+  (print-unreadable-object (sentence stream :type t :identity t)
+    (format stream "~%verb: ~a" (verb sentence))
+    (when (direct-objects sentence)
+      (format stream "~%direct-objects: ~%")
+      (loop for noun-phrase in (direct-objects sentence)
+	   do (print-object noun-phrase stream)))
+    (when (indirect-objects sentence)
+      (format stream "~%indirect-objects: ~%")
+      (loop for noun-phrase in (indirect-objects sentence)
+	   do (print-object noun-phrase stream)))
+    (when (adverbs sentence)
+      (format stream "~%adverbs: ~a" (adverbs sentence)))
+    (when (prepositions sentence)
+      (format stream "~%prepositions: ~a" (prepositions sentence)))
+    (when (chat-string sentence)
+      (format stream "~%chat-string: ~a~%" (chat-string sentence)))))
+
+(defmethod print-object ((noun-phrase <noun-phrase>) stream)
+  "Prints out noun-phrases. Mainly for use within the method for <sentence>."
+  (print-unreadable-object (noun-phrase stream :type t :identity t)
+    (format stream "~%   noun: ~a~%" (noun noun-phrase))
+    (format stream "   adjectives: ~a~%" (adjectives noun-phrase))
+    (format stream "   owns: ~a~%" (owns noun-phrase))))
 
 (defun test-the-parser ()
   "Runs a loop that asks for avatar input and returns whatever gets parsed. Quits on 'quit'."
