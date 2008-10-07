@@ -7,11 +7,15 @@
     :maintainer "Kat Marchan <kzm@sykosomatic.org>"
     :description "SykoSoMaTIC Standard User Input Parser."
     :license "AGPL, see COPYING"
-    :depends-on (#:cl-ppcre #:bordeaux-threads)
+    :depends-on (#:org.sykosomatic.util #:cl-store
+		 #:cl-ppcre #:bordeaux-threads)
     :components
-    ((:module parser
+    ((:module src
 	      :serial t
 	      :components
-	      ((:file "packages")
-	       (:file "vocabulary")
-	       (:file "parser")))))
+	      ((:module parser
+			:serial t
+			:components
+			((:file "packages")
+			 (:file "vocabulary")
+			 (:file "parser")))))))

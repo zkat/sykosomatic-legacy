@@ -7,6 +7,7 @@
   (:export
 
    ;; vocabulary.lisp
+   :*vocab-directory*
    :*verbs*
    :*adverbs*
    :*articles*

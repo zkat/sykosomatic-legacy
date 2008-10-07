@@ -35,11 +35,9 @@
 (defvar *db-directory* (merge-pathnames #P"db/" *game-directory*)
   "Database directory.")
 
-(defvar *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*)
-  "Vocabulary directory")
+(setf *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*))
 
-(defvar *log-directory* (merge-pathnames #P"logs/" *game-directory*)
-  "Directory where log files are stored")
+(setf *log-directory* (merge-pathnames #P"logs/" *game-directory*))
 
 ;;; Server options
 
@@ -48,5 +46,5 @@
   "Room where avatars are dropped into by default")
 
 ;;; Main
-(defvar *main-client-function* #'(lambda (client) (login-menu client)))
+(setf *main-client-function* #'(lambda (client) (login-menu client)))
 

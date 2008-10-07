@@ -5,13 +5,22 @@
 (defpackage #:org.sykosomatic.util
   (:use :cl :bordeaux-threads)
   (:export
+
    ;; logger
    :*log-directory*
    :log-message
 
    ;; priority queue
-   ;; TODO
-
+   :make-priority-queue
+   :priority-queue-minimum
+   :priority-queue-extract-minimum
+   :priority-queue-insert
+   :priority-queue-empty-p
+   :priority-queue-remove
+   
    ;; queue
-   ;; TODO
-   ))
+   :make-empty-queue
+   :queue
+   :enqueue
+   :dequeue
+   :queue-empty-p))

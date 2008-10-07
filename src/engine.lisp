@@ -38,7 +38,7 @@
 (defun main-game-loop ()
   (process-event *main-event-queue*)
   (sleep 0.001)
-  (main-loop))
+  (main-game-loop))
 
 (defun shutdown-shared-hallucination ()
   (log-message :ENGINE "Stopping SykoSoMaTIC Core Engine.")

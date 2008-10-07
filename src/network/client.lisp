@@ -212,7 +212,7 @@ Assuming disconnection."))))
 
 (defun/cc client-main (client)
   "Main function to run clients through."
-  (funcall *main-function* client))
+  (funcall *main-client-function* client))
 
 (defun make-client-step-with-continuations (client function)
   "Wrap some CPS transformed function of one argument (client) handling client IO

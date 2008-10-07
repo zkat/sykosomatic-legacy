@@ -8,16 +8,15 @@
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, powerful text-based online game engine. Core engine."
   :license "AGPL, see COPYING"
-  :depends-on (#:org.sykosomatic.util #:org.sykosomatic.network 
-	       #:org.sykosomatic.parser #:org.sykosomatic.test
-	       #:cl-ppcre #:cl-store #:bordeaux-threads
-	       #:ironclad #:bknr.datastore #:bknr.indices)
+  :depends-on (#:cl-cont #:org.sykosomatic.util #:org.sykosomatic.network #:org.sykosomatic.parser 
+	       #:cl-ppcre #:cl-store  #:bordeaux-threads #:ironclad #:bknr.datastore #:bknr.indices)
   :components 
   ((:module src
 	    :serial t
 	    :components
 	    ((:file "packages")
 	     (:file "config")
+
 	     (:module objects
 		      :serial t
 		      :components

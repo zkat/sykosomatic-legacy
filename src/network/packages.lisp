@@ -3,7 +3,7 @@
 ;; This file is part of sykosomatic
 
 (defpackage #:org.sykosomatic.network
-  (:use :cl :cl-cont :bordeaux-threads :usocket)
+  (:use :cl :org.sykosomatic.util :cl-cont :bordeaux-threads :usocket)
   (:export
    
    ;; server.lisp
@@ -20,6 +20,7 @@
    :<client>
    :ip
    :last-active
+   :disconnect-client
    :remove-client
    :client-idle-time
    :client-disconnected-error
