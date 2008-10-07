@@ -31,7 +31,7 @@
     :initform "NoNameMobile"
     :index-type hash-index
     :index-initargs (:test #'equalp)
-    :index-reader mob-with-name
+    :index-reader mobs-with-name
     :index-values all-mobs)
    (species
     :update
@@ -43,6 +43,7 @@
    (killcount
     :update
     :initform 0
+    :accessor killcount
     :documentation "MURDER! DESTROY! BARSH!")
    (level
     :update
