@@ -94,6 +94,12 @@
 ;; -----------Where NOUN-PHRASE is (list-of-objects)
 
 ;; Classes for AST
+
+;; TODO
+
+
+
+
 (defclass <sentence> ()
   ((verb        
     :accessor verb
@@ -112,7 +118,7 @@
    (chat-string
     :accessor chat-string
     :initarg :chat-string
-    :initform nil
+    :initform nil 
     :type string)))
 
 (defmethod direct-objects ((sentence <sentence>))
@@ -156,7 +162,9 @@
     :accessor owns
     :initarg :owns
     :initform nil)))
- 
+
+
+
 ;; AST Generation
 (defun parse-string (string)
     "Parses a STRING that was entered by AVATAR and returns an Abstract Syntax Tree"
@@ -175,7 +183,8 @@
 	    (adverb-4 nil))	
 	(when (adverb-p (car token-list))
 	  (setf adverb-1 (pop token-list)))
-	(cond ((chat-string-p (car token-list))
+	(cond ((and (verb-p "say")
+		    (chat-string-p (car token-list)))
 	       (setf verb "say")
 	       (setf chat-string (remove-chat-string-tilde (pop token-list))))
 	      ((verb-p (car token-list))
@@ -232,17 +241,31 @@ phrases, joined by conjunctions) MULTIPLE RETURN VALUES: NOUN-GROUP and the
 REST of the TOKEN-LIST."
   (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
     (cond ((or (conjunction-p (car token-list))
-	       (string-equal "," (car token-list))) ;VERY NO
+	       (string-equal "," (car token-list)))
 	   (when (and (string-equal "," (car token-list)) ;BAD COMMA, BAD
 		      (conjunction-p (cadr token-list)))
 	     (pop token-list))
 	   (pop token-list)
-	   (when (conjunction-p (car token-list))
+	   (when (or (conjunction-p (car token-list))
+		     (string-equal "," (car token-list)))
 	     (error 'parser-error :text "Too many conjunctions."))
 	   (multiple-value-bind (other-noun-phrases token-list) (parse-noun-group token-list)
-	     (values (append (list noun-phrase) other-noun-phrases) token-list)))
+	     (if noun-phrase
+		 (values (append (list noun-phrase) other-noun-phrases) token-list)
+		 (values nil token-list))))
+	  
 	  (t
-	   (values (list noun-phrase) token-list)))))
+	   (if noun-phrase
+	       (values (list noun-phrase) token-list)
+	       (values nil token-list))))))
+
+(defun terminal-p (token)
+  (or (possessive-p token)
+      (preposition-p token)
+      (chat-string-p token)
+      (adverb-p token)
+      (null token)
+      (string-equal "," token)))
 
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
@@ -270,7 +293,8 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 		 (progn
 		   (loop until (or (possessive-p (car token-list))
 					;(possessive-p (cadr token-list))
-				   (conjunction-p (cadr token-list))
+				   (conjunction-p (cadr token-list))				   
+				   (string-equal "," (car token-list))
 				   (string-equal "," (cadr token-list)) ;COMMA BAD!
 				   (preposition-p (cadr token-list))
 				   (chat-string-p (cadr token-list))
@@ -283,7 +307,10 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 			 (multiple-value-setq (owns token-list)
 			   (parse-noun-phrase token-list)))
 		       (setf noun (pop token-list)))))))
-      (values noun-phrase token-list))))
+
+      (if noun
+	  (values noun-phrase token-list)
+	  (values nil token-list)))))
 
 ;;;
 ;;; Util
@@ -291,7 +318,7 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 
 (defun remove-chat-string-tilde (chat-string)
   "Gets rid of the damn tilde."
-  (cadr (cl-ppcre:split "'" chat-string)))
+  (cadr (cl-ppcre:split "'" chat-string :limit 2)))
 
 (defun extract-noun-from-possessive (word)
   "Nabs the actual noun out of a possessive."
@@ -305,9 +332,32 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
   (:report (lambda (condition stream)
 	     (format stream "~a" (text condition)))))
 
-(defun prompt-user ()
-  (format t "~~>")
-  (read-line))
+(defmethod print-object ((sentence <sentence>) stream)
+  "Prints out <sentence> objects in a more readable way. This should help
+with AST inspection a lot."
+  (print-unreadable-object (sentence stream :type t :identity t)
+    (format stream "~%verb: ~a" (verb sentence))
+    (when (direct-objects sentence)
+      (format stream "~%direct-objects: ~%")
+      (loop for noun-phrase in (direct-objects sentence)
+	   do (print-object noun-phrase stream)))
+    (when (indirect-objects sentence)
+      (format stream "~%indirect-objects: ~%")
+      (loop for noun-phrase in (indirect-objects sentence)
+	   do (print-object noun-phrase stream)))
+    (when (adverbs sentence)
+      (format stream "~%adverbs: ~a" (adverbs sentence)))
+    (when (prepositions sentence)
+      (format stream "~%prepositions: ~a" (prepositions sentence)))
+    (when (chat-string sentence)
+      (format stream "~%chat-string: ~a~%" (chat-string sentence)))))
+
+(defmethod print-object ((noun-phrase <noun-phrase>) stream)
+  "Prints out noun-phrases. Mainly for use within the method for <sentence>."
+  (print-unreadable-object (noun-phrase stream :type t :identity t)
+    (format stream "~%   noun: ~a~%" (noun noun-phrase))
+    (format stream "   adjectives: ~a~%" (adjectives noun-phrase))
+    (format stream "   owns: ~a~%" (owns noun-phrase))))
 
 (defun test-the-parser ()
   "Runs a loop that asks for avatar input and returns whatever gets parsed. Quits on 'quit'."

@@ -3,7 +3,7 @@
 (asdf:defsystem #:sykosomatic
   :name "SykoSoMaTIC"
   :author "Kat Marchan <kzm@sykosomatic.org>"
-  :version "nil"
+  :version "When it's done."
   :maintainer "Kat Marchan <kzm@sykosomatic.org>"
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, powerful text-based online game engine."
@@ -15,12 +15,12 @@
 	    :serial t
 	    :components
 	    ((:file "packages")
+	     (:file "config")
 
 	     (:module util
 		      :serial t
 		      :components
-		      ((:file "config")
-		       (:file "queue")
+		      ((:file "queue")
 		       (:file "priority-queue")
 		       (:file "xml-import")
 		       (:file "logger")))
