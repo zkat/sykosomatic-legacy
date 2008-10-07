@@ -89,6 +89,10 @@ then proceeds to return a lambda it builds which will serve as a payload for an 
 ;;;
 ;;; String Generation
 ;;;
+;;; NOTE: These should probably expect to be either more informed, or less informed.
+;;;       Meaning, it's possible that they might end up needing information from the binder.
+;;;       If not, then they should possibly be a little blinder than they are now and become
+;;;       more low-level tools for functions that -are- binder-aware.
 
 (defun format-noun-group (noun-group)
   "Takes a noun group and formats it in 'a, b, and c' form."
@@ -133,3 +137,5 @@ then proceeds to return a lambda it builds which will serve as a payload for an 
 ;;;
 ;;; Utils
 ;;;
+
+;; nil
