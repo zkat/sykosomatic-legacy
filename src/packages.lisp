@@ -111,4 +111,29 @@
    :avatar-p
    :get-avatars
    :initialize-avatar
-   :disconnect-avatar   ))
+   :disconnect-avatar   
+
+   ;; network module
+   ;; --------------
+
+   ;; server.lisp
+   :*server*
+   :start-server
+   :stop-server
+   :clients
+
+   ;;client.lisp
+   :<client>
+   :ip
+   :last-active
+   :account ; uh oh!
+   :avatar  ; hmm...
+   :remove-client
+   :client-idle-time
+   :client-disconnected-error
+   :read-line-from-client
+   :prompt-client
+   :client-y-or-n-p
+   :write-to-client
+   :write-to-all-clients
+   :client-main   ))
