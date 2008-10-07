@@ -20,7 +20,7 @@
 ;; Contains variables that hold the vocabulary. Also handles loading/saving.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :org.sykosomatic.parser)
+(in-package :sykosomatic.parser)
 
 (defvar *vocab-directory* (ensure-directories-exist 
 			   (merge-pathnames #P".sykosomatic/vocab/" 

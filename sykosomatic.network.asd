@@ -1,13 +1,13 @@
 ;; This file is part of sykosomatic
 
-(asdf:defsystem #:org.sykosomatic.network
+(asdf:defsystem #:sykosomatic.network
     :name "SykoSoMaTIC Network"
     :author "Kat Marchan <kzm@sykosomatic.org>"
     :version "1.0"
     :maintainer "Kat Marchan <kzm@sykosomatic.org>"
     :description "SykoSoMaTIC's standard server/client library."
     :license "AGPL, see COPYING"
-    :depends-on (#:org.sykosomatic.util #:usocket #:bordeaux-threads #:cl-cont)
+    :depends-on (#:sykosomatic.util #:usocket #:bordeaux-threads #:cl-cont)
     :components
     ((:module src
 	      :serial t

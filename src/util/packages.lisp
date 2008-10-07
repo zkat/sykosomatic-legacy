@@ -2,7 +2,7 @@
 
 ;; This file is part of sykosomatic
 
-(defpackage #:org.sykosomatic.util
+(defpackage #:sykosomatic.util
   (:use :cl :bordeaux-threads)
   (:export
 

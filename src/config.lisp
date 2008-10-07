@@ -22,24 +22,28 @@
 ;; to .sykosomatic, in the user's home directory.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :org.sykosomatic.core)
+(in-package :sykosomatic.core)
 
 ;;;
 ;;; Values
 ;;;
 
 ;;; Directories
-(defvar *game-directory* (merge-pathnames #P".sykosomatic/" (user-homedir-pathname))
+(defvar *game-directory* nil
   "Configures the base directory for the game.")
+(setf *game-directory* (merge-pathnames #P".sykosomatic/" (user-homedir-pathname)))
 
-(defvar *db-directory* (merge-pathnames #P"db/" *game-directory*)
+(defvar *db-directory* nil
   "Database directory.")
+(setf *db-directory* (merge-pathnames #P"db/" *game-directory*))
 
+(defvar *vocab-directory* nil
+  "Path to store vocabulary database in.")
 (setf *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*))
 
+(defvar *log-directory* nil
+  "Path to store logs in.")
 (setf *log-directory* (merge-pathnames #P"logs/" *game-directory*))
-
-;;; Server options
 
 ;;; Newbies
 (defvar *newbie-area* nil
