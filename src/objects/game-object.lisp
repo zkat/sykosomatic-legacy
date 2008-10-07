@@ -21,7 +21,7 @@
 ;; for dealing with objects.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :org.sykosomatic.core)
 
 ;;;
 ;;; Base Game Object

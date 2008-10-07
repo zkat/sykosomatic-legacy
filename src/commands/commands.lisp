@@ -21,7 +21,7 @@
 ;; functions, along with commands to execute them. Very nasty stuff.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :org.sykosomatic.core)
 
 ;;;
 ;;; Executor

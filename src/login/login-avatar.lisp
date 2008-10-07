@@ -20,7 +20,7 @@
 ;; Character creation, character management, character login, etc.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :org.sykosomatic.core)
 
 ;;;
 ;;; Character Selection
