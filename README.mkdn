@@ -21,7 +21,6 @@ Requirements
 * [bordeaux-threads][5]
 * [usocket][6]
 * [ironclad][7]
-* [xmls][8]
 * [fiveam][9]
 * [Steel Bank Common Lisp][10] >= 1.0.20
 * [Linux][11] x86, probably x64 (untested).
@@ -33,7 +32,6 @@ Requirements
   [5]: <http://common-lisp.net/project/bordeaux-threads/>
   [6]: <http://common-lisp.net/project/usocket/>
   [7]: <http://method-combination.net/lisp/ironclad/>
-  [8]: <http://common-lisp.net/project/xmls/>
   [9]: <http://common-lisp.net/project/bese/FiveAM.html>
   [10]: <http://www.sbcl.org/>
   [11]: <http://www.archlinux.org>
