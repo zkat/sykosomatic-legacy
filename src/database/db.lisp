@@ -29,7 +29,9 @@
   (load-vocabulary)
   (setf *main-event-queue* (make-priority-queue :key #'exec-time))
   (unless *newbie-area*
-    (setf *newbie-area* (create-newbie-area))))
+    (if (all-rooms)
+	(setf *newbie-area* (car (last (all-rooms))))
+	(setf *newbie-area* (create-newbie-area)))))
 
 (defun create-newbie-area ()
   (make-instance '<room> 
