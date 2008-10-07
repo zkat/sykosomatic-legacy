@@ -57,6 +57,7 @@
 ;;; Load/Save
 ;;;
 
+;; TODO: Clean these up. They suck.
 (defun save-vocabulary ()
   "Saves all the nice vocabulary words :)"
   (cl-store:store *verbs* (ensure-directories-exist (merge-pathnames #P"verbs.db" *vocab-directory*)))
@@ -82,6 +83,30 @@
   (setf *ordinal-numbers* (cl-store:restore (merge-pathnames #P"ordinal-numbers.db" *vocab-directory*)))
   (setf *plural-exceptions* (cl-store:restore (merge-pathnames #P"plural-exceptions.db" *vocab-directory*)))
   (format t "Vocabulary loaded."))
+
+;;;
+;;; Database Management
+;;;
+
+(defun add-verb (string function)
+  "Associates STRING with FUNCTION and adds the new verb to *VERBS*"
+  (setf (gethash string *verbs*) function)
+  (save-vocabulary))
+
+(defun remove-verb (string)
+  "Removes the VERB that corresponds to STRING from *VERBS*"
+  (remhash string *verbs*)
+  (save-vocabulary))
+
+(defun refresh-verb (string function)
+  "Associates STRING with FUNCTION and adds it to *VERBS*,
+removing all previous associations with STRING"
+  (remove-verb string)
+  (add-verb string function)
+  (save-vocabulary))
+
+(defun add-emote (string)
+  (add-verb string #'game-action-emote))
 
 ;;;
 ;;; Predicates
