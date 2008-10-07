@@ -22,7 +22,7 @@
 ;; main function (which runs in a thread). There's also some stress-test code at the bottom.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :org.sykosomatic.network)
 
 ;; Note: After much consideration, it turns out this is the best approach. Async i/o is too
 ;;       much trouble to bother with, and can cause a bunch of its own problems.

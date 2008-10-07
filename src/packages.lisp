@@ -16,8 +16,9 @@
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defpackage #:sykosomatic
-  (:use :cl :cl-cont :xmls :fiveam :bknr.datastore :bknr.indices)
+(defpackage #:org.sykosomatic.core
+  (:use :cl :org.sykosomatic.util :org.sykosomatic.network
+	:fiveam :bknr.datastore :bknr.indices)
   (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held)
   (:import-from :ironclad :byte-array-to-hex-string :digest-sequence :ascii-string-to-byte-array)
   (:export
@@ -32,9 +33,6 @@
    :*max-client-idle-time*
    :*newbie-area*
    :*main-function*
-
-   ;; logger.lisp
-   :log-message
 
    ;; objects module
    ;; --------------
@@ -112,26 +110,4 @@
    :get-avatars
    :initialize-avatar
    :disconnect-avatar   
-
-   ;; network module
-   ;; --------------
-
-   ;; server.lisp
-   :*server*
-   :start-server
-   :stop-server
-   :clients
-
-   ;;client.lisp
-   :<client>
-   :ip
-   :last-active
-   :remove-client
-   :client-idle-time
-   :client-disconnected-error
-   :read-line-from-client
-   :prompt-client
-   :client-y-or-n-p
-   :write-to-client
-   :write-to-all-clients
-   :client-main   ))
+))
