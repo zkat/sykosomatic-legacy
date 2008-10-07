@@ -1,4 +1,4 @@
-WARNING: May contain trace amounts of lisp.
+WARNING: May contain trace amounts of Lisp.
 ===========================================
 
 About
@@ -90,7 +90,7 @@ but you won't be able to do anything in the game until you have some
 verbs to work with. So let's make a simple emote (they don't do much
 yet)
 
-       (add-emote "smile")
+       (add-verb "smile" #'game-action-emote)
 
 That will give you a nice emote to play with. Anyone who logs on and
 pops into the Closet should be able to see the proper version of it
@@ -109,9 +109,13 @@ Telnet clients can connect with
 
        telnet <address> <port>
 
+If you're running it locally with the defaults:
+
+       telnet localhost 4000
+
 and the engine can currently handle all the garbage telnet likes
-sending (I think).  The current function in the client loop echoes
-back the whatever it receives from the user.
+sending (I think, please tell me if I'm wrong).  The current function
+in the client loop echoes back the whatever it receives from the user.
 
 You can prompt a client for input, but since the netcode uses
 continuations, you'll have to
@@ -120,7 +124,7 @@ continuations, you'll have to
 
 anything that uses prompt-client, and toss the input into a variable
 that you can check out afterward. You can't just have it output
-straight into the repl.
+straight into the REPL.
 
 Logs are all tossed into ~/.sykosomatic/logs/server.log right
 now.
