@@ -1,6 +1,6 @@
 ;; This file is part of sykosomatic
 
-(asdf:defsystem #:org.sykosomatic.util
+(asdf:defsystem #:sykosomatic.util
     :name "SykoSoMaTIC Utilities"
     :author "Kat Marchan <kzm@sykosomatic.org>"
     :version "1.0"

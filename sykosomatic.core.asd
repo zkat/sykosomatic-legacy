@@ -1,6 +1,6 @@
 ;; This file is part of sykosomatic
 
-(asdf:defsystem #:org.sykosomatic.core
+(asdf:defsystem #:sykosomatic.core
   :name "SykoSoMaTIC"
   :author "Kat Marchan <kzm@sykosomatic.org>"
   :version "When it's done."
@@ -8,7 +8,7 @@
   :description "Sykopomp's Somewhat Masterful Text in Console"
   :long-description "A heavily-extensible, simple, powerful text-based online game engine. Core engine."
   :license "AGPL, see COPYING"
-  :depends-on (#:cl-cont #:org.sykosomatic.util #:org.sykosomatic.network #:org.sykosomatic.parser 
+  :depends-on (#:cl-cont #:sykosomatic.util #:sykosomatic.network #:sykosomatic.parser 
 	       #:cl-ppcre #:cl-store  #:bordeaux-threads #:ironclad #:bknr.datastore #:bknr.indices)
   :components 
   ((:module src
