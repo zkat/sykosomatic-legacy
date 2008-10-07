@@ -20,7 +20,7 @@
 ;; Stuff related to mobiles, and everything that subclasses <mobile>
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :org.sykosomatic.core)
 
 ;;;
 ;;; Mobile class

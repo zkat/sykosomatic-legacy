@@ -20,7 +20,7 @@
 ;; Takes care of binding the various parts of the AST to their corresponding objects.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :org.sykosomatic.core)
 
 ;;;
 ;;; Binder

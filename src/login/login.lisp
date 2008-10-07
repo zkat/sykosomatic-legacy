@@ -20,7 +20,7 @@
 ;; Functions and other tools that deal with logging in and out.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :org.sykosomatic.core)
 
 ;;;
 ;;; Account Login
