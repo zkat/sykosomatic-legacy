@@ -21,7 +21,7 @@
 ;; setting of exits, getting of information about contents of room, etc.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic.core)
+(in-package :sykosomatic.object)
 
 ;;;
 ;;; Room-related classes
