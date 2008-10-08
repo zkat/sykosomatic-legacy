@@ -148,9 +148,9 @@
     :initarg :noun
     :initform nil
     :type string)
-   (adjectives 
-    :accessor adjectives
-    :initarg :adjectives
+   (descriptors 
+    :accessor descriptors
+    :initarg :descriptors
     :initform nil
     :type list)
    (owns
@@ -268,7 +268,7 @@ REST of the TOKEN-LIST."
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
   (let ((noun-phrase (make-instance '<noun-phrase>)))
     (with-accessors ((noun noun)
-		     (adjs adjectives)
+		     (adjs descriptors)
 		     (owns owns)) noun-phrase
       (cond ((or (preposition-p (car token-list))
 		 (null (car token-list))
@@ -352,7 +352,7 @@ with AST inspection a lot."
   "Prints out noun-phrases. Mainly for use within the method for <sentence>."
   (print-unreadable-object (noun-phrase stream :type t :identity t)
     (format stream "~%   noun: ~a~%" (noun noun-phrase))
-    (format stream "   adjectives: ~a~%" (adjectives noun-phrase))
+    (format stream "   descriptors: ~a~%" (descriptors noun-phrase))
     (format stream "   owns: ~a~%" (owns noun-phrase))))
 
 (defun test-the-parser ()
