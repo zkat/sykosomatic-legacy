@@ -190,7 +190,7 @@
 	(cond ((and (verb-p "say")
 		    (chat-string-p (car token-list)))
 	       (setf verb "say")
-	       (setf chat-string (remove-chat-string-tilde (pop token-list))))
+	       (setf chat-string (prepare-chat-string (pop token-list))))
 	      ((verb-p (car token-list))
 	       (setf verb (pop token-list))
 	       (multiple-value-setq 
@@ -199,7 +199,7 @@
 		 (when (adverb-p (car token-list))
 		   (setf adverb-4 (pop token-list)))
 		 (when (chat-string-p (car token-list))
-		   (setf chat-string (remove-chat-string-tilde (pop token-list))))
+		   (setf chat-string (prepare-chat-string (pop token-list))))
 		 (when token-list
 		   (error 'parser-error 
 			  :text "Input failed to parse (stuff left after finishing parse)."))))
@@ -331,6 +331,15 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 ;;;
 ;;; Util
 ;;;
+
+(defun last-char (string)
+  (elt string (1- (length string))))
+
+(defun prepare-chat-string (chat-string)
+  (let ((string (remove-chat-string-tilde chat-string)))
+    (if (char-equal #\" (last-char string))
+	(subseq string 0 (1- (length string)))
+	string)))
 
 (defun remove-chat-string-tilde (chat-string)
   "Gets rid of the damn tilde."

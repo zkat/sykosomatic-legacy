@@ -84,5 +84,3 @@
       (pushnew (make-instance '<avatar> :name name :account account :last-location *newbie-area*) 
 	       (avatars account)))
     (write-to-client client "~&Generic character created~%~%")))
-
-
