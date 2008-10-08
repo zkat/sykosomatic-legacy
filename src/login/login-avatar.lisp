@@ -81,7 +81,7 @@
 (defun/cc create-avatar (client account)
   (let ((name (prompt-client client "~&Name your character: ")))
     (with-transaction ()
-      (pushnew (make-instance '<avatar> :name name :account account) 
+      (pushnew (make-instance '<avatar> :name name :account account :last-location *newbie-area*) 
 	       (avatars account)))
     (write-to-client client "~&Generic character created~%~%")))
 
