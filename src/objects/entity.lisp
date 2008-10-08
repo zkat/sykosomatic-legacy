@@ -22,7 +22,7 @@
 ;; One special characteristic of entities is that they are meant to be contents of rooms.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic.core)
+(in-package :sykosomatic.object)
 
 ;;;
 ;;; Entity class
