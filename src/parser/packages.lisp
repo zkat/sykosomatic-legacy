@@ -39,7 +39,7 @@
    :indirect-objects
    :prepositions
    :noun
-   :adjectives
+   :descriptors
    :owns
    :parser-error
    :print-object))

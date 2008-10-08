@@ -3,8 +3,8 @@
 ;; This file is part of sykosomatic
 
 (defpackage #:sykosomatic.core
-  (:use :cl :sykosomatic.util :sykosomatic.network :cl-cont
-	:sykosomatic.parser :bknr.datastore :bknr.indices)
+  (:use :cl :sykosomatic.util :sykosomatic.network :cl-cont  :bknr.indices
+	:sykosomatic.parser :sykosomatic.object :bknr.datastore)
   (:import-from :bordeaux-threads :make-thread :destroy-thread :all-threads :with-lock-held)
   (:import-from :ironclad :byte-array-to-hex-string :digest-sequence :ascii-string-to-byte-array)
   (:export

@@ -15,7 +15,8 @@
 	    ((:module objects
 		      :serial t
 		      :components
-		      ((:file "game-object")
+		      ((:file "packages")
+		       (:file "game-object")
 		       (:file "room")
 		       (:file "entity")
 		       (:file "mobile")
