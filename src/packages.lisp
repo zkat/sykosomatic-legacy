@@ -23,6 +23,16 @@
    :*max-client-idle-time*
    :*newbie-area*
    :*main-client-function*
+   
+   ;; engine.lisp
+   :begin-shared-hallucination
+   :shutdown-shared-hallucination
+
+   ;; database module
+   ;; ---------------
+   ;;
+   ;; db.lisp
+   :init-database
 
    ;; login module
    ;; ------------
