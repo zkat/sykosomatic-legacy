@@ -90,8 +90,7 @@ a mobile. This is what avatars will inhabit."))
 
 (defun initialize-avatar (avatar)
   (if (last-location avatar)
-      (put-object-in-room avatar (last-location avatar))
-      (put-object-in-room avatar *newbie-area*)))
+      (put-object-in-room avatar (last-location avatar))))
 
 (defun disconnect-avatar (avatar)
   "Disconnects the given avatar from the game."
