@@ -22,9 +22,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic.parser)
 
-(defvar *vocab-directory* (ensure-directories-exist 
-			   (merge-pathnames #P".sykosomatic/vocab/" 
-					    (user-homedir-pathname)))
+(defvar *vocab-directory* (merge-pathnames #P".sykosomatic/vocab/" (user-homedir-pathname))
   "Vocabulary directory")
 
 ;;;
