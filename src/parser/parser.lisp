@@ -158,7 +158,10 @@
     :initarg :owns
     :initform nil)))
 
-;; AST Generation
+;;;
+;;; AST Generation
+;;;
+
 (defun parse-string (string)
     "Parses a STRING that was entered by AVATAR and returns an Abstract Syntax Tree"
     (parse-sentence (string->token-list string)))
@@ -299,8 +302,8 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 			 (setf noun (extract-noun-from-possessive (pop token-list)))
 			 (multiple-value-setq (owns token-list)
 			   (parse-noun-phrase token-list)))
-		       (setf noun (pop token-list)))))))
-
+		       (when (not (terminal-p (car token-list)))
+			 (setf noun (pop token-list))))))))
       (if noun
 	  (values noun-phrase token-list)
 	  (values nil token-list)))))
