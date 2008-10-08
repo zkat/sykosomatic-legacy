@@ -107,6 +107,7 @@ removing all previous associations with STRING"
   (remove-verb string)
   (add-verb string function))
 
+
 ;;;
 ;;; Predicates
 ;;;
@@ -177,4 +178,3 @@ This function checks for the full-word version, as well as the plain number vers
       (multiple-value-bind (integer stop) (parse-integer word :junk-allowed t)
 	(and (numberp integer)
 	     (= (length (subseq word stop)) 0)))))
-
