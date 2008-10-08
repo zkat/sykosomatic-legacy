@@ -153,6 +153,14 @@
     :initarg :descriptors
     :initform nil
     :type list)
+   (amount
+    :accessor amount
+    :initarg :amount
+    :initform nil)
+   (cardinality
+    :accessor cardinality
+    :initarg :cardinality
+    :initform 1)
    (owns
     :accessor owns
     :initarg :owns
@@ -263,12 +271,20 @@ REST of the TOKEN-LIST."
       (null token)
       (string-equal "," token)))
 
+;; TODO: This is a massive function, forks all over the place. Cut it up and make it more readable.
+;; noun-phrase =  pronoun
+;; noun-phrase =/ [article] [cardinal] [adjective] noun
+;; noun-phrase =/ [article] [ordinal] [adjective] \
+;;                (noun / possessive noun-phrase)
+
 (defun parse-noun-phrase (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
 MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
   (let ((noun-phrase (make-instance '<noun-phrase>)))
     (with-accessors ((noun noun)
 		     (adjs descriptors)
+		     (amount amount)
+		     (cardinality cardinality)
 		     (owns owns)) noun-phrase
       (cond ((or (preposition-p (car token-list))
 		 (null (car token-list))
@@ -281,12 +297,16 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 	     (when (article-p (car token-list))
 	       (push (pop token-list) adjs))
 	     (if (cardinal-number-p (car token-list))
-		 (progn 
+		 ;; if it's a cardinal number, there's no ordinal
+		 (progn
+		   (setf amount (extract-number (pop token-list)))
 		   (loop until (or (preposition-p (cadr token-list))
 				   (null (cadr token-list)))
 		      do (push (pop token-list) adjs)
 		      finally (setf noun (pop token-list))))
 		 (progn
+		   (when (ordinal-number-p (car token-list))
+		     (setf cardinality (extract-number (pop token-list))))
 		   (loop until (or (possessive-p (car token-list))
 					;(possessive-p (cadr token-list))
 				   (conjunction-p (cadr token-list))				   
@@ -315,6 +335,11 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
 (defun remove-chat-string-tilde (chat-string)
   "Gets rid of the damn tilde."
   (cadr (cl-ppcre:split "'" chat-string :limit 2)))
+
+(defun extract-number (word)
+  (or (gethash word *cardinal-numbers*)
+      (gethash word *ordinal-numbers*)
+      (parse-integer word :junk-allowed t)))
 
 (defun extract-noun-from-possessive (word)
   "Nabs the actual noun out of a possessive."
@@ -353,11 +378,13 @@ with AST inspection a lot."
   (print-unreadable-object (noun-phrase stream :type t :identity t)
     (format stream "~%   noun: ~a~%" (noun noun-phrase))
     (format stream "   descriptors: ~a~%" (descriptors noun-phrase))
+    (format stream "   amount: ~d~%" (amount noun-phrase))
+    (format stream "   cardinality: ~d~%" (cardinality noun-phrase))
     (format stream "   owns: ~a~%" (owns noun-phrase))))
 
 (defun test-the-parser ()
   "Runs a loop that asks for avatar input and returns whatever gets parsed. Quits on 'quit'."
-  (let ((current-input (prompt-user)))
+  (let ((current-input (read-line)))
     (if (string-equal current-input "quit")
 	(format t "Bye bye!")
 	(progn
