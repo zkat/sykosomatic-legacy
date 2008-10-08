@@ -95,20 +95,17 @@
 
 (defun add-verb (string function)
   "Associates STRING with FUNCTION and adds the new verb to *VERBS*"
-  (setf (gethash string *verbs*) function)
-  (save-vocabulary))
+  (setf (gethash string *verbs*) function))
 
 (defun remove-verb (string)
   "Removes the VERB that corresponds to STRING from *VERBS*"
-  (remhash string *verbs*)
-  (save-vocabulary))
+  (remhash string *verbs*))
 
 (defun refresh-verb (string function)
   "Associates STRING with FUNCTION and adds it to *VERBS*,
 removing all previous associations with STRING"
   (remove-verb string)
-  (add-verb string function)
-  (save-vocabulary))
+  (add-verb string function))
 
 ;;;
 ;;; Predicates
