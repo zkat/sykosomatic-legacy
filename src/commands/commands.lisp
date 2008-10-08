@@ -109,7 +109,7 @@ then proceeds to return a lambda it builds which will serve as a payload for an 
 		   (preps prepositions) (advs adverbs) (chat chat-string))
       ast
     (format nil 
-	    "~@(~@[~a, ~]you~) ~a~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[, \"~a\"~].~%" 
+	    "~@(~@[~a, ~]you~) ~a~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[, \"~a\"~]~%" 
 	    (first advs) verb (second advs)
 	    (first preps) (format-noun-group dir-objs)
 	    (third advs) (second preps)
@@ -122,7 +122,7 @@ then proceeds to return a lambda it builds which will serve as a payload for an 
 		   (preps prepositions) (advs adverbs) (chat chat-string))
       ast
     (format nil
-	    "~@(~@[~a, ~]~)~a ~a~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[, \"~a\"~].~%" 
+	    "~@[~@(~a~), ~]~a ~a~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[ ~a~]~@[, \"~a\"~]~%"
 	    (first advs) caller-name (present-tense verb) (second advs)
 	    (first preps) (format-noun-group dir-objs)
 	    (third advs) (second preps)
