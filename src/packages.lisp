@@ -18,7 +18,10 @@
    :*default-server-port*
    :*max-client-idle-time*
    :*newbie-area*
-   :*main-function*
+   :*main-client-function*
+
+   ;; login module
+   ;; ------------
 
    ;; objects module
    ;; --------------

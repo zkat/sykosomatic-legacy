@@ -19,6 +19,7 @@
    :*plural-exceptions*
    :save-vocabulary
    :load-vocabulary
+
    ;db management
    :add-verb
    :remove-verb
@@ -30,5 +31,15 @@
    :<sentence>
    :<noun-clause>
    :<noun-phrase>
+   :verb
+   :noun-clause
+   :adverbs
+   :chat-string
+   :direct-objects
+   :indirect-objects
+   :prepositions
+   :noun
+   :adjectives
+   :owns
    :parser-error
    :print-object))

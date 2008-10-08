@@ -44,8 +44,9 @@
 	     (initialize-avatar avatar)
 	     (avatar-main-loop avatar)))
 	  ((string-equal choice "b")
-	   (account-menu client))
+	   (account-menu client account))
 	  ((string-equal choice "q")
+	   (write-to-client client "~%Goodbye!~%")
 	   (disconnect-client client))
 	  ((string-equal choice "n")
 	   (create-avatar client account)
@@ -76,9 +77,9 @@
 ;;;
 ;;; Character Creation
 ;;;
-(defun/cc create-avatar (client)
-  (let ((name (prompt-client client "~&Name your character: "))
-	(account (account client)))
+
+(defun/cc create-avatar (client account)
+  (let ((name (prompt-client client "~&Name your character: ")))
     (with-transaction ()
       (pushnew (make-instance '<avatar> :name name :account account) 
 	       (avatars account)))
