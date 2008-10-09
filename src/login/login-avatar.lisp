@@ -40,9 +40,7 @@
 	   (let* ((number-choice (read-from-string choice))
 		  (avatar (unless (> number-choice (length (avatars account))) 
 			    (elt (avatars account) (1- number-choice)))))
-	     (setf (client avatar) client)
-	     (initialize-avatar avatar)
-	     (avatar-main-loop avatar)))
+	     (possess-avatar client avatar)))
 	  ((string-equal choice "b")
 	   (account-menu client account))
 	  ((string-equal choice "q")
@@ -63,7 +61,11 @@
        for i from 1
        do (write-to-client client "~d. ~a~%" i (name avatar)))))
 
-;; temp
+;; temp? I don't know what to do with this
+(defun possess-avatar (client avatar)
+  "Drops a user into an avatar."
+  (avatar-main-loop (initialize-avatar client avatar)))
+
 (defun/cc avatar-main-loop (avatar)
   (loop
    (handle-avatar-input avatar)))
@@ -77,7 +79,6 @@
 ;;;
 ;;; Character Creation
 ;;;
-
 (defun/cc create-avatar (client account)
   (let ((name (prompt-client client "~&Name your character: ")))
     (with-transaction ()
