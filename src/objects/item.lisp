@@ -20,7 +20,7 @@
 ;; Stuff related to items.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :sykosomatic.object)
 
 ;;;
 ;;; Item class

@@ -20,7 +20,7 @@
 ;; Functions and other tools that deal with logging in and out.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :sykosomatic.core)
 
 ;;;
 ;;; Account Login
@@ -45,7 +45,14 @@
 	  (t
 	   (write-to-client client "~&Invalid choice. Try again.")))))
 
-(defun/cc account-menu (client)
+(defun/cc login-client (client)
+  "Logs a user into their account"
+  (let ((account (validate-login client (prompt-username client))))
+    (when account
+      (register-client-ip-with-account (ip client) account)
+      (account-menu client account))))
+
+(defun/cc account-menu (client account)
   "Simple selection menu that new clients once they've logged into an account."
   (write-to-client client "~&Choose your destiny: ~%")
   (write-to-client client "-----------------------~%")
@@ -53,18 +60,10 @@
   (write-to-client client "-----------------------~%~%")
   (let ((choice (prompt-client client "Your choice: ")))
     (cond ((equal choice "1")
-	   (choose-avatar client))
+	   (choose-avatar client account))
 	  (t
 	   (write-to-client client "~&Invalid choice.")
-	   (account-menu client)))))
-
-(defun/cc login-client (client)
-  "Logs a user into their account"
-  (let ((account (validate-login client (prompt-username client))))
-    (when account
-      (setf (account client) account)
-      (register-client-ip-with-account (ip client) account)
-      (account-menu client))))
+	   (account-menu client account)))))
 
 (defun/cc validate-login (client account)
   "Prompts the user for a password, and validates the login."
@@ -72,8 +71,8 @@
     (if (equal (hash-password password) (password account))
 	account
 	(validate-login client account))))
-(defun/cc prompt-username (client)
 
+(defun/cc prompt-username (client &key (attempt 0))
   "Prompts a client for a username, returns a valid account."
   (let* ((account-name (prompt-client client "~%Username: "))
 	 (account (account-with-name account-name)))
@@ -81,15 +80,15 @@
 	account
 	(progn
 	  (write-to-client client "~&Invalid username, please try again.")
-	  (prompt-username client)))))
+	  (prompt-username client :attempt (1+ attempt))))))
 
 ;;;
 ;;; Utilities
 ;;;
 
-(defun print-available-avatars (client)
+(defun print-available-avatars (client account)
   "Prints a list of available avatars."
-  (let ((avatars (avatars (account client))))
+  (let ((avatars (reverse (avatars account))))
     (write-to-client client "~%Characters:~%-----------~%~%")
     (loop for avatar in avatars
        do (write-to-client client "~&~a~&" (name avatar)))))

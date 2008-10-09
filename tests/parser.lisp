@@ -14,8 +14,8 @@
 
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
-
-(in-package #:sykosomatic)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(in-package :org.sykosomatic.test)
 
 (def-suite parser)
 
@@ -71,7 +71,7 @@
 	     "get"))
   (is (equal (noun (car (direct-objects (noun-clause (parse-string "get the flask")))))
 	     "flask"))
-  (is (equal (car (adjectives (car (direct-objects (noun-clause (parse-string "get the flask"))))))
+  (is (equal (car (descriptors (car (direct-objects (noun-clause (parse-string "get the flask"))))))
 	     "the"))
   ;; Preposition tests
   (is (equal (verb (parse-string "get the flask with my bar"))
@@ -80,7 +80,7 @@
 	     '(NIL "with")))
   (is (equal (prepositions (noun-clause (parse-string "get at the flask with my bar")))
 	     '("at" "with")))
-  (is (equal (adjectives (car (direct-objects (noun-clause (parse-string "get the at flask with bar")))))
+  (is (equal (descriptors (car (direct-objects (noun-clause (parse-string "get the at flask with bar")))))
 	     '("at" "the")))
   (signals parser-error (parse-string "get at the flask with with my bar"))
   (signals parser-error (parse-string "get the flask on the table with my hands"))

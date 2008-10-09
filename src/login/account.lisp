@@ -22,7 +22,7 @@
 ;; file also contains the functions that handle user login, account creation, and account management.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :sykosomatic.core)
 
 ;;;
 ;;; Account class

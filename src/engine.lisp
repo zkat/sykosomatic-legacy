@@ -20,7 +20,7 @@
 ;; Main file in sykosomatic. Contains the main loop.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :sykosomatic.core)
 
 (defvar *main-thread*)
 ;;;
@@ -33,12 +33,12 @@
   (setf *main-thread*
 	(bordeaux-threads:make-thread 
 	 #'(lambda ()
-	     (main-loop)) :name "sykosomatic-main-thread")))
+	     (main-game-loop)) :name "sykosomatic-main-thread")))
 
-(defun main-loop ()
+(defun main-game-loop ()
   (process-event *main-event-queue*)
   (sleep 0.001)
-  (main-loop))
+  (main-game-loop))
 
 (defun shutdown-shared-hallucination ()
   (log-message :ENGINE "Stopping SykoSoMaTIC Core Engine.")
