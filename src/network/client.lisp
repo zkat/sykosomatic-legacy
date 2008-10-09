@@ -22,7 +22,7 @@
 ;; main function (which runs in a thread). There's also some stress-test code at the bottom.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :sykosomatic.network)
 
 ;; Note: After much consideration, it turns out this is the best approach. Async i/o is too
 ;;       much trouble to bother with, and can cause a bunch of its own problems.
@@ -60,17 +60,7 @@
    (read-lines
     :initform (make-empty-queue)
     :accessor read-lines
-    :documentation "A queue of lines that have been read in from the client.")
-   (account
-    :initarg :account
-    :accessor account
-    :initform nil
-    :documentation "The account associated with this session.")
-   (avatar
-    :initarg :avatar
-    :accessor avatar
-    :initform nil
-    :documentation "The character linked to this client session."))
+    :documentation "A queue of lines that have been read in from the client."))
   (:documentation "Contains basic information about the current client like the connected socket,
 the client's IP address, last activity time, associated account (if any), and associated avatar (if 
 any). Also contains several slots that handle asynchronous client i/o."))
@@ -222,7 +212,7 @@ Assuming disconnection."))))
 
 (defun/cc client-main (client)
   "Main function to run clients through."
-  (funcall *main-function* client))
+  (funcall *main-client-function* client))
 
 (defun make-client-step-with-continuations (client function)
   "Wrap some CPS transformed function of one argument (client) handling client IO

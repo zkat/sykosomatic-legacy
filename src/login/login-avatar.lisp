@@ -20,53 +20,52 @@
 ;; Character creation, character management, character login, etc.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :sykosomatic.core)
 
 ;;;
 ;;; Character Selection
 ;;;
 
-(defun/cc choose-avatar (client)
-  (with-accessors ((account account))
-      client
-    (write-to-client client "~&Choose a character: ~%")
-    (write-to-client client "---------------------~%")
-    (write-avatar-list client)
-    (write-to-client client "---------------------~%")
-    (write-to-client client "[N]ew character~%")
-    (write-to-client client "---------------------~%")
-    (write-to-client client "[B]ack~%")
-    (write-to-client client "[Q]uit~%")
-    (let ((choice (prompt-client client "Your choice: ")))
-      (cond ((numberp (read-from-string choice))
-	     (let* ((number-choice (read-from-string choice))
-		    (avatar (unless (> number-choice (length (avatars account))) 
-			      (elt (avatars account) (1- number-choice)))))
-	       (setf (client avatar) client)
-	       (setf (avatar client) avatar)
-	       (initialize-avatar avatar)
-	       (avatar-main-loop avatar)))
-	    ((string-equal choice "b")
-	     (account-menu client))
-	    ((string-equal choice "q")
-	     (disconnect-client client))
-	    ((string-equal choice "n")
-	     (create-avatar client)
-	     (choose-avatar client))
-	    (t
-	     (write-to-client client "~&Invalid choice, try again.~%")
-	     (choose-avatar client))))))
+(defun/cc choose-avatar (client account)
+  (write-to-client client "~&Choose a character: ~%")
+  (write-to-client client "---------------------~%")
+  (write-avatar-list client account)
+  (write-to-client client "---------------------~%")
+  (write-to-client client "[N]ew character~%")
+  (write-to-client client "---------------------~%")
+  (write-to-client client "[B]ack~%")
+  (write-to-client client "[Q]uit~%")
+  (let ((choice (prompt-client client "Your choice: ")))
+    (cond ((numberp (read-from-string choice))
+	   (let* ((number-choice (read-from-string choice))
+		  (avatar (unless (> number-choice (length (avatars account))) 
+			    (elt (avatars account) (1- number-choice)))))
+	     (possess-avatar client avatar)))
+	  ((string-equal choice "b")
+	   (account-menu client account))
+	  ((string-equal choice "q")
+	   (write-to-client client "~%Goodbye!~%")
+	   (disconnect-client client))
+	  ((string-equal choice "n")
+	   (create-avatar client account)
+	   (choose-avatar client account))
+	  (t
+	   (write-to-client client "~&Invalid choice, try again.~%")
+	   (choose-avatar client account)))))
 
-(defun write-avatar-list (client)
+(defun write-avatar-list (client account)
   "Writes the avatar list to account"
-  (let* ((account (account client))
-	 (avatar-list (avatars account)))
+  (let ((avatar-list (avatars account)))
     (loop 
        for avatar in avatar-list
        for i from 1
        do (write-to-client client "~d. ~a~%" i (name avatar)))))
 
-;; temp
+;; temp? I don't know what to do with this
+(defun possess-avatar (client avatar)
+  "Drops a user into an avatar."
+  (avatar-main-loop (initialize-avatar client avatar)))
+
 (defun/cc avatar-main-loop (avatar)
   (loop
    (handle-avatar-input avatar)))
@@ -80,12 +79,9 @@
 ;;;
 ;;; Character Creation
 ;;;
-(defun/cc create-avatar (client)
-  (let ((name (prompt-client client "~&Name your character: "))
-	(account (account client)))
+(defun/cc create-avatar (client account)
+  (let ((name (prompt-client client "~&Name your character: ")))
     (with-transaction ()
-      (pushnew (make-instance '<avatar> :name name :account account) 
+      (pushnew (make-instance '<avatar> :name name :account account :last-location *newbie-area*) 
 	       (avatars account)))
     (write-to-client client "~&Generic character created~%~%")))
-
-

@@ -20,7 +20,7 @@
 ;; Holds the <avatar> class. Some management functions exist, too, but those could be moved out.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :sykosomatic.object)
 
 ;;;
 ;;; Avatar class
@@ -71,6 +71,9 @@ a mobile. This is what avatars will inhabit."))
 ;;; Avatar functions
 ;;;
 
+(defun avatar-in-world-p (avatar)
+  (location avatar))
+
 (defmethod remove-object-from-room ((avatar <avatar>))
   "Removes avatar from its current location"
   (let ((room (location avatar)))
@@ -84,19 +87,23 @@ a mobile. This is what avatars will inhabit."))
   "Sends output to a avatar."
   (handler-case
       (let ((avatar-client (client avatar)))
-	(apply #'write-to-client avatar-client format-string format-args))
+	(when avatar-client
+	 (apply #'write-to-client avatar-client format-string format-args)))
     (client-disconnected-error ()
       (disconnect-avatar avatar))))
 
-(defun initialize-avatar (avatar)
-  (if (last-location avatar)
-      (put-object-in-room avatar (last-location avatar))
-      (put-object-in-room avatar *newbie-area*)))
+(defun initialize-avatar (client avatar)
+  (when (last-location avatar)
+    (when (avatar-in-world-p avatar)
+      (disconnect-avatar avatar))
+    (put-object-in-room avatar (last-location avatar)))
+  (setf (client avatar) client)
+  avatar)
 
 (defun disconnect-avatar (avatar)
   "Disconnects the given avatar from the game."
   (let ((avatar-room (location avatar)))
     (remove-object-from-room avatar)
-    (write-to-room avatar-room "~&OOC - ~a has disconnected~&" (name avatar))
     (when (client avatar)
-      (disconnect-client (client avatar)))))
+      (disconnect-client (client avatar)))
+    (write-to-room avatar-room "~&OOC - ~a has disconnected~&" (name avatar))))

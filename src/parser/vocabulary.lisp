@@ -20,7 +20,10 @@
 ;; Contains variables that hold the vocabulary. Also handles loading/saving.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :sykosomatic.parser)
+
+(defvar *vocab-directory* (merge-pathnames #P".sykosomatic/vocab/" (user-homedir-pathname))
+  "Vocabulary directory")
 
 ;;;
 ;;; Vocab vars
@@ -90,23 +93,18 @@
 
 (defun add-verb (string function)
   "Associates STRING with FUNCTION and adds the new verb to *VERBS*"
-  (setf (gethash string *verbs*) function)
-  (save-vocabulary))
+  (setf (gethash string *verbs*) function))
 
 (defun remove-verb (string)
   "Removes the VERB that corresponds to STRING from *VERBS*"
-  (remhash string *verbs*)
-  (save-vocabulary))
+  (remhash string *verbs*))
 
 (defun refresh-verb (string function)
   "Associates STRING with FUNCTION and adds it to *VERBS*,
 removing all previous associations with STRING"
   (remove-verb string)
-  (add-verb string function)
-  (save-vocabulary))
+  (add-verb string function))
 
-(defun add-emote (string)
-  (add-verb string #'game-action-emote))
 
 ;;;
 ;;; Predicates
@@ -141,6 +139,10 @@ removing all previous associations with STRING"
   "Is WORD in possessive form?
 This function checks for s' or 's form of possessives in English."
   (or (string-equal word "my")
+      (string-equal word "his")
+      (string-equal word "her")
+      (string-equal word "its")
+      (string-equal word "their")
       (when (> (length word) 2)
 	(let ((second-to-last-letter (elt word(- (length word) 2)))
 	      (last-letter (elt word (- (length word) 1))))
@@ -158,16 +160,19 @@ This function checks for s' or 's form of possessives in English."
   "Is WORD an ORDINAL NUMBER?
 This function checks for the full-word version,
 as well as number+th/st/nd/rd form."
-  (gethash word *ordinal-numbers*))
+  (or (gethash word *ordinal-numbers*)
+      (multiple-value-bind (integer stop) (parse-integer word :junk-allowed t) 	
+	(and (numberp integer)
+	     (or 
+	      (string-equal (subseq word stop) "st")
+	      (string-equal (subseq word stop) "nd")
+	      (string-equal (subseq word stop) "rd")
+	      (string-equal (subseq word stop) "th"))))))
 
 (defun cardinal-number-p (word)
   "Is WORD a CARDINAL NUMBER?
 This function checks for the full-word version, as well as the plain number version."
-  (gethash word *cardinal-numbers*))
-
-;; TODO
-(defun plural-p (word)
-  "Is WORD in plural form?
-This function checks both standard pluralization (WORD+s), plus a database of irregular verbs."
-  word)
-
+  (or (gethash word *cardinal-numbers*)
+      (multiple-value-bind (integer stop) (parse-integer word :junk-allowed t)
+	(and (numberp integer)
+	     (= (length (subseq word stop)) 0)))))

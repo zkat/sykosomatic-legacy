@@ -21,7 +21,18 @@
 ;; Also has the start-server and stop-server functions, and supporting functions for those.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :sykosomatic.network)
+
+;;;
+;;; Server configuration
+;;;
+(defvar *default-server-address* "0.0.0.0")
+(defvar *default-server-port* 4000)
+(defvar *max-client-idle-time* (* 60 20)
+  "How many seconds is a client allowed to idle before they're disconnected by the server?")
+
+(defvar *main-client-function* #'(lambda (client) (client-echo-loop client))
+  "Main function to run on clients when connected.")
 
 ;;;
 ;;; Server class

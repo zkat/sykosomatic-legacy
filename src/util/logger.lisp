@@ -21,11 +21,15 @@
 ;; to a log file in *log-directory*.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :sykosomatic.util)
 
 ;;;
 ;;; Logging facility
 ;;;
+(defvar *log-directory* (ensure-directories-exist
+			 (merge-pathnames #P".sykosomatic/logs"
+					  (user-homedir-pathname))))
+
 (defvar *log-lock* (bordeaux-threads:make-lock))
 
 (defun log-message (type format-string &rest format-args)

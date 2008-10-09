@@ -1,4 +1,4 @@
-(in-package #:sykosomatic)
+(in-package :org.sykosomatic.test)
 
 (run! 'account)
 (run! 'parser)

@@ -21,7 +21,7 @@
 ;; stuff related to the event queue, refer to event-queue.lisp
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package #:sykosomatic)
+(in-package :sykosomatic.core)
 
 (defvar *main-event-queue* nil)
 ;;;

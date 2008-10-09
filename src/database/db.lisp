@@ -21,12 +21,13 @@
 ;; Does stuff with the main game db.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :sykosomatic.core)
 
 (defun init-database ()
   (make-instance 'mp-store :directory *db-directory*
 		 :subsystems (list (make-instance 'store-object-subsystem)))
   (load-vocabulary)
+  ;;wtf is this doing here?
   (setf *main-event-queue* (make-priority-queue :key #'exec-time))
   (unless *newbie-area*
     (if (all-rooms)

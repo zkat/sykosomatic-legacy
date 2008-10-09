@@ -22,34 +22,33 @@
 ;; to .sykosomatic, in the user's home directory.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(in-package :sykosomatic)
+(in-package :sykosomatic.core)
 
 ;;;
 ;;; Values
 ;;;
 
 ;;; Directories
-(defvar *game-directory* (merge-pathnames #P".sykosomatic/" (user-homedir-pathname))
+(defvar *game-directory* nil
   "Configures the base directory for the game.")
+(setf *game-directory* (merge-pathnames #P".sykosomatic/" (user-homedir-pathname)))
 
-(defvar *db-directory* (merge-pathnames #P"db/" *game-directory*)
+(defvar *db-directory* nil
   "Database directory.")
+(setf *db-directory* (merge-pathnames #P"db/" *game-directory*))
 
-(defvar *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*)
-  "Vocabulary directory")
+(defvar *vocab-directory* nil
+  "Path to store vocabulary database in.")
+(setf *vocab-directory* (merge-pathnames #P"vocab/" *game-directory*))
 
-(defvar *log-directory* (merge-pathnames #P"logs/" *game-directory*)
-  "Directory where log files are stored")
-
-;;; Server options
-(defvar *default-server-address* "0.0.0.0")
-(defvar *default-server-port* 4000)
-(defvar *max-client-idle-time* (* 60 20)
-  "How many seconds is a client allowed to idle before they're disconnected by the server?")
+(defvar *log-directory* nil
+  "Path to store logs in.")
+(setf *log-directory* (merge-pathnames #P"logs/" *game-directory*))
 
 ;;; Newbies
 (defvar *newbie-area* nil
   "Room where avatars are dropped into by default")
 
 ;;; Main
-(defvar *main-function* #'(lambda (client) (login-menu client)))
+(setf *main-client-function* #'(lambda (client) (login-menu client)))
+
