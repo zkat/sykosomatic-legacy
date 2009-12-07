@@ -30,11 +30,16 @@
 *** Presentation
     Like Lisp systems of old, the output text representing objects should link back to the objects
     themselves. Players should be able to perform basic functions by simply clicking on these names,
-    such as looking/examining, or performing basic verbs on them (possibly prioritized by object type).
+    such as looking/examining, or performing basic verbs on them (possibly prioritized by object
+    type). It might also be neat to eventually make it so players can drag and drop these names from
+    the screen text into their inventories, or similar stuff.
+*** Graphical inspection
+    Rooms and their contents, inventories and containers, maps, mailings, etc, should have a special
+    panel that users can go to. These panels should essentially wrap the parser functions, but give
+    a much nicer interface than having to constantly pass commands.
 ** Other clients should be possible, but not a priority
    There should be flexibility in the code that allows eventually adding standalone clients or even
    telnet.
-
 * Development interface
 ** Verbs
    Verbs should multi-dispatch on some important primary values, as well as provide the full, bound
@@ -53,3 +58,7 @@
    presentation system. There should be a panel on the side that gives devs an editor box where they
    can enter verb definitions. They should also be able to examine and alter objects from a
    graphical interface (instead of having to find and change them through the repl)
+
+* Modularity
+  Web server should be separate from core Sykosomatic engine. Sykosomatic should provide a modular
+  interface for having stuff connect to it and provide clients through it.
