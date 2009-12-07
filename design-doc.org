@@ -1,0 +1,30 @@
+* Security
+** Permission System
+   There should be at least two levels of wizard, or something along the lines. Providing
+   a roles/acl system would be even better, but basic permissions are passable.
+** "Reasonable sandboxing"
+*** Limited Lisp
+    Non-super-wizards should only have access to a limited subset of lisp, and only certain packages
+    (if they even have access to the package system at all).
+*** Memory usage
+    If possible, Sykosomatic should hook into CCL or SBCL to prevent individual users from using too
+    much memory.
+*** Jail
+    Sykosomatic itself should be run in a limited jail, just in case.
+*** Runaway processes
+    There should be a nanny thread that prevents a particular event from running for longer than X seconds.
+* Persistence
+  Sykosomatic should be a fully-persistent system. 
+** Game objects
+   Objects and their state should be fully-preserved. A second or so, though, may be considered an
+   acceptable loss in the case of a crash.   
+** Game events
+   If game is shut down while events are still in the queue, those events
+   should be executed normally as if time had simply skipped forward.
+* Interface
+  Sykosomatic's primary interface will be a web client.
+** Client should be prettiful and user-friendly.
+** Other clients should be possible, but not a priority
+   There should be flexibility in the code that allows eventually adding standalone clients or even
+   telnet.
+
