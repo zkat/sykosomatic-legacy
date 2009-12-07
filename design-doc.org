@@ -18,13 +18,38 @@
 ** Game objects
    Objects and their state should be fully-preserved. A second or so, though, may be considered an
    acceptable loss in the case of a crash.   
+** Verbs
+   Verbs should be persisted. They should make sure to preserve any information necessary to
+   properly re-run them even after the image is restarted.
 ** Game events
    If game is shut down while events are still in the queue, those events
    should be executed normally as if time had simply skipped forward.
-* Interface
+* Player Interface
   Sykosomatic's primary interface will be a web client.
 ** Client should be prettiful and user-friendly.
+*** Presentation
+    Like Lisp systems of old, the output text representing objects should link back to the objects
+    themselves. Players should be able to perform basic functions by simply clicking on these names,
+    such as looking/examining, or performing basic verbs on them (possibly prioritized by object type).
 ** Other clients should be possible, but not a priority
    There should be flexibility in the code that allows eventually adding standalone clients or even
    telnet.
 
+* Development interface
+** Verbs
+   Verbs should multi-dispatch on some important primary values, as well as provide the full, bound
+   AST that it's supposed to be dispatching on.
+
+   Defining a verb on the lisp side should define a message along the lines of:
+   (defmessage verb (name actor direct-object indirect-object adverb abstract-syntax-tree))
+   or
+   (defmessage verbname (actor direct-object indirect-object adverb abstract-syntax-tree))
+** REPL
+   Devs should be able to toggle a "repl mode" in the regular game interpreter, which will allow
+   devs to input straight-up lisp code. It should be possible to fully develop everything through
+   this mode, even if it's not the most convenient for everything.
+** Graphical
+   Additionally, a graphical interface for development should be provided that hooks into the
+   presentation system. There should be a panel on the side that gives devs an editor box where they
+   can enter verb definitions. They should also be able to examine and alter objects from a
+   graphical interface (instead of having to find and change them through the repl)
