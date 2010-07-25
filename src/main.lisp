@@ -83,13 +83,27 @@ which the associated engine can then handle."))
     (setf (socket server) socket)))
 
 (defmethod teardown ((server tcp-service-provider))
-  (with-accessors ((clients clients) (event-base event-base))
+  (with-accessors ((clients clients) (event-base event-base)
+                   (socket socket))
       server
     (map nil (rcurry #'disconnect :close) clients)
     (when event-base
       (close event-base)
       (setf event-base nil))
-    (close (socket server))))
+    (when socket
+      (close socket)
+      (setf socket nil))))
+
+(defgeneric dispatch-events (service-provider)
+  (:method ((sp tcp-service-provider))
+    (handler-case
+        (iolib:event-dispatch (event-base sp) :timeout 0)
+      (iolib:socket-connection-reset-error ()
+        (format t "Unexpected connection reset.~%"))
+      (iolib:hangup ()
+        (format t "Unexpected hangup.~%"))
+      (end-of-file ()
+        (format t "Unexpected EOF.~%")))))
 
 (defmethod update ((server tcp-service-provider))
   (dispatch-events server))
