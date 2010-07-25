@@ -106,7 +106,26 @@ which the associated engine can then handle."))
         (format t "Unexpected EOF.~%")))))
 
 (defmethod update ((server tcp-service-provider))
-  (dispatch-events server))
+  (dispatch-events server)
+  (loop for client in (clients server)
+     for line = (read-line-from-client client)
+     when line do (print line) (write-to-client client line)))
+
+(defun make-queue ()
+  (cons nil nil))
+
+(defun enqueue (obj q)
+  (if (null (car q))
+      (setf (cdr q) (setf (car q) (list obj)))
+      (setf (cdr (cdr q)) (list obj)
+            (cdr q) (cdr (cdr q))))
+  (car q))
+
+(defun dequeue (q)
+  (pop (car q)))
+
+(defun queue-empty-p (queue)
+  (null (car queue)))
 
 (defclass client ()
   ((socket :accessor socket :initarg :socket
@@ -118,8 +137,9 @@ which the associated engine can then handle."))
    (max-buffer-bytes :reader max-buffer-bytes :initarg :max-buffer-bytes :initform 16384)
    (input-buffer :accessor input-buffer)
    (input-buffer-fill :initform 0 :accessor input-buffer-fill)
-   (output-buffer :accessor output-buffer)
-   (output-buffer-fill :initform 0 :accessor output-buffer-fill)))
+   (output-buffer-queue :accessor output-buffer-queue :initform (make-queue))
+   (output-buffer :accessor output-buffer :initform nil)
+   (output-byte-count :accessor output-byte-count :initform 0)))
 
 (defmethod initialize-instance :after ((client client) &key)
   (multiple-value-bind (ip port)
@@ -127,9 +147,7 @@ which the associated engine can then handle."))
     (setf (ip-address client) ip
           (port client) port
           (input-buffer client) (make-array (max-buffer-bytes client)
-                                            :element-type '(unsigned-byte 8))
-          (output-buffer client) (make-array (max-buffer-bytes client)
-                                             :element-type '(unsigned-byte 8)))))
+                                            :element-type '(unsigned-byte 8)))))
 
 (defmethod print-object ((client client) s)
   (print-unreadable-object (client s :type t :identity t)
@@ -154,9 +172,8 @@ which the associated engine can then handle."))
       (deletef (clients (service-provider client))
                client))))
 
-(defun make-listener-function (server)
-  (lambda (fd event exception)
-    (declare (ignorable fd event exception))
+(defgeneric on-client-connection (server)
+  (:method ((server tcp-service-provider))
     (let ((client-socket (iolib:accept-connection (socket server))))
       (when client-socket
         (let ((client (make-instance 'client
@@ -173,9 +190,13 @@ which the associated engine can then handle."))
                                  :write
                                  (make-writer-function client)))))))
 
-(defun make-reader-function (client)
-  (lambda (fd event exception)
-    (declare (ignorable fd event exception))
+(defun make-listener-function (server)
+  (lambda (&rest _)
+    (declare (ignore _))
+    (on-client-connection server)))
+
+(defgeneric on-read (client)
+  (:method ((client client))
     (handler-case
         (let* ((buffer (input-buffer client))
                (bytes-read
@@ -197,40 +218,67 @@ which the associated engine can then handle."))
         (finish-output)
         (disconnect client :close)))))
 
-(defun make-writer-function (client)
-  (lambda (fd event exception)
-    (declare (ignorable fd event exception))
-    (unless (zerop (output-buffer-fill client))
-      (handler-case
-          (let* ((buffer (output-buffer client))
-                 (bytes-written (iolib:send-to (socket client) buffer
-                                               :start (output-buffer-fill client)
-                                               :end (1- (max-buffer-bytes client)))))
-            (decf (output-buffer-fill client) bytes-written))
-        (iolib:socket-connection-reset-error ()
-          (format t "Got a reset from client.~%")
-          (finish-output)
-          (disconnect client :close))
-        (isys:ewouldblock ()
-          (format t "Got an EWOULDBLOCK.~%")
-          (finish-output))
-        (isys:epipe ()
-          (format t "Got a hangup on write.~%")
-          (disconnect client :close))))))
+(defun make-reader-function (client)
+  (lambda (&rest _)
+    (declare (ignore _))
+    (on-read client)))
 
-(defgeneric dispatch-events (service-provider)
-  (:method ((sp tcp-service-provider))
+(defun output-buffer-full-p (client)
+  (with-slots (output-buffer-start output-buffer-end)
+      client
+    (cond ((= output-buffer-start output-buffer-end)
+           nil)
+          ((= output-buffer-end (1- output-buffer-start))))))
+
+(defgeneric on-write (client)
+  (:method ((client client))
     (handler-case
-        (iolib:event-dispatch (event-base sp) :timeout 0)
+        (progn
+          (when (and (not (output-buffer client))
+                     (not (queue-empty-p (output-buffer-queue client))))
+            (setf (output-buffer client) (dequeue (output-buffer-queue client))))
+          (when (output-buffer client)
+            (let* ((buffer (output-buffer client))
+                   (bytes-written (iolib:send-to (socket client) buffer
+                                                 :start 0
+                                                 :end (length buffer))))
+              (incf (output-byte-count client)
+                    bytes-written)
+              (when (= (output-byte-count client)
+                       (length buffer))
+                (setf (output-buffer client) nil
+                      (output-byte-count client) 0)))))
       (iolib:socket-connection-reset-error ()
-        (format t "Unexpected connection reset.~%"))
-      (iolib:hangup ()
-        (format t "Unexpected hangup.~%"))
-      (end-of-file ()
-        (format t "Unexpected EOF.~%")))))
+        (format t "Got a reset from client.~%")
+        (finish-output)
+        (disconnect client :close))
+      (isys:ewouldblock ()
+        (format t "Got an EWOULDBLOCK.~%")
+        (finish-output))
+      (isys:epipe ()
+        (format t "Got a hangup on write.~%")
+        (disconnect client :close)))))
 
-;; TODO
-(defgeneric write-to-client (client data))
-(defgeneric read-from-client (client))
+(defun make-writer-function (client)
+  (lambda (&rest _)
+    (declare (ignore _))
+    (on-write client)))
 
+(defgeneric write-to-client (client data)
+  (:method ((client client) (data string))
+    (let ((array (make-array (length data) :element-type '(unsigned-byte 8))))
+      (enqueue (map-into array #'char-code data)
+               (output-buffer-queue client)))))
 
+(defgeneric read-line-from-client (client)
+  (:method ((client client))
+    (let ((buffer (input-buffer client))
+          (buffer-fill (input-buffer-fill client)))
+      (when (and (plusp buffer-fill)
+                 (find #\newline buffer :end buffer-fill :key #'code-char))
+        (let ((string (make-string buffer-fill)))
+          (loop for code across buffer
+             for i below buffer-fill
+             do (setf (aref string i) (code-char code)))
+          (setf (input-buffer-fill client) 0)
+          string)))))
