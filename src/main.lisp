@@ -26,12 +26,28 @@
 (defgeneric init (obj))
 (defgeneric teardown (obj))
 (defgeneric update (obj))
+(defgeneric run (obj))
 
 (defclass engine ()
-  ((service-providers :initform nil :accessor service-providers))
+  ((service-providers :initform nil :accessor service-providers
+                      :initarg :providers))
   (:documentation
    "The engine handles all the core logic and interactions. It communicates with
 its service-providers through events."))
+
+(defmethod init ((engine engine))
+  (map nil #'init (service-providers engine)))
+(defmethod teardown ((engine engine))
+  (map nil #'teardown (service-providers engine)))
+(defmethod update ((engine engine))
+  (map nil #'update (service-providers engine)))
+
+(defmethod run ((engine engine))
+  (unwind-protect
+       (progn
+         (init engine)
+         (loop (update engine)))
+    (teardown engine)))
 
 (defclass service-provider ()
   ()
