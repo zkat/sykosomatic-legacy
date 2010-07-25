@@ -60,10 +60,11 @@ which the associated engine can then handle."))
 ;;; TCP service
 ;;;
 (defclass tcp-service-provider (service-provider)
-  ((event-base :accessor event-base :initarg :event-base)
+  ((event-base :initform nil :accessor event-base :initarg :event-base)
+   (listen-ip :initform iolib:+ipv4-unspecified+ :accessor listen-ip)
    (port :initform 9999 :accessor port :initarg :port)
    (clients :initform nil :accessor clients)
-   (socket :accessor socket)))
+   (socket :initform nil :accessor socket)))
 
 (defmethod init ((server tcp-service-provider))
   (setf (clients server) nil
@@ -72,7 +73,7 @@ which the associated engine can then handle."))
                                    :address-family :internet
                                    :type :stream
                                    :ipv6 nil)))
-    (iolib:bind-address socket iolib:+ipv4-unspecified+
+    (iolib:bind-address socket (listen-ip server)
                         :port (port server))
     (iolib:listen-on socket :backlog 5)
     (iolib:set-io-handler (event-base server)
