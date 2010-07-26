@@ -10,5 +10,8 @@
   ((module "src"
            :serial t
            :components
-           ((:file "main")))))
+           ((:file "packages")
+            (:file "engine")
+            (:file "tcp-service-provider")))))
+
 
