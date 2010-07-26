@@ -1,0 +1,110 @@
+* Goals for ILGE 2010
+  I should have a fairly simple MUD. This includes basic character creation, moving between rooms,
+  basic mechanics, and a parser.
+
+  My goal is to have a basic telnet/socket-based MUD where a few people can log on, roleplay some
+  duels to the deas, and log out. They should be able to return to their characters later. Any changes
+  to the world they do should be persisted if the server goes down.
+** Specific features
+*** Fancy Parser
+    A fancy, English-like parser should be implemented. The parser should not simply accept
+    <command> <target1> <target2>. The following examples should work:
+**** amusedly grin at <target>
+     Just a basic roleplay command, with a target.
+**** cough loudly at <target>'s <feature>
+     Another roleplay command, but now referring to a feature of <target>
+**** hug <target> bearishly
+     This should trigger an 'approach' action.
+**** punch <target>
+     This should trigger an approach, then a combat roll.
+**** harmlessly punch <target>
+     This should trigger an approach, but not a combat action.
+**** chat with <target> "So, how was your day?"
+     A simple roleplaying action with a speech part.
+*** DONE Telnet
+    Users should be able to connect to the MUD by telnetting to a hostname+port. Any special
+    characters should be ignored by the game for now, and no special formatting/coloring is to be
+    done.
+*** Accounts
+    Users, upon connection, should be prompted to either log in, or create an account. Accounts
+    should hold some basic information about the user, such as a username, and the hash of their
+    password. They will also hold references to the bodies players can inhabit (their characters).
+*** Character creation
+    Upon login, users should be able to create a character. Character creation should ask for some
+    basic characteristics for the (human) character to be created. Once character creation is done,
+    it should take the user back to the character-selection screen.
+*** Rooms
+    Several rooms should be created. It should be possible for players to move within and between
+    rooms. The first should be achieved through a basic 'proxy' system where a game object can be
+    marked as 'close' to a certain object. The latter should use standard MUD movement commands
+    (north, south, east, west, and combinations thereof). Players should only be able to move
+    between rooms if there are open doors that lead from one to the other.
+*** Persistence
+    All game objects should be persisted. Reloading the game after a shutdown should bring the whole
+    world back to its pre-shutdown state. Player-controlled characters are an exception to this --
+    they will be removed from the world until the player returns.
+
+*** Combat
+    Players should be able to roleplay duels using language that makes it look like regular
+    roleplaying. For example:
+
+    > punch gerard
+    You swing your fist to punch Gerard!
+    <combat roll is performed by game>
+    Your fist connects squarely with Gerard's jaw!
+    Gerard staggers.
+    > guard my face.
+    You raise your fists to protect your face.
+    Gerard takes a swing at you!
+    Gerard's blow impacts your stomach, taking your breath away.
+    You lower your guard.
+    > cough
+    You cough.
+    Gerard swings his wooden bat at you!
+    > close my eyes
+    You close your eyes.
+    Gerard's bat crushes your face!
+    You collapse to the floor.
+    > kick gerard
+    You are unconscious.
+    Gerard pokes you with his bat.
+    > "I lose!"
+    You gurgle incoherently.
+    Gerard grins, "Serves you right."
+
+    Each player should have relatively little HP. The game should be oriented more towards
+    'realistic' roleplaying, so it should be fairly easy to knock someone out. To make things a
+    little less deadly, though, it should be hard to actually _die_. Things like a coup de grace
+    should work here, as well as massive amounts of extra damage.
+    
+    What sort of damage system should this use? Maybe a Shadowrun-like system? Something simpler
+    should suffice for this toy MUD.
+*** Seeing the world.
+    You can look at what's in a room. You can look at features of the room. You can look at other
+    game objects, and features of those game objects.
+    Descriptions should be generated to look like English. Freeform description for rooms and
+    objects should be allowed.
+*** Interacting with the world.
+    Players should be able to target verbs (with adverbs) at specific items within their
+    scope. Objects and their features (and those features' features) should be targetable for
+    actions. Targeting should happen purely through the English-like parser. There should be some
+    standard pronouns to make targeting easier, such as 'my', 'myself', 'him', 'her', and
+    'it'. Objects should also be mass-targettable through appropriate plurals ('things', 'gems',
+    'weapons', 'swords')
+
+    For example:
+    > look at myself
+    A handsome-looking fellow!
+    > look at my things.
+    You see a stick, a pouch, and a hat.
+    > look at my weapons.
+    You see a stick.
+    > Look at her.
+    Who are you talking about?
+    > Look at Diane.
+    You see a handsome-looking fellow!
+    > smile at her.
+    You smile at Diane.
+    > get gems from table.
+    You approach a table.
+    You get 5 gems from a table.

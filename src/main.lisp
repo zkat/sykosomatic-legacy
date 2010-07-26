@@ -122,7 +122,7 @@ which the associated engine can then handle."))
       (deletef (clients (service-provider client))
                client))))
 
-(defgeneric on-read (client)
+(defgeneric on-client-read (client)
   (:method ((client client))
     (handler-case
         (let* ((buffer (input-buffer client))
@@ -145,7 +145,7 @@ which the associated engine can then handle."))
         (finish-output)
         (disconnect client :close)))))
 
-(defgeneric on-write (client)
+(defgeneric on-client-write (client)
   (:method ((client client))
     (handler-case
         (progn
@@ -247,13 +247,13 @@ which the associated engine can then handle."))
                                  :read
                                  (lambda (&rest rest)
                                    (declare (ignore rest))
-                                   (on-read client)))
+                                   (on-client-read client)))
           (iolib:set-io-handler (event-base server)
                                  (iolib:socket-os-fd client-socket)
                                  :write
                                  (lambda (&rest rest)
                                    (declare (ignore rest))
-                                   (on-write client))))))))
+                                   (on-client-write client))))))))
 
 (defgeneric dispatch-events (service-provider)
   (:method ((sp tcp-service-provider))
