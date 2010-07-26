@@ -52,67 +52,14 @@ its service-providers through events."))
 (defclass service-provider ()
   ()
   (:documentation
-   "Service providers handle users. They translate user interactions into events, 
+   "Service providers handle users. They translate user interactions into events,
 which the associated engine can then handle."))
 
-
 ;;;
-;;; TCP service
+;;; TCP Clients
 ;;;
-(defclass tcp-service-provider (service-provider)
-  ((event-base :initform nil :accessor event-base :initarg :event-base)
-   (listen-ip :initform iolib:+ipv4-unspecified+ :accessor listen-ip)
-   (port :initform 9999 :accessor port :initarg :port)
-   (clients :initform nil :accessor clients)
-   (socket :initform nil :accessor socket)))
 
-(defmethod init ((server tcp-service-provider))
-  (setf (clients server) nil
-        (event-base server) (make-instance 'iolib:event-base))
-  (let ((socket (iolib:make-socket :connect :passive
-                                   :address-family :internet
-                                   :type :stream
-                                   :ipv6 nil)))
-    (iolib:bind-address socket (listen-ip server)
-                        :port (port server))
-    (iolib:listen-on socket :backlog 5)
-    (iolib:set-io-handler (event-base server)
-                          (iolib:socket-os-fd socket)
-                          :read
-                          (lambda (&rest rest)
-                            (declare (ignore rest))
-                            (on-client-connection server)))
-    (setf (socket server) socket)))
-
-(defmethod teardown ((server tcp-service-provider))
-  (with-accessors ((clients clients) (event-base event-base)
-                   (socket socket))
-      server
-    (map nil (rcurry #'disconnect :close) clients)
-    (when event-base
-      (close event-base)
-      (setf event-base nil))
-    (when socket
-      (close socket)
-      (setf socket nil))))
-
-(defgeneric dispatch-events (service-provider)
-  (:method ((sp tcp-service-provider))
-    (handler-case
-        (iolib:event-dispatch (event-base sp) :timeout 0)
-      (iolib:socket-connection-reset-error ()
-        (format t "Unexpected connection reset.~%"))
-      (iolib:hangup ()
-        (format t "Unexpected hangup.~%"))
-      (end-of-file ()
-        (format t "Unexpected EOF.~%")))))
-
-(defmethod update ((server tcp-service-provider))
-  (dispatch-events server)
-  (loop for client in (clients server)
-     for line = (read-line-from-client client)
-     when line do (print line) (write-to-client client line)))
-
+;; A small queue impl...
 (defun make-queue ()
   (cons nil nil))
 
@@ -129,6 +76,7 @@ which the associated engine can then handle."))
 (defun queue-empty-p (queue)
   (null (car queue)))
 
+;; The juicy stuff.
 (defclass client ()
   ((socket :accessor socket :initarg :socket
            :initform (error "Must provide a socket for this client."))
@@ -174,28 +122,6 @@ which the associated engine can then handle."))
       (deletef (clients (service-provider client))
                client))))
 
-(defgeneric on-client-connection (server)
-  (:method ((server tcp-service-provider))
-    (let ((client-socket (iolib:accept-connection (socket server))))
-      (when client-socket
-        (let ((client (make-instance 'client
-                                     :socket client-socket
-                                     :provider server)))
-          (format t "~A Connected.~%" client)
-          (push client (clients server))
-          (iolib:set-io-handler (event-base server)
-                                 (iolib:socket-os-fd client-socket)
-                                 :read
-                                 (lambda (&rest rest)
-                                   (declare (ignore rest))
-                                   (on-read client)))
-          (iolib:set-io-handler (event-base server)
-                                 (iolib:socket-os-fd client-socket)
-                                 :write
-                                 (lambda (&rest rest)
-                                   (declare (ignore rest))
-                                   (on-write client))))))))
-
 (defgeneric on-read (client)
   (:method ((client client))
     (handler-case
@@ -218,13 +144,6 @@ which the associated engine can then handle."))
         (format t "Received unexpected EOF from client.~%")
         (finish-output)
         (disconnect client :close)))))
-
-(defun output-buffer-full-p (client)
-  (with-slots (output-buffer-start output-buffer-end)
-      client
-    (cond ((= output-buffer-start output-buffer-end)
-           nil)
-          ((= output-buffer-end (1- output-buffer-start))))))
 
 (defgeneric on-write (client)
   (:method ((client client))
@@ -273,3 +192,82 @@ which the associated engine can then handle."))
              do (setf (aref string i) (code-char code)))
           (setf (input-buffer-fill client) 0)
           string)))))
+
+;;;
+;;; TCP service
+;;;
+(defclass tcp-service-provider (service-provider)
+  ((event-base :initform nil :accessor event-base :initarg :event-base)
+   (listen-ip :initform iolib:+ipv4-unspecified+ :accessor listen-ip)
+   (port :initform 9999 :accessor port :initarg :port)
+   (clients :initform nil :accessor clients)
+   (socket :initform nil :accessor socket)))
+
+(defmethod init ((server tcp-service-provider))
+  (setf (clients server) nil
+        (event-base server) (make-instance 'iolib:event-base))
+  (let ((socket (iolib:make-socket :connect :passive
+                                   :address-family :internet
+                                   :type :stream
+                                   :ipv6 nil)))
+    (iolib:bind-address socket (listen-ip server)
+                        :port (port server))
+    (iolib:listen-on socket :backlog 5)
+    (iolib:set-io-handler (event-base server)
+                          (iolib:socket-os-fd socket)
+                          :read
+                          (lambda (&rest rest)
+                            (declare (ignore rest))
+                            (on-client-connection server)))
+    (setf (socket server) socket)))
+
+(defmethod teardown ((server tcp-service-provider))
+  (with-accessors ((clients clients) (event-base event-base)
+                   (socket socket))
+      server
+    (map nil (rcurry #'disconnect :close) clients)
+    (when event-base
+      (close event-base)
+      (setf event-base nil))
+    (when socket
+      (close socket)
+      (setf socket nil))))
+
+(defgeneric on-client-connection (server)
+  (:method ((server tcp-service-provider))
+    (let ((client-socket (iolib:accept-connection (socket server))))
+      (when client-socket
+        (let ((client (make-instance 'client
+                                     :socket client-socket
+                                     :provider server)))
+          (format t "~A Connected.~%" client)
+          (push client (clients server))
+          (iolib:set-io-handler (event-base server)
+                                 (iolib:socket-os-fd client-socket)
+                                 :read
+                                 (lambda (&rest rest)
+                                   (declare (ignore rest))
+                                   (on-read client)))
+          (iolib:set-io-handler (event-base server)
+                                 (iolib:socket-os-fd client-socket)
+                                 :write
+                                 (lambda (&rest rest)
+                                   (declare (ignore rest))
+                                   (on-write client))))))))
+
+(defgeneric dispatch-events (service-provider)
+  (:method ((sp tcp-service-provider))
+    (handler-case
+        (iolib:event-dispatch (event-base sp) :timeout 0)
+      (iolib:socket-connection-reset-error ()
+        (format t "Unexpected connection reset.~%"))
+      (iolib:hangup ()
+        (format t "Unexpected hangup.~%"))
+      (end-of-file ()
+        (format t "Unexpected EOF.~%")))))
+
+(defmethod update ((server tcp-service-provider))
+  (dispatch-events server)
+  (loop for client in (clients server)
+     for line = (read-line-from-client client)
+     when line do (print line) (write-to-client client line)))
