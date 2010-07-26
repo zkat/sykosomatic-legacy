@@ -92,8 +92,7 @@
               (iolib:remove-fd-handlers event-base fd :error t)))))
     (when (member :close events)
       (close (socket client))
-      (deletef (clients (service-provider client))
-               client))))
+      (detach-client (service-provider client) client))))
 
 (defgeneric on-client-read (client)
   (:method ((client tcp-client))
@@ -173,11 +172,27 @@
   ((event-base :initform nil :accessor event-base :initarg :event-base)
    (listen-ip :initform *server-listen-ip*  :accessor listen-ip)
    (port :initform *server-port* :accessor port :initarg :port)
-   (clients :initform nil :accessor clients)
+   (clients :initform (make-hash-table :test 'equalp) :accessor clients)
    (socket :initform nil :accessor socket)))
 
+(defgeneric attach-client (server client)
+  (:method ((server tcp-service-provider) (client tcp-client))
+    (setf (gethash `(,(remote-name client) ,(port client)) (clients server))
+          client)))
+
+(defgeneric detach-client (server client)
+  (:method ((server tcp-service-provider) (client tcp-client))
+    (remhash `(,(remote-name client) ,(port client)) (clients server))
+    client))
+
+(defgeneric disconnect-all-clients (server)
+  (:method ((server tcp-service-provider))
+    (maphash (lambda (k client) (declare (ignore k))
+                     (disconnect client :close))
+             (clients server))))
+
 (defmethod init ((server tcp-service-provider))
-  (setf (clients server) nil
+  (setf (clients server) (make-hash-table :test 'equalp)
         (event-base server) (make-instance 'iolib:event-base))
   (let ((socket (iolib:make-socket :connect :passive
                                    :address-family :internet
@@ -195,10 +210,9 @@
     (setf (socket server) socket)))
 
 (defmethod teardown ((server tcp-service-provider))
-  (with-accessors ((clients clients) (event-base event-base)
-                   (socket socket))
+  (with-accessors ((event-base event-base) (socket socket))
       server
-    (map nil (rcurry #'disconnect :close) clients)
+    (disconnect-all-clients server)
     (when event-base
       (close event-base)
       (setf event-base nil))
@@ -214,7 +228,7 @@
                                      :socket client-socket
                                      :provider server)))
           (format t "~A Connected.~%" client)
-          (push client (clients server))
+          (attach-client server client)
           (iolib:set-io-handler (event-base server)
                                  (iolib:socket-os-fd client-socket)
                                  :read
@@ -240,7 +254,4 @@
         (format t "Unexpected EOF.~%")))))
 
 (defmethod update ((server tcp-service-provider))
-  (dispatch-events server)
-  (loop for client in (clients server)
-     for line = (read-line-from-client client)
-     when line do (write-to-client client line)))
+  (dispatch-events server))
