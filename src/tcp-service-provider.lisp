@@ -97,12 +97,11 @@
 (defgeneric on-client-read (client)
   (:method ((client tcp-client))
     (handler-case
-        (let* ((buffer (input-buffer client))
-               (bytes-read
-                (nth-value 1 (iolib:receive-from (socket client)
-                                                 :buffer buffer
-                                                 :start (input-buffer-fill client)
-                                                 :end (1- (max-buffer-bytes client))))))
+        (let ((bytes-read
+               (nth-value 1 (iolib:receive-from (socket client)
+                                                :buffer (input-buffer client)
+                                                :start (input-buffer-fill client)
+                                                :end (1- (max-buffer-bytes client))))))
           (when (zerop bytes-read)
             (error 'end-of-file))
           (incf (input-buffer-fill client) bytes-read))
