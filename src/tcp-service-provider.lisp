@@ -55,7 +55,7 @@
            :initform (error "Must provide a socket for this client."))
    (service-provider :accessor service-provider :initarg :provider
                      :initform (error "Must provide a provider for this client."))
-   (ip-address :accessor ip-address)
+   (remote-name :accessor remote-name)
    (port :accessor port)
    (max-buffer-bytes :reader max-buffer-bytes :initarg :max-buffer-bytes :initform 16384)
    (input-buffer :accessor input-buffer)
@@ -65,16 +65,16 @@
    (output-byte-count :accessor output-byte-count :initform 0)))
 
 (defmethod initialize-instance :after ((client tcp-client) &key)
-  (multiple-value-bind (ip port)
+  (multiple-value-bind (name port)
       (iolib:remote-name (socket client))
-    (setf (ip-address client) ip
+    (setf (remote-name client) name
           (port client) port
           (input-buffer client) (make-array (max-buffer-bytes client)
                                             :element-type '(unsigned-byte 8)))))
 
 (defmethod print-object ((client tcp-client) s)
   (print-unreadable-object (client s :type t :identity t)
-    (format s "~A:~A" (ip-address client) (port client))))
+    (format s "~A:~A" (remote-name client) (port client))))
 
 (defgeneric disconnect (client &rest events)
   (:method ((client tcp-client) &rest events)
@@ -108,12 +108,12 @@
           (incf (input-buffer-fill client) bytes-read))
       (iolib:socket-connection-reset-error ()
         ;; Should do something here
-        (format t "Got a reset from client.~%")
+        (format t "Got a reset from ~A.~%" client)
         (finish-output)
         (disconnect client :close))
       (end-of-file ()
         ;; Should do something here, too.
-        (format t "Received unexpected EOF from client.~%")
+        (format t "Received unexpected EOF from ~A.~%" client)
         (finish-output)
         (disconnect client :close)))))
 
@@ -136,14 +136,14 @@
                 (setf (output-buffer client) nil
                       (output-byte-count client) 0)))))
       (iolib:socket-connection-reset-error ()
-        (format t "Got a reset from client.~%")
+        (format t "Got a reset from ~A.~%" client)
         (finish-output)
         (disconnect client :close))
       (isys:ewouldblock ()
-        (format t "Got an EWOULDBLOCK.~%")
+        (format t "Got an EWOULDBLOCK while writing to ~A.~%" client)
         (finish-output))
       (isys:epipe ()
-        (format t "Got a hangup on write.~%")
+        (format t "Got a hangup while writing to ~A.~%" client)
         (disconnect client :close)))))
 
 (defgeneric write-to-client (client data)
