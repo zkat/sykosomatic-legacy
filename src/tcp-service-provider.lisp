@@ -230,17 +230,17 @@
           (format t "~A Connected.~%" client)
           (attach-client server client)
           (iolib:set-io-handler (event-base server)
-                                 (iolib:socket-os-fd client-socket)
-                                 :read
-                                 (lambda (&rest rest)
-                                   (declare (ignore rest))
-                                   (on-client-read client)))
+                                (iolib:socket-os-fd client-socket)
+                                :read
+                                (lambda (&rest rest)
+                                  (declare (ignore rest))
+                                  (on-client-read client)))
           (iolib:set-io-handler (event-base server)
-                                 (iolib:socket-os-fd client-socket)
-                                 :write
-                                 (lambda (&rest rest)
-                                   (declare (ignore rest))
-                                   (on-client-write client))))))))
+                                (iolib:socket-os-fd client-socket)
+                                :write
+                                (lambda (&rest rest)
+                                  (declare (ignore rest))
+                                  (on-client-write client))))))))
 
 (defgeneric dispatch-events (service-provider)
   (:method ((sp tcp-service-provider))
