@@ -15,51 +15,15 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; main.lisp
+;; tcp-service-provider.lisp
 ;;
-;; Stuff
+;; Implements the service-provider API using a single-threaded asynchronous TCP server.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(cl:defpackage #:sykosomatic
-  (:use :cl :alexandria))
 (in-package :sykosomatic)
 
-(defgeneric init (obj))
-(defgeneric teardown (obj))
-(defgeneric update (obj))
-(defgeneric run (obj))
-
-(defclass engine ()
-  ((service-providers :initform nil :accessor service-providers
-                      :initarg :providers))
-  (:documentation
-   "The engine handles all the core logic and interactions. It communicates with
-its service-providers through events."))
-
-(defmethod init ((engine engine))
-  (map nil #'init (service-providers engine)))
-(defmethod teardown ((engine engine))
-  (map nil #'teardown (service-providers engine)))
-(defmethod update ((engine engine))
-  (map nil #'update (service-providers engine)))
-
-(defmethod run ((engine engine))
-  (unwind-protect
-       (progn
-         (init engine)
-         (loop (update engine)))
-    (teardown engine)))
-
-(defclass service-provider ()
-  ()
-  (:documentation
-   "Service providers handle users. They translate user interactions into events,
-which the associated engine can then handle."))
-
 ;;;
-;;; TCP Clients
+;;; Queue util
 ;;;
-
-;; A small queue impl...
 (defun make-queue ()
   (cons nil nil))
 
@@ -76,8 +40,17 @@ which the associated engine can then handle."))
 (defun queue-empty-p (queue)
   (null (car queue)))
 
-;; The juicy stuff.
-(defclass client ()
+;;;
+;;; Config variables
+;;;
+(defparameter *server-listen-ip* iolib:+ipv4-unspecified+)
+(defparameter *server-port* 4000)
+
+;;;
+;;; TCP Clients
+;;;
+
+(defclass tcp-client ()
   ((socket :accessor socket :initarg :socket
            :initform (error "Must provide a socket for this client."))
    (service-provider :accessor service-provider :initarg :provider
@@ -91,7 +64,7 @@ which the associated engine can then handle."))
    (output-buffer :accessor output-buffer :initform nil)
    (output-byte-count :accessor output-byte-count :initform 0)))
 
-(defmethod initialize-instance :after ((client client) &key)
+(defmethod initialize-instance :after ((client tcp-client) &key)
   (multiple-value-bind (ip port)
       (iolib:remote-name (socket client))
     (setf (ip-address client) ip
@@ -99,12 +72,12 @@ which the associated engine can then handle."))
           (input-buffer client) (make-array (max-buffer-bytes client)
                                             :element-type '(unsigned-byte 8)))))
 
-(defmethod print-object ((client client) s)
+(defmethod print-object ((client tcp-client) s)
   (print-unreadable-object (client s :type t :identity t)
     (format s "~A:~A" (ip-address client) (port client))))
 
 (defgeneric disconnect (client &rest events)
-  (:method ((client client) &rest events)
+  (:method ((client tcp-client) &rest events)
     (let ((fd (iolib:socket-os-fd (socket client)))
           (event-base (event-base (service-provider client))))
       (if (not (intersection '(:read :write :error) events))
@@ -123,7 +96,7 @@ which the associated engine can then handle."))
                client))))
 
 (defgeneric on-client-read (client)
-  (:method ((client client))
+  (:method ((client tcp-client))
     (handler-case
         (let* ((buffer (input-buffer client))
                (bytes-read
@@ -146,7 +119,7 @@ which the associated engine can then handle."))
         (disconnect client :close)))))
 
 (defgeneric on-client-write (client)
-  (:method ((client client))
+  (:method ((client tcp-client))
     (handler-case
         (progn
           (when (and (not (output-buffer client))
@@ -175,13 +148,13 @@ which the associated engine can then handle."))
         (disconnect client :close)))))
 
 (defgeneric write-to-client (client data)
-  (:method ((client client) (data string))
+  (:method ((client tcp-client) (data string))
     (let ((array (make-array (length data) :element-type '(unsigned-byte 8))))
       (enqueue (map-into array #'char-code data)
                (output-buffer-queue client)))))
 
 (defgeneric read-line-from-client (client)
-  (:method ((client client))
+  (:method ((client tcp-client))
     (let ((buffer (input-buffer client))
           (buffer-fill (input-buffer-fill client)))
       (when (and (plusp buffer-fill)
@@ -198,8 +171,8 @@ which the associated engine can then handle."))
 ;;;
 (defclass tcp-service-provider (service-provider)
   ((event-base :initform nil :accessor event-base :initarg :event-base)
-   (listen-ip :initform iolib:+ipv4-unspecified+ :accessor listen-ip)
-   (port :initform 9999 :accessor port :initarg :port)
+   (listen-ip :initform *server-listen-ip*  :accessor listen-ip)
+   (port :initform *server-port* :accessor port :initarg :port)
    (clients :initform nil :accessor clients)
    (socket :initform nil :accessor socket)))
 
@@ -237,7 +210,7 @@ which the associated engine can then handle."))
   (:method ((server tcp-service-provider))
     (let ((client-socket (iolib:accept-connection (socket server))))
       (when client-socket
-        (let ((client (make-instance 'client
+        (let ((client (make-instance 'tcp-client
                                      :socket client-socket
                                      :provider server)))
           (format t "~A Connected.~%" client)
@@ -270,4 +243,4 @@ which the associated engine can then handle."))
   (dispatch-events server)
   (loop for client in (clients server)
      for line = (read-line-from-client client)
-     when line do (print line) (write-to-client client line)))
+     when line do (write-to-client client line)))
