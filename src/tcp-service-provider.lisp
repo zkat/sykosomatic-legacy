@@ -93,10 +93,7 @@
             (when (member :error events)
               (iolib:remove-fd-handlers event-base fd :error t)))))
     (when (member :close events)
-      (close (socket client))
-      (broadcast-to-provider (service-provider client) (format nil "~A leaves the world.~%" (avatar client)))
-      (format t "~&~A Disconnected.~%" client)
-      (detach-client (service-provider client) client))))
+      (teardown client))))
 
 (defgeneric on-client-read (client)
   (:method ((client tcp-client))
@@ -193,8 +190,15 @@
   (write-to-client client (format nil "~&Hello. Welcome to Sykosomatic.~%"))
   (setf (input-handler client) (make-login-handler client)))
 
-(defmethod teardown ((client tcp-client))
+(defmethod update ((client tcp-client))
   nil)
+
+(defmethod teardown ((client tcp-client))
+  (close (socket client))
+  (broadcast-to-provider (service-provider client) (format nil "~A leaves the world.~%" (avatar client)))
+  (format t "~&~A Disconnected.~%" client)
+  (detach-client (service-provider client) client)
+  client)
 
 ;;;
 ;;; TCP service
