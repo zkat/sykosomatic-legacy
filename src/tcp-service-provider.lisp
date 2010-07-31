@@ -110,7 +110,7 @@
   (let ((seq (if start (subseq seq start end) seq)))
     (prog1 (write-to-client client seq)
       (setf (last-output-newline-p client)
-            (when (find #\newline seq) t)))))
+            (when (eql #\newline (elt seq (1- (length seq)))) t)))))
 (defmethod stream-clear-output ((client tcp-client))
   (setf (output-buffer client) nil
         (output-byte-count client) 0))
@@ -195,6 +195,8 @@
   (:method ((client tcp-client))
     (let ((buffer (input-buffer client))
           (buffer-fill (input-buffer-fill client)))
+      ;; TODO: This is *totally* wrong. If there's more than one newline in the buffer,
+      ;; it'll grab the _entire_ thing as a single string! Use ring buffer? :\
       (when (and (plusp buffer-fill)
                  (find #\newline buffer :end buffer-fill :key #'code-char))
         ;; Note: We _scrap_ the newline.
