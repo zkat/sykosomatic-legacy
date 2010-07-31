@@ -49,7 +49,7 @@
 ;;; TCP Clients
 ;;;
 
-(defclass tcp-client ()
+(defclass tcp-client (fundamental-character-stream)
   ((account :initform nil :accessor account)
    (avatar :initform nil :accessor avatar)
    (input-handler :initarg :input-handler :initform nil :accessor input-handler)
@@ -77,6 +77,40 @@
 (defmethod print-object ((client tcp-client) s)
   (print-unreadable-object (client s :type t)
     (format s "~A:~A" (remote-name client) (port client))))
+
+;;; Gray streams stuff
+
+;; Input
+(defmethod close ((client tcp-client) &key abort)
+  (close (socket client) :abort abort))
+(defmethod open-stream-p ((client tcp-client))
+  (open-stream-p (socket client)))
+(defmethod stream-read-char ((client tcp-client))
+  (stream-read-char (socket client)))
+(defmethod stream-unread-char ((client tcp-client) char)
+  (stream-unread-char (socket client) char))
+(defmethod stream-read-char-no-hang ((client tcp-client))
+  (stream-read-char-no-hang (socket client)))
+(defmethod stream-listen ((client tcp-client))
+  (stream-listen (socket client)))
+(defmethod stream-read-line ((client tcp-client))
+  (read-line-from-client client))
+(defmethod stream-clear-input ((client tcp-client))
+  (call-next-method))
+
+;; Output
+(defmethod stream-write-char ((client tcp-client) char)
+  (write-to-client client (princ-to-string char))
+  char)
+(defmethod stream-line-column ((client tcp-client))
+  nil)
+(defmethod stream-start-line-p ((client tcp-client))
+  t)
+(defmethod stream-write-string ((client tcp-client) seq &optional start end)
+  (write-to-client client (if start (subseq seq start end) seq)))
+(defmethod stream-clear-output ((client tcp-client))
+  (setf (output-buffer client) nil
+        (output-byte-count client) 0))
 
 (defgeneric disconnect (client &rest events)
   (:method ((client tcp-client) &rest events)
