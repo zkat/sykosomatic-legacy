@@ -54,14 +54,10 @@
 ;;;
 ;;; TCP Clients
 ;;;
-(defclass tcp-client (fundamental-character-stream)
-  ((account :initform nil :accessor account)
-   (avatar :initform nil :accessor avatar)
-   (input-handler :initarg :input-handler :initform nil :accessor input-handler)
+(defclass tcp-client (client fundamental-character-stream)
+  ((input-handler :initarg :input-handler :initform nil :accessor input-handler)
    (socket :accessor socket :initarg :socket
            :initform (error "Must provide a socket for this client."))
-   (service-provider :accessor service-provider :initarg :provider
-                     :initform (error "Must provide a provider for this client."))
    (remote-name :accessor remote-name)
    (port :accessor port)
    (max-buffer-bytes :reader max-buffer-bytes :initarg :max-buffer-bytes :initform 16384)
