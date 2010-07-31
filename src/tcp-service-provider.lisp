@@ -93,6 +93,7 @@
               (iolib:remove-fd-handlers event-base fd :error t)))))
     (when (member :close events)
       (close (socket client))
+      (broadcast-to-provider (service-provider client) (format nil "~A leaves the world.~%" (avatar client)))
       (detach-client (service-provider client) client))))
 
 (defgeneric on-client-read (client)
@@ -168,13 +169,22 @@
 
 (defgeneric handle-line (client line)
   (:method ((client tcp-client) line)
+    (format t "~A sez: ~A~%" client line)
     (cond ((null (avatar client))
            (setf (avatar client) line)
-           (write-to-client client (format nil "You are now identified as ~S.~%" line)))
+           (write-to-client client (format nil "You are now identified as ~S.~%" line))
+           (broadcast-to-provider (service-provider client) (format nil "~A enters the world.~%" line)))
           ((string-equal line "look")
            (write-to-client client (format nil "You see nothing in particular.~%")))
           (t
-           (write-to-client client (format nil "~A says, ~S~%" (avatar client) line))))))
+           (write-to-client client (format nil "You say, ~S~%" line))
+           (broadcast-to-provider (service-provider client) (format nil "~A says, ~S~%" (avatar client) line))))))
+
+(defun broadcast-to-provider (provider text)
+  (maphash (lambda (k client)
+             (declare (ignore k))
+             (write-to-client client text))
+           (clients provider)))
 
 (defmethod update ((client tcp-client))
   (let ((input (read-line-from-client client)))
