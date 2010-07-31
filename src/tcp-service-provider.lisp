@@ -236,7 +236,7 @@
 
 (defmethod teardown ((client tcp-client))
   (close client)
-  (broadcast-to-provider (service-provider client) "~A leaves the world.~%" (avatar client))
+  (broadcast-to-provider (service-provider client) "~A leaves the world.~%" (soul client))
   (format t "~&~A Disconnected.~%" client)
   (detach-client (service-provider client) client)
   client)
@@ -350,9 +350,9 @@
   (:method ((client tcp-client))
     (format client "~&Please enter your name: ")
     (lambda (input &aux (input (string-cleanup input)))
-      (setf (avatar client) input)
-      (broadcast-to-room client "~A enters the world.~%" (avatar client))
-      (format client "You are now logged in as ~A.~%" (avatar client))
+      (setf (soul client) input)
+      (broadcast-to-room client "~A enters the world.~%" (soul client))
+      (format client "You are now logged in as ~A.~%" (soul client))
       (setf (input-handler client)
             (make-gameplay-handler client)))))
 
@@ -369,4 +369,4 @@
              (disconnect client :close))
             (t
              (format client "~&You say, \"~A\"~%" input)
-             (broadcast-to-room client  "~&~A says, \"~A\"~%" (avatar client) input))))))
+             (broadcast-to-room client  "~&~A says, \"~A\"~%" (soul client) input))))))
