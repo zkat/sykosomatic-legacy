@@ -47,9 +47,12 @@ its service-providers through events."))
          (loop (update engine)))
     (teardown engine)))
 
-(defclass client ()
+(defclass soul ()
   ((account :initform nil :accessor account)
-   (avatar :initform nil :accessor avatar)
+   (body :initform nil :accessor body)))
+
+(defclass client ()
+  ((soul :accessor soul)
    (service-provider :accessor service-provider
                      :initarg :provider
                      :initform (error "Must provide a provider for this client."))))
