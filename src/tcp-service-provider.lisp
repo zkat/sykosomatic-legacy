@@ -94,6 +94,7 @@
     (when (member :close events)
       (close (socket client))
       (broadcast-to-provider (service-provider client) (format nil "~A leaves the world.~%" (avatar client)))
+      (format t "~&~A Disconnected.~%" client)
       (detach-client (service-provider client) client))))
 
 (defgeneric on-client-read (client)
