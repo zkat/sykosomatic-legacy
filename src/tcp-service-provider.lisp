@@ -52,6 +52,7 @@
 (defclass tcp-client ()
   ((account :initform nil :accessor account)
    (avatar :initform nil :accessor avatar)
+   (input-handler :initarg :input-handler :initform nil :accessor input-handler)
    (socket :accessor socket :initarg :socket
            :initform (error "Must provide a socket for this client."))
    (service-provider :accessor service-provider :initarg :provider
@@ -171,15 +172,10 @@
 (defgeneric handle-line (client line)
   (:method ((client tcp-client) line)
     (format t "~A sez: ~A~%" client line)
-    (cond ((null (avatar client))
-           (setf (avatar client) line)
-           (write-to-client client (format nil "You are now identified as ~S.~%" line))
-           (broadcast-to-provider (service-provider client) (format nil "~A enters the world.~%" line)))
-          ((string-equal line "look")
-           (write-to-client client (format nil "You see nothing in particular.~%")))
-          (t
-           (write-to-client client (format nil "You say, ~S~%" line))
-           (broadcast-to-provider (service-provider client) (format nil "~A says, ~S~%" (avatar client) line))))))
+    (setf (input (input-handler client)) line)
+    (update (input-handler client))
+
+))
 
 (defun broadcast-to-provider (provider text)
   (maphash (lambda (k client)
@@ -268,7 +264,10 @@
                                   (declare (ignore rest))
                                   (on-client-write client)))
           (write-to-client client (format nil "~&Hello. Welcome to Sykosomatic.~%"))
-          (write-to-client client (format nil "~&Please enter your name: ")))))))
+          (let ((next-handler (make-instance 'login-handler :client client)))
+            (setf (input-handler client) next-handler)
+            (init next-handler))
+          client)))))
 
 (defgeneric dispatch-events (service-provider)
   (:method ((sp tcp-service-provider))
@@ -288,10 +287,34 @@
 ;;;
 ;;; Input handlers
 ;;;
-(defclass input-handler () ())
-(defclass intro-handler (input-handler) ())
+(defclass input-handler ()
+  ((input :accessor input :initarg :input)
+   (client :initarg :client :accessor client)))
+
 (defclass login-handler (input-handler) ())
+(defmethod init ((handler login-handler))
+  (write-to-client (client handler) (format nil "~&Please enter your name: ")))
+(defmethod update ((handler login-handler))
+  (when (input handler)
+    (setf (avatar (client handler))
+          (input handler))
+    (let ((next-handler (make-instance 'gameplay-handler :client (client handler))))
+      (setf (input-handler (client handler)) next-handler)
+      (init next-handler))))
+
 (defclass gameplay-handler (input-handler) ())
+(defmethod init ((handler gameplay-handler))
+  (broadcast-to-provider (service-provider (client handler))
+                         (format nil "~A enters the world.~%" (avatar (client handler)))))
+(defmethod update ((handler gameplay-handler))
+  (cond ((string-equal (input handler) "look")
+         (write-to-client (client handler) (format nil "You see nothing in particular.~%")))
+        (t
+         (write-to-client (client handler) (format nil "You say, ~S~%" (input handler)))
+         (broadcast-to-provider (service-provider (client handler))
+                                (format nil "~A says, ~S~%" (avatar (client handler))
+                                        (input handler))))))
+
 (defclass query-handler (input-handler)
   ((gameplay-handler :initarg :gameplay-handler :accessor gameplay-handler)
    (question :initarg :question :accessor question)))
