@@ -297,23 +297,39 @@
 ;;;
 ;;; Input handlers
 ;;;
-(defun make-login-handler (client)
-  (write-to-client client (format nil "~&Please enter your name: "))
-  (lambda (input)
-    (setf (avatar client) input)
-    (broadcast-to-room client (format nil "~A enters the world.~%" (avatar client)))
-    (write-to-client client (format nil "You are now logged in as ~A.~%" (avatar client)))
-    (setf (input-handler client)
-          (make-gameplay-handler client))))
+(defun whitespacep (char)
+  (member char '(#\Space #\Tab #\Newline #\Return)))
 
-(defun make-gameplay-handler (client)
-  (lambda (input) (handle-player-command client input)))
+(defun string-cleanup (string)
+  (remove-if-not (lambda (char)
+                   (or (graphic-char-p char)
+                       (whitespacep char)))
+                 (string-trim '(#\Space #\Tab #\Newline #\Return)
+                              string)))
 
-(defun handle-player-command (client input)
-    (cond ((string-equal input "look")
-           (write-to-client client (format nil "You see nothing in particular.~%")))
-          (t
-           (write-to-client client (format nil "You say, ~S~%" input))
-           (broadcast-to-room client
-                              (format nil "~A says, ~S~%" (avatar client)
-                                      input)))))
+(defgeneric make-login-handler (client)
+  (:method ((client tcp-client))
+    (write-to-client client (format nil "~&Please enter your name: "))
+    (lambda (input &aux (input (string-cleanup input)))
+      (setf (avatar client) input)
+      (broadcast-to-room client (format nil "~A enters the world.~%" (avatar client)))
+      (write-to-client client (format nil "You are now logged in as ~A.~%" (avatar client)))
+      (setf (input-handler client)
+            (make-gameplay-handler client)))))
+
+(defgeneric make-gameplay-handler (client)
+  (:method ((client tcp-client))
+    (lambda (input) (handle-player-command client input))))
+
+(defgeneric handle-player-command (player input)
+  (:method ((client tcp-client) input &aux (input (string-cleanup input)))
+    (unless (zerop (length input))
+      (cond ((string-equal input "look")
+             (write-to-client client (format nil "You see a double rainbow all the way across the sky. So intense.~%")))
+            ((string-equal input "quit")
+             (disconnect client :close))
+            (t
+             (write-to-client client (format nil "You say, \"~A\"~%" input))
+             (broadcast-to-room client
+                                (format nil "~A says, \"~A\"~%" (avatar client)
+                                        input)))))))
