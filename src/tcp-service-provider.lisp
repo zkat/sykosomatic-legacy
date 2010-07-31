@@ -106,6 +106,9 @@
   nil)
 (defmethod stream-start-line-p ((client tcp-client))
   t)
+(defmethod stream-fresh-line ((client tcp-client))
+  #+nil(write-to-client client (princ-to-string #\newline))
+  t)
 (defmethod stream-write-string ((client tcp-client) seq &optional start end)
   (write-to-client client (if start (subseq seq start end) seq)))
 (defmethod stream-clear-output ((client tcp-client))
@@ -140,7 +143,7 @@
           (when (zerop bytes-read)
             (error 'end-of-file))
           (incf (input-buffer-fill client) bytes-read)
-          (let ((maybe-line (read-line-from-client client)))
+          (let ((maybe-line (read-line client)))
             (when maybe-line (handle-line client maybe-line))))
       (iolib:socket-connection-reset-error ()
         ;; Should do something here
@@ -208,20 +211,20 @@
     (funcall (input-handler client) line)))
 
 (defun broadcast-to-room (client text)
-  (maphash (lambda (k v)
+  (maphash (lambda (k current-client)
              (declare (ignore k))
-             (unless (eq client v)
-               (write-to-client v text)))
+             (unless (eq client current-client)
+               (princ text current-client)))
            (clients (service-provider client))))
 
 (defun broadcast-to-provider (provider text)
   (maphash (lambda (k client)
              (declare (ignore k))
-             (write-to-client client text))
+             (princ text client))
            (clients provider)))
 
 (defmethod init ((client tcp-client))
-  (write-to-client client (format nil "~&Hello. Welcome to Sykosomatic.~%"))
+  (format client "~&Hello. Welcome to Sykosomatic.~%")
   (setf (input-handler client) (make-login-handler client)))
 
 (defmethod update ((client tcp-client))
@@ -341,11 +344,11 @@
 
 (defgeneric make-login-handler (client)
   (:method ((client tcp-client))
-    (write-to-client client (format nil "~&Please enter your name: "))
+    (format client "~&Please enter your name: ")
     (lambda (input &aux (input (string-cleanup input)))
       (setf (avatar client) input)
       (broadcast-to-room client (format nil "~A enters the world.~%" (avatar client)))
-      (write-to-client client (format nil "You are now logged in as ~A.~%" (avatar client)))
+      (format client "You are now logged in as ~A.~%" (avatar client))
       (setf (input-handler client)
             (make-gameplay-handler client)))))
 
@@ -357,11 +360,11 @@
   (:method ((client tcp-client) input &aux (input (string-cleanup input)))
     (unless (zerop (length input))
       (cond ((string-equal input "look")
-             (write-to-client client (format nil "You see a double rainbow all the way across the sky. So intense.~%")))
+             (format client "You see a double rainbow all the way across the sky. So intense.~%"))
             ((string-equal input "quit")
              (disconnect client :close))
             (t
-             (write-to-client client (format nil "You say, \"~A\"~%" input))
+             (format client "You say, \"~A\"~%" input)
              (broadcast-to-room client
                                 (format nil "~A says, \"~A\"~%" (avatar client)
                                         input)))))))
