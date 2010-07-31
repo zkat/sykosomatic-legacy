@@ -17,7 +17,6 @@
 
 ;; tcp-service-provider.lisp
 ;;
-;; Implements the service-provider API using a single-threaded asynchronous TCP server.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
@@ -51,7 +50,9 @@
 ;;;
 
 (defclass tcp-client ()
-  ((socket :accessor socket :initarg :socket
+  ((account :initform nil :accessor account)
+   (avatar :initform nil :accessor avatar)
+   (socket :accessor socket :initarg :socket
            :initform (error "Must provide a socket for this client."))
    (service-provider :accessor service-provider :initarg :provider
                      :initform (error "Must provide a provider for this client."))
@@ -73,7 +74,7 @@
                                             :element-type '(unsigned-byte 8)))))
 
 (defmethod print-object ((client tcp-client) s)
-  (print-unreadable-object (client s :type t :identity t)
+  (print-unreadable-object (client s :type t)
     (format s "~A:~A" (remote-name client) (port client))))
 
 (defgeneric disconnect (client &rest events)
@@ -157,12 +158,27 @@
           (buffer-fill (input-buffer-fill client)))
       (when (and (plusp buffer-fill)
                  (find #\newline buffer :end buffer-fill :key #'code-char))
-        (let ((string (make-string buffer-fill)))
+        ;; Note: We _scrap_ the newline.
+        (let ((string (make-string (1- buffer-fill))))
           (loop for code across buffer
-             for i below buffer-fill
+             for i below (1- buffer-fill)
              do (setf (aref string i) (code-char code)))
           (setf (input-buffer-fill client) 0)
           string)))))
+
+(defgeneric handle-line (client line)
+  (:method ((client tcp-client) line)
+    (cond ((null (avatar client))
+           (setf (avatar client) line)
+           (write-to-client client (format nil "You are now identified as ~S.~%" line)))
+          ((string-equal line "look")
+           (write-to-client client (format nil "You see nothing in particular.~%")))
+          (t
+           (write-to-client client (format nil "~A says, ~S~%" (avatar client) line))))))
+
+(defmethod update ((client tcp-client))
+  (let ((input (read-line-from-client client)))
+    (when input (handle-line client input))))
 
 ;;;
 ;;; TCP service
@@ -239,7 +255,9 @@
                                 :write
                                 (lambda (&rest rest)
                                   (declare (ignore rest))
-                                  (on-client-write client))))))))
+                                  (on-client-write client)))
+          (write-to-client client (format nil "~&Hello. Welcome to Sykosomatic.~%"))
+          (write-to-client client (format nil "~&Please enter your name: ")))))))
 
 (defgeneric dispatch-events (service-provider)
   (:method ((sp tcp-service-provider))
@@ -253,4 +271,16 @@
         (format t "Unexpected EOF.~%")))))
 
 (defmethod update ((server tcp-service-provider))
-  (dispatch-events server))
+  (dispatch-events server)
+  (maphash (lambda (k client) (declare (ignore k)) (update client)) (clients server)))
+
+;;;
+;;; Input handlers
+;;;
+(defclass input-handler () ())
+(defclass intro-handler (input-handler) ())
+(defclass login-handler (input-handler) ())
+(defclass gameplay-handler (input-handler) ())
+(defclass query-handler (input-handler)
+  ((gameplay-handler :initarg :gameplay-handler :accessor gameplay-handler)
+   (question :initarg :question :accessor question)))
