@@ -370,5 +370,5 @@
             ((string-equal input "quit")
              (disconnect client :close))
             (t
-             (format client "You say, \"~A\"~%" input)
-             (broadcast-to-room client  "~A says, \"~A\"~%" (avatar client) input))))))
+             (format client "~&You say, \"~A\"~%" input)
+             (broadcast-to-room client  "~&~A says, \"~A\"~%" (avatar client) input))))))
