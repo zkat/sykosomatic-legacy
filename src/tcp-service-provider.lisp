@@ -39,6 +39,12 @@
 (defun queue-empty-p (queue)
   (null (car queue)))
 
+(defun queue-peek (q)
+  (caar q))
+
+(defun queue-tail (q)
+  (car (last (cdr q))))
+
 ;;;
 ;;; Config variables
 ;;;
@@ -48,7 +54,6 @@
 ;;;
 ;;; TCP Clients
 ;;;
-
 (defclass tcp-client (fundamental-character-stream)
   ((account :initform nil :accessor account)
    (avatar :initform nil :accessor avatar)
@@ -80,7 +85,6 @@
     (format s "~A:~A" (remote-name client) (port client))))
 
 ;;; Gray streams stuff
-
 (defmethod close ((client tcp-client) &key abort)
   (close (socket client) :abort abort))
 (defmethod open-stream-p ((client tcp-client))
