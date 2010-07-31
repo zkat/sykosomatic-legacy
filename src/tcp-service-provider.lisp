@@ -64,7 +64,8 @@
    (input-buffer-fill :initform 0 :accessor input-buffer-fill)
    (output-buffer-queue :accessor output-buffer-queue :initform (make-queue))
    (output-buffer :accessor output-buffer :initform nil)
-   (output-byte-count :accessor output-byte-count :initform 0)))
+   (output-byte-count :accessor output-byte-count :initform 0)
+   (last-output-newline-p :accessor last-output-newline-p :initform t)))
 
 (defmethod initialize-instance :after ((client tcp-client) &key)
   (multiple-value-bind (name port)
@@ -80,37 +81,36 @@
 
 ;;; Gray streams stuff
 
-;; Input
 (defmethod close ((client tcp-client) &key abort)
   (close (socket client) :abort abort))
 (defmethod open-stream-p ((client tcp-client))
   (open-stream-p (socket client)))
-(defmethod stream-read-char ((client tcp-client))
-  (stream-read-char (socket client)))
-(defmethod stream-unread-char ((client tcp-client) char)
-  (stream-unread-char (socket client) char))
-(defmethod stream-read-char-no-hang ((client tcp-client))
-  (stream-read-char-no-hang (socket client)))
-(defmethod stream-listen ((client tcp-client))
-  (stream-listen (socket client)))
+
+;; Input
 (defmethod stream-read-line ((client tcp-client))
   (read-line-from-client client))
 (defmethod stream-clear-input ((client tcp-client))
-  (call-next-method))
+  (setf (input-buffer-fill client) 0))
 
 ;; Output
 (defmethod stream-write-char ((client tcp-client) char)
   (write-to-client client (princ-to-string char))
+  (setf (last-output-newline-p client)
+        (eq #\newline char))
   char)
 (defmethod stream-line-column ((client tcp-client))
   nil)
 (defmethod stream-start-line-p ((client tcp-client))
-  t)
+  (when (last-output-newline-p client)
+    t))
 (defmethod stream-fresh-line ((client tcp-client))
-  #+nil(write-to-client client (princ-to-string #\newline))
-  t)
+  (unless (stream-start-line-p client)
+    (stream-write-char client #\newline)))
 (defmethod stream-write-string ((client tcp-client) seq &optional start end)
-  (write-to-client client (if start (subseq seq start end) seq)))
+  (let ((seq (if start (subseq seq start end) seq)))
+    (prog1 (write-to-client client seq)
+      (setf (last-output-newline-p client)
+            (when (find #\newline seq) t)))))
 (defmethod stream-clear-output ((client tcp-client))
   (setf (output-buffer client) nil
         (output-byte-count client) 0))
@@ -233,7 +233,7 @@
   nil)
 
 (defmethod teardown ((client tcp-client))
-  (close (socket client))
+  (close client)
   (broadcast-to-provider (service-provider client) "~A leaves the world.~%" (avatar client))
   (format t "~&~A Disconnected.~%" client)
   (detach-client (service-provider client) client)
