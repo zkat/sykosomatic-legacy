@@ -22,9 +22,8 @@
 (in-package :sykosomatic)
 
 (defclass game-object ()
-  ((name        :accessor name        :initarg :name)
-   (pronoun     :accessor pronoun     :initarg :pronoun)
-   (plural      :accessor plural      :initarg :plural)
+  ((short-name  :accessor name        :initarg :short-name)
+   (full-name   :accessor full-name   :initarg :full-name)
    (description :accessor description :initarg :description)
    (adjectives  :accessor adjectives  :initarg :adjectives)
    (features    :accessor features    :initarg :features))
