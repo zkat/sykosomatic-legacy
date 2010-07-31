@@ -28,7 +28,9 @@
 
 (defclass engine ()
   ((service-providers :initform nil :accessor service-providers
-                      :initarg :providers))
+                      :initarg :providers)
+   (rooms :initform nil :accessor rooms)
+   (newbie-room :initarg :newbie-room :accessor newbie-room))
   (:documentation
    "The engine handles all the core logic and interactions. It communicates with
 its service-providers through events."))
