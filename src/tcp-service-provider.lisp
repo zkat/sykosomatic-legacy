@@ -172,10 +172,14 @@
 (defgeneric handle-line (client line)
   (:method ((client tcp-client) line)
     (format t "~A sez: ~A~%" client line)
-    (setf (input (input-handler client)) line)
-    (update (input-handler client))
+    (funcall (input-handler client) line)))
 
-))
+(defun broadcast-to-room (client text)
+  (maphash (lambda (k v)
+             (declare (ignore k))
+             (unless (eq client v)
+               (write-to-client v text)))
+           (clients (service-provider client))))
 
 (defun broadcast-to-provider (provider text)
   (maphash (lambda (k client)
@@ -183,9 +187,16 @@
              (write-to-client client text))
            (clients provider)))
 
+(defmethod init ((client tcp-client))
+  (write-to-client client (format nil "~&Hello. Welcome to Sykosomatic.~%"))
+  (setf (input-handler client) (make-login-handler client)))
+
 (defmethod update ((client tcp-client))
   (let ((input (read-line-from-client client)))
     (when input (handle-line client input))))
+
+(defmethod teardown ((client tcp-client))
+  nil)
 
 ;;;
 ;;; TCP service
@@ -263,11 +274,7 @@
                                 (lambda (&rest rest)
                                   (declare (ignore rest))
                                   (on-client-write client)))
-          (write-to-client client (format nil "~&Hello. Welcome to Sykosomatic.~%"))
-          (let ((next-handler (make-instance 'login-handler :client client)))
-            (setf (input-handler client) next-handler)
-            (init next-handler))
-          client)))))
+          (init client))))))
 
 (defgeneric dispatch-events (service-provider)
   (:method ((sp tcp-service-provider))
@@ -282,39 +289,31 @@
 
 (defmethod update ((server tcp-service-provider))
   (dispatch-events server)
-  (maphash (lambda (k client) (declare (ignore k)) (update client)) (clients server)))
+  (maphash (lambda (k client)
+             (declare (ignore k))
+             (update client))
+           (clients server)))
 
 ;;;
 ;;; Input handlers
 ;;;
-(defclass input-handler ()
-  ((input :accessor input :initarg :input)
-   (client :initarg :client :accessor client)))
+(defun make-login-handler (client)
+  (write-to-client client (format nil "~&Please enter your name: "))
+  (lambda (input)
+    (setf (avatar client) input)
+    (broadcast-to-room client (format nil "~A enters the world.~%" (avatar client)))
+    (write-to-client client (format nil "You are now logged in as ~A.~%" (avatar client)))
+    (setf (input-handler client)
+          (make-gameplay-handler client))))
 
-(defclass login-handler (input-handler) ())
-(defmethod init ((handler login-handler))
-  (write-to-client (client handler) (format nil "~&Please enter your name: ")))
-(defmethod update ((handler login-handler))
-  (when (input handler)
-    (setf (avatar (client handler))
-          (input handler))
-    (let ((next-handler (make-instance 'gameplay-handler :client (client handler))))
-      (setf (input-handler (client handler)) next-handler)
-      (init next-handler))))
+(defun make-gameplay-handler (client)
+  (lambda (input) (handle-player-command client input)))
 
-(defclass gameplay-handler (input-handler) ())
-(defmethod init ((handler gameplay-handler))
-  (broadcast-to-provider (service-provider (client handler))
-                         (format nil "~A enters the world.~%" (avatar (client handler)))))
-(defmethod update ((handler gameplay-handler))
-  (cond ((string-equal (input handler) "look")
-         (write-to-client (client handler) (format nil "You see nothing in particular.~%")))
-        (t
-         (write-to-client (client handler) (format nil "You say, ~S~%" (input handler)))
-         (broadcast-to-provider (service-provider (client handler))
-                                (format nil "~A says, ~S~%" (avatar (client handler))
-                                        (input handler))))))
-
-(defclass query-handler (input-handler)
-  ((gameplay-handler :initarg :gameplay-handler :accessor gameplay-handler)
-   (question :initarg :question :accessor question)))
+(defun handle-player-command (client input)
+    (cond ((string-equal input "look")
+           (write-to-client client (format nil "You see nothing in particular.~%")))
+          (t
+           (write-to-client client (format nil "You say, ~S~%" input))
+           (broadcast-to-room client
+                              (format nil "~A says, ~S~%" (avatar client)
+                                      input)))))
