@@ -108,7 +108,9 @@
                                                 :end (1- (max-buffer-bytes client))))))
           (when (zerop bytes-read)
             (error 'end-of-file))
-          (incf (input-buffer-fill client) bytes-read))
+          (incf (input-buffer-fill client) bytes-read)
+          (let ((maybe-line (read-line-from-client client)))
+            (when maybe-line (handle-line client maybe-line))))
       (iolib:socket-connection-reset-error ()
         ;; Should do something here
         (format t "Got a reset from ~A.~%" client)
@@ -190,10 +192,6 @@
 (defmethod init ((client tcp-client))
   (write-to-client client (format nil "~&Hello. Welcome to Sykosomatic.~%"))
   (setf (input-handler client) (make-login-handler client)))
-
-(defmethod update ((client tcp-client))
-  (let ((input (read-line-from-client client)))
-    (when input (handle-line client input))))
 
 (defmethod teardown ((client tcp-client))
   nil)
@@ -288,11 +286,7 @@
         (format t "Unexpected EOF.~%")))))
 
 (defmethod update ((server tcp-service-provider))
-  (dispatch-events server)
-  (maphash (lambda (k client)
-             (declare (ignore k))
-             (update client))
-           (clients server)))
+  (dispatch-events server))
 
 ;;;
 ;;; Input handlers
