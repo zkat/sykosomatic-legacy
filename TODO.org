@@ -1,0 +1,54 @@
+* Tasks for ILGE2010
+** TODO Try to get things working under CCL again
+** DONE Write TCP server
+** TODO Make TCP server more robust
+*** TODO Fix read-line-from-client
+*** TODO Set up a proper logging system
+*** TODO Stress-test TCP server
+    Write a basic thing that can spawn several hundred clients and hammer the server with input.
+** DONE Accounts
+*** DONE Account creation
+*** DONE Log into account
+** TODO Set up persistence
+*** TODO Make accounts persistent
+*** TODO Make game objects persistent
+** TODO Characters
+*** TODO Add character creation.
+*** TODO Add logging into characters associated with accounts.
+** TODO Game world
+*** TODO Create a few rooms.
+*** TODO Allow characters to be inside a room.
+*** TODO Port messaging functions to broadcast to _rooms_.
+*** TODO Add movement between rooms.
+*** TODO Allow rooms to act as containers (having other objects in them)
+*** TODO Add features to objects (details)
+*** TODO 
+** TODO Port clock
+   For CPU limiting!
+** TODO Port tasks
+** TODO Parse user input
+*** TODO Get parser working and spitting out parse trees
+*** TODO Add some basic social verbs (no targeting)
+*** TODO Write binder to associate commands with in-game objects
+*** TODO Improve existing verbs to use binder (for targeting!)
+*** TODO Add some verbs with complex, multi-step interactions (using tasks?)
+** TODO Combat
+*** TODO Add basic combat verbs without any extra actions.
+*** TODO Add basic AC-based combat rolls to combat verbs
+*** TODO Add defense poses (block, brace, dodge, accept)
+** TODO Launch!
+   Invite people and have some duels!
+* Post-ILGE
+** TODO Add fancier telnet support
+*** TODO readline-ish input
+*** TODO Colors!
+** TODO Web-based interface
+*** TODO Generic service provider protocol
+*** TODO hunchentoot-based service provider
+*** TODO AJAX web client
+**** TODO Draw an interface on a web page.
+**** TODO Ask server for a hello-world line.
+**** TODO Send server a hello-world line.
+**** TODO Send and receive raw text messages to/from server.
+     Use JSON!
+
