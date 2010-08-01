@@ -31,8 +31,11 @@
 
 (defmethod init ((game game))
   (setf (newbie-room game) (make-instance 'room)
-        (rooms game) (list (newbie-room game))
-        *default-client-main* #'play-game))
+        (rooms game) (list (newbie-room game))))
+
+(defmethod run :around ((game game))
+  (let ((*default-client-main* #'play-game))
+    (call-next-method)))
 
 (defmethod handle-player-command ((soul soul) input &aux (input (string-cleanup input)))
   (unless (zerop (length input))
