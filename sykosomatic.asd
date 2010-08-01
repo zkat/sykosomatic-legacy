@@ -4,7 +4,7 @@
   :maintainer "Kat Marchán <kzm@sykosomatic.org>"
   :author "Kat Marchán <kzm@sykosomatic.org>"
   :licence "AGPL"
-  :depends-on (alexandria iolib cl-ppcre cl-store trivial-gray-streams ironclad)
+  :depends-on (alexandria iolib cl-ppcre cl-store trivial-gray-streams ironclad cl-cont)
   :serial t
   :components
   ((module "src"
