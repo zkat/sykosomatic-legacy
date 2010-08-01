@@ -36,6 +36,7 @@
            (format (client soul)
                    "You see a double rainbow all the way across the sky. So intense.~%"))
           ((string-equal input "quit")
+           (broadcast-to-room (client soul)  "~&~A leaves the world~%" (username (account soul)) input)
            (disconnect (client soul) :close))
           (t
            (format (client soul) "~&You say, \"~A\"~%" input)
