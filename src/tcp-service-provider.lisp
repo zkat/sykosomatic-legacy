@@ -198,7 +198,7 @@
       ;; TODO: This is *totally* wrong. If there's more than one newline in the buffer,
       ;; it'll grab the _entire_ thing as a single string! Use ring buffer? :\
       (when (and (plusp buffer-fill)
-                 (find #\newline buffer :end buffer-fill :key #'code-char))
+                 (find #.(char-code #\Newline) buffer :end buffer-fill))
         ;; Note: We _scrap_ the newline.
         (let ((string (make-string (1- buffer-fill))))
           (loop for code across buffer
