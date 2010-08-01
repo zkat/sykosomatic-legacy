@@ -11,6 +11,11 @@
 *** DONE Log into account
 ** TODO Set up persistence
 *** TODO Make accounts persistent
+    These are probably good candidates to get started with -- maybe rucksack can actually work. Note
+    that using rucksack means pretty much throwing CCL support out the window for now.  Another
+    alternative might be to persist things to CouchDB, which might be relatively
+    easy. Unfortunately, there's no library to directly do this from lisp objects (and I won't write
+    one).
 *** TODO Make game objects persistent
 ** TODO Characters
 *** TODO Add character creation.
@@ -50,5 +55,21 @@
 **** TODO Ask server for a hello-world line.
 **** TODO Send server a hello-world line.
 **** TODO Send and receive raw text messages to/from server.
-     Use JSON!
+**** TODO Convert text messaging to JSON-based messages.
+**** TODO Start sending and receiving JSON messages with extra info in them.
+***** TODO Send the server's current time.
+***** TODO Add a 'look' packet that will display look information on a side pane.
+***** TODO Convert the plain-text message strings to complex JSON with identifiers for objects.
+***** TODO Make all identified objects render as links to a 'look' in the interface.
+**** TODO Add an inventory-management GUI
+*** TODO Login screen
+    Code monkey think maybe manager wanna write goddamn login page himself.
 
+** TODO Write a Marrach-like tech demo game.
+   Relatively small area, full description, some basic systems in place! (no crafting or stuff, though)
+** TODO Super-awesome building system
+*** TODO Write a VM!
+*** TODO Write a custom prototype-based lisp to run on the VM!
+*** TODO Make it SUPER-PERSISTENT!
+*** TODO Shit double rainbows!
+    By the time this actually works, I will!
