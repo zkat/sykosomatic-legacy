@@ -382,7 +382,7 @@
                        (setf username nil
                              state :username))))))))))
 
-(defparameter *password-salt* "☃sh00rizs4lt1☃")
+(defparameter *password-salt* "sh00rizs4lt1")
 (defun hash-password (string)
   (ironclad:byte-array-to-hex-string
    (ironclad:digest-sequence
