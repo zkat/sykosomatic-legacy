@@ -213,19 +213,18 @@
                (output-buffer-queue client)))))
 
 (defun broadcast-to-room (client format-string &rest format-args)
-  (let ((text (apply #'format nil format-string format-args)))
-    (maphash (lambda (k current-client)
-               (declare (ignore k))
-               (unless (eq client current-client)
-                 (princ text current-client)))
-             (clients (service-provider client)))))
+  (maphash (lambda (k current-client)
+             (declare (ignore k))
+             (unless (eq client current-client)
+               (format t "~&Broadcasting to: ~A~%" current-client)
+               (apply #'format current-client format-string format-args)))
+           (clients (service-provider client))))
 
 (defun broadcast-to-provider (provider format-string &rest format-args)
-  (let ((text (apply #'format nil format-string format-args)))
-    (maphash (lambda (k client)
-               (declare (ignore k))
-               (princ text client))
-             (clients provider))))
+  (maphash (lambda (k client)
+             (declare (ignore k))
+             (apply #'format client format-string format-args))
+           (clients provider)))
 
 ;;;
 ;;; Init/Update/Teardown
