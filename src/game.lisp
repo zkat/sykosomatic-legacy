@@ -26,9 +26,13 @@
   (:default-initargs
    :providers (list (make-instance 'tcp-service-provider))))
 
+(defun play-game (client)
+  (handle-player-command (soul client) (last-input client)))
+
 (defmethod init ((game game))
   (setf (newbie-room game) (make-instance 'room)
-        (rooms game) (list (newbie-room game))))
+        (rooms game) (list (newbie-room game))
+        *default-client-main* #'play-game))
 
 (defmethod handle-player-command ((soul soul) input &aux (input (string-cleanup input)))
   (unless (zerop (length input))
