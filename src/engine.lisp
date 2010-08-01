@@ -35,11 +35,11 @@
    "The engine handles all the core logic and interactions. It communicates with
 its service-providers through events."))
 
-(defmethod init ((engine engine))
+(defmethod init :before ((engine engine))
   (map nil #'init (service-providers engine)))
-(defmethod teardown ((engine engine))
+(defmethod teardown :before ((engine engine))
   (map nil #'teardown (service-providers engine)))
-(defmethod update ((engine engine))
+(defmethod update :before ((engine engine))
   (map nil #'update (service-providers engine)))
 
 (defmethod run ((engine engine))
@@ -51,7 +51,10 @@ its service-providers through events."))
 
 (defclass soul ()
   ((account :initform nil :accessor account)
-   (body :initform nil :accessor body)))
+   (body :initform nil :accessor body)
+   (client :initarg :client :accessor client)
+   (name :initarg :name :accessor name
+         :documentation "TEMPORARY!")))
 
 (defclass client ()
   ((soul :accessor soul)
@@ -64,3 +67,5 @@ its service-providers through events."))
   (:documentation
    "Service providers handle users. They translate user interactions into events,
 which the associated engine can then handle."))
+
+(defgeneric handle-player-command (player input))
