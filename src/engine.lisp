@@ -21,6 +21,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
+(declaim (optimize debug))
+
+;;;
+;;; Engine API
+;;;
 (defgeneric init (obj))
 (defgeneric teardown (obj))
 (defgeneric update (obj))

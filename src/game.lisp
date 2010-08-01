@@ -21,6 +21,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
+(declaim (optimize debug))
+
+;;;
+;;; Test game
+;;;
 (defclass game (engine)
   ()
   (:default-initargs

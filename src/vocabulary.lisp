@@ -22,6 +22,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
+(declaim (optimize debug))
+
 (defvar *vocab-directory* (merge-pathnames #P".sykosomatic/vocab/" (user-homedir-pathname))
   "Vocabulary directory")
 
