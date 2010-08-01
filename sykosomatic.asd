@@ -14,7 +14,14 @@
             (:file "vocabulary")
             (:file "parser")
             (:file "engine")
-            (:file "tcp-service-provider")
+            (module "tcp-service-provider"
+                    :serial t
+                    :components
+                    ((:file "config")
+                     (:file "utils")
+                     (:file "client")
+                     (:file "account")
+                     (:file "tcp-service-provider")))
             (module "game-objects"
                     :serial t
                     :components
