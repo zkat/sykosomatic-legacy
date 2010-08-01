@@ -458,6 +458,7 @@
                      (setf state :password)))))))))
 
 (defun play-game (client)
+  (format client "~&Commands: 'look' and 'quit'. Type anything else to chat.~%")
   (broadcast-to-room client "~&~A enters the world.~%" (username (account (soul client))))
   (setf (input-handler client)
         (lambda (input)
