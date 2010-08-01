@@ -57,8 +57,7 @@
 ;;;
 (defclass tcp-client (client fundamental-character-output-stream
                              fundamental-character-input-stream)
-  (#+nil(input-handler :initarg :input-handler :initform nil :accessor input-handler)
-   (socket :accessor socket :initarg :socket
+  ((socket :accessor socket :initarg :socket
            :initform (error "Must provide a socket for this client."))
    (remote-name :accessor remote-name)
    (port :accessor port)
