@@ -66,7 +66,7 @@
    (output-buffer-queue :accessor output-buffer-queue :initform (make-queue))
    (output-buffer :accessor output-buffer :initform nil)
    (output-byte-count :accessor output-byte-count :initform 0)
-   (last-output-newline-p :accessor last-output-newline-p :initform t)))
+   (recent-newline-p :accessor recent-newline-p :initform t)))
 
 (defmethod initialize-instance :after ((client tcp-client) &key)
   (multiple-value-bind (name port)
@@ -95,13 +95,13 @@
 ;; Output
 (defmethod stream-write-char ((client tcp-client) char)
   (write-to-client client (princ-to-string char))
-  (setf (last-output-newline-p client)
+  (setf (recent-newline-p client)
         (eq #\newline char))
   char)
 (defmethod stream-line-column ((client tcp-client))
   nil)
 (defmethod stream-start-line-p ((client tcp-client))
-  (when (last-output-newline-p client)
+  (when (recent-newline-p client)
     t))
 (defmethod stream-fresh-line ((client tcp-client))
   (unless (stream-start-line-p client)
@@ -109,7 +109,7 @@
 (defmethod stream-write-string ((client tcp-client) seq &optional start end)
   (let ((seq (if start (subseq seq start end) seq)))
     (prog1 (write-to-client client seq)
-      (setf (last-output-newline-p client)
+      (setf (recent-newline-p client)
             (when (eql #\newline (elt seq (1- (length seq)))) t)))))
 (defmethod stream-clear-output ((client tcp-client))
   (setf (output-buffer client) nil
@@ -199,6 +199,7 @@
       ;; it'll grab the _entire_ thing as a single string! Use ring buffer? :\
       (when (and (plusp buffer-fill)
                  (find #.(char-code #\Newline) buffer :end buffer-fill))
+        (setf (recent-newline-p client) t)
         ;; Note: We _scrap_ the newline.
         (let ((string (make-string (1- buffer-fill))))
           (loop for code across buffer
