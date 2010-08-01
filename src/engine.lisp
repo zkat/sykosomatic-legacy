@@ -35,6 +35,12 @@
    "The engine handles all the core logic and interactions. It communicates with
 its service-providers through events."))
 
+(defmethod init ((engine engine))
+  nil)
+(defmethod teardown ((engine engine))
+  nil)
+(defmethod update ((engine engine))
+  nil)
 (defmethod init :before ((engine engine))
   (map nil #'init (service-providers engine)))
 (defmethod teardown :before ((engine engine))
