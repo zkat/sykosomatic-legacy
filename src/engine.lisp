@@ -56,11 +56,9 @@ its service-providers through events."))
     (teardown engine)))
 
 (defclass soul ()
-  ((account :initform nil :accessor account)
+  ((account :initform nil :initarg :account :accessor account)
    (body :initform nil :accessor body)
-   (client :initarg :client :accessor client)
-   (name :initarg :name :accessor name
-         :documentation "TEMPORARY!")))
+   (client :initarg :client :accessor client)))
 
 (defclass client ()
   ((soul :accessor soul)
