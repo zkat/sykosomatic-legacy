@@ -17,8 +17,8 @@
 
 ;; account.lisp
 ;;
-;; This file contains the <account> class, meant to hold some basic information about user accounts 
-;; like login/pass, characters available, and the client currently connected to the account. This 
+;; This file contains the <account> class, meant to hold some basic information about user accounts
+;; like login/pass, characters available, and the client currently connected to the account. This
 ;; file also contains the functions that handle user login, account creation, and account management.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -79,63 +79,63 @@
   "Sets up user account."
   (write-to-client client "Alright, let's set up your account...~%")
   (let* ((username (setup-username client))
-	 (password (setup-password client))
-	 (email (setup-email client)))
+         (password (setup-password client))
+         (email (setup-email client)))
     (make-instance '<account> :username username :password password :email email)))
 
 (defun/cc setup-username (client)
   "Prompts client for a username."
   (let ((username (prompt-client client "Please enter your desired username: ")))
     (if (confirm-username-sanity username)
-	(progn
-	  (write-to-client client "~%It seems that you chose username ~a.~%" username)
-	  (if (client-y-or-n-p client "Would you like to use this username? ")
-	      (if (user-exists-p username)
-		  (progn 
-		    (write-to-client client "~&An account with that username already exists.~%")
-		    (setup-username client))
-		  username)
-	      (setup-username client)))
-	(progn
-	  (write-to-client client "~&Username must between 4 and 16 characters long and contain only letters and numbers.~%~%")
-	  (setup-username client)))))
+        (progn
+          (write-to-client client "~%It seems that you chose username ~a.~%" username)
+          (if (client-y-or-n-p client "Would you like to use this username? ")
+              (if (user-exists-p username)
+                  (progn
+                    (write-to-client client "~&An account with that username already exists.~%")
+                    (setup-username client))
+                  username)
+              (setup-username client)))
+        (progn
+          (write-to-client client "~&Username must between 4 and 16 characters long and contain only letters and numbers.~%~%")
+          (setup-username client)))))
 
 (defun/cc setup-password (client)
   "Prompts client for a password."
   (let ((password (prompt-client client "~%Choose a password: "))
-	(pass-confirm (prompt-client client "~&Retype your password: ")))
+        (pass-confirm (prompt-client client "~&Retype your password: ")))
 
     (if (not (equal password pass-confirm))
-	(progn
-	  (write-to-client client "~&Passwords did not match, try again.~%")
-	  (setup-password client))
-	(if (confirm-password-sanity password)
-	    (hash-password password)
-	    (progn
-	      (write-to-client client "~&Password must be between 6 and 32 characters in length.~%~%")
-	      (setup-password client))))))
+        (progn
+          (write-to-client client "~&Passwords did not match, try again.~%")
+          (setup-password client))
+        (if (confirm-password-sanity password)
+            (hash-password password)
+            (progn
+              (write-to-client client "~&Password must be between 6 and 32 characters in length.~%~%")
+              (setup-password client))))))
 
 (defun/cc setup-email (client)
   "Prompts client for a correct e-mail address."
   (let ((email (prompt-client client "~%Please enter your email address: ")))
     (if (confirm-email-sanity email)
-	(progn
-	  (write-to-client client  "~%You chose ~a as your email address.~%" email)
-	  (if (client-y-or-n-p client "Is this email address correct?")
-	      email
-	    (setup-email client)))
-      (progn
-	(write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)	  
-	(setup-email client)))))
+        (progn
+          (write-to-client client  "~%You chose ~a as your email address.~%" email)
+          (if (client-y-or-n-p client "Is this email address correct?")
+              email
+              (setup-email client)))
+        (progn
+          (write-to-client client "I'm sorry, ~a is not a valid email address.~%" email)
+          (setup-email client)))))
 
 ;; NOTE: This isn't used (yet)
 (defun/cc setup-name (client)
   "Prompts client for first and last name."
   (let* ((firstname (prompt-client client "Please enter your first name"))
-	 (lastname (prompt-client client "Please enter your first name")))
+         (lastname (prompt-client client "Please enter your first name")))
     (if (client-y-or-n-p client "Greetings ~a ~a. Is this name correct" firstname lastname)
-	(values firstname lastname)
-      (setup-name client))))
+        (values firstname lastname)
+        (setup-name client))))
 
 ;;;
 ;;; Account Management
@@ -179,8 +179,8 @@ a set of characters defined as CL's standard-char type."
 
 (defun confirm-email-sanity (email)
   "Checks that EMAIL is a legal e-mail address. Only accepts certain domains."
-  (cl-ppcre:scan 
-   "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$" 
+  (cl-ppcre:scan
+   "^[\\w._%\\-]+@[\\w.\\-]+\\.([A-Za-z]{2}|com|edu|org|net|biz|info|name|aero|biz|info|jobs|museum|name)$"
    email))
 
 ;;; Conditions
