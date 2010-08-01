@@ -217,7 +217,6 @@
   (maphash (lambda (k current-client)
              (declare (ignore k))
              (unless (eq client current-client)
-               (format t "~&Broadcasting to: ~A~%" current-client)
                (apply #'format current-client format-string format-args)))
            (clients (service-provider client))))
 
