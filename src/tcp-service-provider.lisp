@@ -50,13 +50,14 @@
 ;;;
 (defparameter *server-listen-ip* iolib:+ipv4-unspecified+)
 (defparameter *server-port* 4000)
+(defparameter *default-client-main* nil)
 
 ;;;
 ;;; TCP Clients
 ;;;
 (defclass tcp-client (client fundamental-character-output-stream
                              fundamental-character-input-stream)
-  ((input-handler :initarg :input-handler :initform nil :accessor input-handler)
+  (#+nil(input-handler :initarg :input-handler :initform nil :accessor input-handler)
    (socket :accessor socket :initarg :socket
            :initform (error "Must provide a socket for this client."))
    (remote-name :accessor remote-name)
@@ -67,7 +68,10 @@
    (output-buffer-queue :accessor output-buffer-queue :initform (make-queue))
    (output-buffer :accessor output-buffer :initform nil)
    (output-byte-count :accessor output-byte-count :initform 0)
-   (recent-newline-p :accessor recent-newline-p :initform t)))
+   (recent-newline-p :accessor recent-newline-p :initform t)
+   (last-input :accessor last-input :initform nil)
+   (client-main :accessor client-main :initarg :client-main :initform *default-client-main*)
+   (client-continuation :accessor client-continuation :initform nil)))
 
 (defmethod initialize-instance :after ((client tcp-client) &key)
   (multiple-value-bind (name port)
@@ -212,7 +216,8 @@
 (defgeneric handle-line (client line)
   (:method ((client tcp-client) line)
     (format t "~A sez: ~A~%" client line)
-    (funcall (input-handler client) line)))
+    (setf (last-input client) line)
+    (update client)))
 
 (defun broadcast-to-room (client format-string &rest format-args)
   (let ((text (apply #'format nil format-string format-args)))
@@ -231,10 +236,14 @@
 
 (defmethod init ((client tcp-client))
   (format client "~&Hello. Welcome to Sykosomatic.~%")
-  (login client))
+  (maybe-login client))
 
 (defmethod update ((client tcp-client))
-  nil)
+  (let ((k (client-continuation client)))
+    (if k
+        (progn (setf (client-continuation client) nil)
+               (funcall k (last-input client)))
+        (funcall (client-main client)))))
 
 (defmethod teardown ((client tcp-client))
   (close client :abort t)
@@ -347,40 +356,16 @@
                  (string-trim '(#\Space #\Tab #\Newline #\Return)
                               string)))
 
-(defun login (client)
-  (format client "~&Username: ")
-  (setf (input-handler client)
-        (let ((state :username)
-              (username nil))
-          (lambda (input &aux (input (string-cleanup input)))
-            (ecase state
-              (:username
-               (setf username input)
-               (if (account-exists-p input)
-                   (progn
-                     (format client "~&Password: ")
-                     (setf state :password))
-                   (progn
-                     (format client "~&No such account. Create? (Y/n) ")
-                     (setf state :maybe-create-account))))
-              (:maybe-create-account
-               (if (string-equal "n" input)
-                   (progn
-                     (format client "~&Goodbye!~%")
-                     (disconnect client :close))
-                   (create-account client username)))
-              (:password
-               (let ((account (find-account username)))
-                 (if (confirm-password account input)
-                     (progn
-                       (setf (soul client) (make-instance 'soul :account account :client client))
-                       (format client "~&You are now logged in as ~A.~%" username)
-                       (play-game client))
-                     (progn
-                       (format client "~&Wrong password.~%")
-                       (format client "~&Username: ")
-                       (setf username nil
-                             state :username))))))))))
+(defun/cc prompt-client (client &optional format-string &rest format-args)
+  (when format-string
+    (apply #'format client format-string format-args))
+  (string-cleanup
+   (let/cc k
+     (setf (client-continuation client) k))))
+
+(defun/cc client-y-or-n-p (client format-string &rest format-args)
+  (unless (string-equal "n" (apply #'prompt-client client format-string format-args))
+    t))
 
 (defparameter *password-salt* "sh00rizs4lt1")
 (defun hash-password (string)
@@ -409,58 +394,58 @@
   (string= (password-hash account)
            (hash-password input)))
 
-(defun create-account (client username)
-  (format client "~&Let's create your account!~%")
-  (format client "~&Use ~A as your username? (Y/n) " username)
-  (setf (input-handler client)
-        (let ((state :use-username?)
-              (email nil)
-              (password nil))
-          (lambda (input &aux (input (string-cleanup input)))
-            (ecase state
-              (:use-username?
-               (if (string-equal "n" input)
-                   (progn
-                     (format client "~&Pick a new username: ")
-                     (setf state :pick-username))
-                   (progn
-                     (format client "~&Using ~A as your username.~%" username)
-                     (format client "~&Please enter your email address: ")
-                     (setf state :email))))
-              (:pick-username
-               (format client "~&Use ~A as your username? (Y/n) " input)
-               (setf username input
-                     state :use-username?))
-              (:email
-               (format client "~&You entered ~A as your email address. Is this correct? (Y/n) " input)
-               (setf email input
-                     state :email-confirm))
-              (:email-confirm
-               (if (string-equal "n" input)
-                   (progn
-                     (format client "~&Please enter your email address: ")
-                     (setf state :email))
-                   (progn
-                     (format client "~&Pick a password: ")
-                     (setf state :password))))
-              (:password
-               (setf password input)
-               (format client "~&Confirm your password: ")
-               (setf state :password-confirm))
-              (:password-confirm
-               (if (string= password input)
-                   (progn
-                     (make-instance 'account :username username :password password :email email)
-                     (format client "~&Account successfully created~%")
-                     (login client))
-                   (progn
-                     (format client "~&Passwords did not match.~%")
-                     (format client "~&Pick a password: ")
-                     (setf state :password)))))))))
+(defun/cc maybe-login (client)
+  (let* ((username (prompt-client client "~&Username: "))
+         (account (find-account username)))
+    (if account
+        (login client account)
+        (no-such-account client username))))
+
+(defun/cc login (client account)
+  (let ((account (confirm-password account (prompt-client client "~&Password: "))))
+    (if account
+        (progn
+          (setf (soul client) (make-instance 'soul :account account :client client))
+          #+nil(format client "~&You are now logged in as ~A.~%" (username (account (soul client))))
+          (format client "~&Commands: 'look' and 'quit'. Type anything else to chat.~%")
+          #+nil(broadcast-to-room client "~&~A enters the world.~%" (username (account (soul client)))))
+        (progn
+          (format client "~&Wrong password.~%")
+          (maybe-login client)))))
+
+(defun/cc no-such-account (client username)
+  (if (client-y-or-n-p client "~&No such account. Create one? (Y/n) ")
+      (create-account client username)
+      (progn
+        #+nil(format client "~&Bye!~%")
+        (close client))))
+
+(defun/cc create-account (client username)
+  (let* ((username (pick-username client username))
+         (password (pick-password client))
+         (email (pick-email client)))
+    (make-instance 'account :username username :password password :email email)
+    (format client "~&Account successfully created~%")
+    (maybe-login client)))
+
+(defun/cc pick-username (client username)
+  (if (client-y-or-n-p client "~&Use ~A as your username? (Y/n) " username)
+      username
+      (pick-username client (prompt-client client "~&Pick a new username: "))))
+
+(defun/cc pick-password (client)
+  (let* ((password (prompt-client client "~&Pick a password: "))
+         (confirm (prompt-client client "~&Confirm your password: ")))
+    (if (string= password confirm)
+        password
+        (progn
+          (format client "~&Passwords did not match.~%")
+          (maybe-login client)))))
+
+(defun/cc pick-email (client)
+  (prompt-client client "~&Please enter your email address: "))
 
 (defun play-game (client)
-  (format client "~&Commands: 'look' and 'quit'. Type anything else to chat.~%")
-  (broadcast-to-room client "~&~A enters the world.~%" (username (account (soul client))))
-  (setf (input-handler client)
-        (lambda (input)
-          (handle-player-command (soul client) input))))
+  (handle-player-command (soul client) (last-input client)))
+
+(setf *default-client-main* #'play-game)
