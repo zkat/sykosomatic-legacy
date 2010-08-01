@@ -62,7 +62,7 @@
     :accessor read-lines
     :documentation "A queue of lines that have been read in from the client."))
   (:documentation "Contains basic information about the current client like the connected socket,
-the client's IP address, last activity time, associated account (if any), and associated avatar (if 
+the client's IP address, last activity time, associated account (if any), and associated avatar (if
 any). Also contains several slots that handle asynchronous client i/o."))
 
 ;;;
@@ -72,35 +72,35 @@ any). Also contains several slots that handle asynchronous client i/o."))
 (defun format-ip (ip)
   "Converts an IP in array format into a string."
   (format nil "~{~d~^.~}" (loop for ip-part across ip
-				 collect ip-part)))
+                 collect ip-part)))
 
 (defun connect-new-client ()
   "Connects a new client to the main server."
   (let ((socket (usocket:socket-accept (socket *server*))))
-    (let ((client (make-instance '<client> 
-				 :socket socket
-				 :ip (format-ip (usocket:get-peer-address socket)))))
+    (let ((client (make-instance '<client>
+                 :socket socket
+                 :ip (format-ip (usocket:get-peer-address socket)))))
       (client-init client)
       (log-message :CLIENT "New client: ~a" (ip client))
       (bordeaux-threads:with-lock-held ((client-list-lock *server*))
-	(push client (clients *server*))))))
+    (push client (clients *server*))))))
 
 (defun disconnect-client (client)
   "Disconnects the client and removes it from the current clients list."
   (with-accessors ((socket socket)) client
     (if socket
-	(progn
-	  (usocket:socket-close socket))
-	(log-message :CLIENT 
-		     "Tried disconnecting client ~a, but nothing to disconnect." (ip client)))))
+    (progn
+      (usocket:socket-close socket))
+    (log-message :CLIENT
+             "Tried disconnecting client ~a, but nothing to disconnect." (ip client)))))
 
 (defun remove-client (client)
   "Removes client from the server's client-list."
   (disconnect-client client)
-  (bordeaux-threads:with-recursive-lock-held ((client-list-lock *server*)) 
+  (bordeaux-threads:with-recursive-lock-held ((client-list-lock *server*))
     (setf (clients *server*)
-	  (remove client (clients *server*)))))
-  
+      (remove client (clients *server*)))))
+
 (defun client-idle-time (client)
   "How long, in seconds, since activity was last received from client."
   (- (get-universal-time) (last-active client)))
@@ -127,23 +127,23 @@ any). Also contains several slots that handle asynchronous client i/o."))
 Throws a CLIENT-DISCONNECTED-ERROR if it receives an EOF."
   (handler-case
       (let ((stream (usocket:socket-stream (socket client))))
-	(loop for b = (when (listen stream) 
-			(read-byte stream))
-	   do
-	   (cond ((null b)
-		  (return))
-		 ((= b #.(char-code #\Newline))
-		  (enqueue (read-lines client) (coerce
-						(nreverse (partial-line client))
-						'string))
-		  (setf (partial-line client) nil)
-		  (return))
-		 ((standard-char-p (code-char b))
-		  (push (code-char b) (partial-line client))))))
+    (loop for b = (when (listen stream)
+            (read-byte stream))
+       do
+       (cond ((null b)
+          (return))
+         ((= b #.(char-code #\Newline))
+          (enqueue (read-lines client) (coerce
+                        (nreverse (partial-line client))
+                        'string))
+          (setf (partial-line client) nil)
+          (return))
+         ((standard-char-p (code-char b))
+          (push (code-char b) (partial-line client))))))
     (end-of-file ()
       (error 'client-disconnected-error :text "End-of-file. Stream disconnected remotely."))
-    (simple-error () (error 'client-disconnected-error 
-			    :text "Got a simple error while trying to write to client.
+    (simple-error () (error 'client-disconnected-error
+                :text "Got a simple error while trying to write to client.
 Assuming disconnection."))))
 
 (defun read-line-from-client (client)
@@ -152,11 +152,11 @@ Assuming disconnection."))))
 
 (defun/cc prompt-client (client &optional format-string &rest format-args)
   "Continuation used for prompting a client for input."
-  (when format-string 
+  (when format-string
     (write-to-client client format-string format-args))
   (if (queue-empty-p (read-lines client))
       (let/cc k
-	(setf (client-continuation client) k))
+    (setf (client-continuation client) k))
       (read-line-from-client client)))
 
 ;; TODO: This is inconsistent. No reason why it wouldn't accept regular format arguments.
@@ -165,13 +165,13 @@ Assuming disconnection."))))
   (write-to-client client string)
   (let ((answer (prompt-client client " (y or n) ")))
     (cond ((string-equal "y" (char answer 0))
-	   t)
-	  ((string-equal "n" (char answer 0))
-	   nil)
-	  (t
-	   (progn
-	     (write-to-client client "Please answer y or n.~%")
-	     (client-y-or-n-p client string))))))
+       t)
+      ((string-equal "n" (char answer 0))
+       nil)
+      (t
+       (progn
+         (write-to-client client "Please answer y or n.~%")
+         (client-y-or-n-p client string))))))
 
 ;;; Output
 
@@ -185,19 +185,19 @@ Assuming disconnection."))))
   "Sends a given STRING to a particular client."
   (let ((string (apply #'format nil format-string format-args)))
     (if (socket client)
-	(handler-case
-	    (let* ((stream (usocket:socket-stream (socket client)))
-		   (bytes (loop for char across string
-			     collect (char-code char))))
-	      (loop for byte in bytes
-		 do (write-byte byte stream)
-		 finally (finish-output stream)))
-	  (sb-int:closed-stream-error () (error 'client-disconnected-error 
-						:text "Stream was closed. Can't write to client."))
-	  (simple-error () (error 'client-disconnected-error 
-				  :text "Got a simple error while trying to write to client. Assuming disconnection.")))
-	(error 'client-disconnected-error 
-	       :text "Can't write to client. There's no socket to write to."))))
+    (handler-case
+        (let* ((stream (usocket:socket-stream (socket client)))
+           (bytes (loop for char across string
+                 collect (char-code char))))
+          (loop for byte in bytes
+         do (write-byte byte stream)
+         finally (finish-output stream)))
+      (sb-int:closed-stream-error () (error 'client-disconnected-error
+                        :text "Stream was closed. Can't write to client."))
+      (simple-error () (error 'client-disconnected-error
+                  :text "Got a simple error while trying to write to client. Assuming disconnection.")))
+    (error 'client-disconnected-error
+           :text "Can't write to client. There's no socket to write to."))))
 
 ;;;
 ;;; Client main
@@ -206,9 +206,9 @@ Assuming disconnection."))))
 (defun client-init (client)
   "Initializes a client, and sets the main function to step through."
   (write-to-client client "Hello, welcome to SykoSoMaTIC~%")
-  (setf (client-step client) (make-client-step-with-continuations 
-			      client
-			      #'(lambda (client) (client-main client)))))
+  (setf (client-step client) (make-client-step-with-continuations
+                              client
+                              #'(lambda (client) (client-main client)))))
 
 (defun/cc client-main (client)
   "Main function to run clients through."
@@ -219,11 +219,11 @@ Assuming disconnection."))))
  with continuation handler."
   (lambda ()
     (if (client-continuation client)
-	(unless (queue-empty-p (read-lines client))
-	  (let ((client-continuation (client-continuation client)))
-	    (setf (client-continuation client) nil)
-	    (funcall client-continuation (read-line-from-client client))))
-	(funcall function client))))
+        (unless (queue-empty-p (read-lines client))
+          (let ((client-continuation (client-continuation client)))
+            (setf (client-continuation client) nil)
+            (funcall client-continuation (read-line-from-client client))))
+        (funcall function client))))
 
 ;;; Testing
 ;;;
@@ -235,8 +235,8 @@ Assuming disconnection."))))
   "Prompts client for input, and echoes back whatever client wrote."
   (let ((input (prompt-client client "~~> ")))
     (if (string-equal input "quit")
-	(disconnect-client client)
-	(write-to-client client "You wrote: '~a'~%~%" input))))
+    (disconnect-client client)
+    (write-to-client client "You wrote: '~a'~%~%" input))))
 
 ;; stress test
 (defvar *test-clients* nil)
@@ -255,16 +255,16 @@ Assuming disconnection."))))
   (loop
      for client in *test-clients*
      do (progn
-	  (usocket:socket-close (socket client)))))
+      (usocket:socket-close (socket client)))))
 
 (defun make-and-run-test-client ()
   (let ((test-client (make-instance '<test-client>
-			:socket (usocket:socket-connect 
-				 "localhost" 4000 
-				 :element-type '(unsigned-byte 8)))))
+            :socket (usocket:socket-connect
+                 "localhost" 4000
+                 :element-type '(unsigned-byte 8)))))
     (setf (client-step test-client)
-	  (lambda ()
-	    (spam-loop-step test-client)))
+      (lambda ()
+        (spam-loop-step test-client)))
     test-client))
 
 (defun spam-loop-step (client)
