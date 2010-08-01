@@ -421,9 +421,9 @@
         (close client))))
 
 (defun/cc create-account (client username)
-  (let* ((username (pick-username client username))
-         (password (pick-password client))
-         (email (pick-email client)))
+  (let ((username (pick-username client username))
+        (password (pick-password client))
+        (email (pick-email client)))
     (make-instance 'account :username username :password password :email email)
     (format client "~&Account successfully created~%")
     (maybe-login client)))
@@ -434,8 +434,8 @@
       (pick-username client (prompt-client client "~&Pick a new username: "))))
 
 (defun/cc pick-password (client)
-  (let* ((password (prompt-client client "~&Pick a password: "))
-         (confirm (prompt-client client "~&Confirm your password: ")))
+  (let ((password (prompt-client client "~&Pick a password: "))
+        (confirm (prompt-client client "~&Confirm your password: ")))
     (if (string= password confirm)
         password
         (progn
