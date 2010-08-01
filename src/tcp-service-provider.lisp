@@ -229,14 +229,13 @@
 
 (defmethod init ((client tcp-client))
   (format client "~&Hello. Welcome to Sykosomatic.~%")
-  (setf (input-handler client) (make-login-handler client)))
+  (login client))
 
 (defmethod update ((client tcp-client))
   nil)
 
 (defmethod teardown ((client tcp-client))
-  (close client)
-  (broadcast-to-provider (service-provider client) "~A leaves the world.~%" (name (soul client)))
+  (close client :abort t)
   (format t "~&~A Disconnected.~%" client)
   (detach-client (service-provider client) client)
   client)
@@ -346,16 +345,119 @@
                  (string-trim '(#\Space #\Tab #\Newline #\Return)
                               string)))
 
-(defgeneric make-login-handler (client)
-  (:method ((client tcp-client))
-    (format client "~&Please enter your name: ")
-    (lambda (input &aux (input (string-cleanup input)))
-      (setf (soul client) (make-instance 'soul :name input :client client))
-      (broadcast-to-room client "~A enters the world.~%" (name (soul client)))
-      (format client "You are now logged in as ~A.~%" (name (soul client)))
-      (setf (input-handler client)
-            (make-gameplay-handler client)))))
+(defun login (client)
+  (format client "~&Username: ")
+  (setf (input-handler client)
+        (let ((state :username)
+              (username nil))
+          (lambda (input &aux (input (string-cleanup input)))
+            (ecase state
+              (:username
+               (setf username input)
+               (if (account-exists-p input)
+                   (progn
+                     (format client "~&Password: ")
+                     (setf state :password))
+                   (progn
+                     (format client "~&No such account. Create? (Y/n) ")
+                     (setf state :maybe-create-account))))
+              (:maybe-create-account
+               (if (string-equal "n" input)
+                   (progn
+                     (format client "~&Goodbye!~%")
+                     (disconnect client :close))
+                   (create-account client username)))
+              (:password
+               (let ((account (find-account username)))
+                 (if (confirm-password account input)
+                     (progn
+                       (setf (soul client) (make-instance 'soul :account account :client client))
+                       (format client "~&You are now logged in as ~A.~%" username)
+                       (play-game client))
+                     (progn
+                       (format client "~&Wrong password.~%")
+                       (format client "~&Username: ")
+                       (setf username nil
+                             state :username))))))))))
 
-(defgeneric make-gameplay-handler (client)
-  (:method ((client tcp-client))
-    (lambda (input) (handle-player-command (soul client) input))))
+(defparameter *password-salt* "☃sh00rizs4lt1☃")
+(defun hash-password (string)
+  (ironclad:byte-array-to-hex-string
+   (ironclad:digest-sequence
+    :sha256
+    (ironclad:ascii-string-to-byte-array
+     (concatenate 'string string *password-salt*)))))
+
+(defvar *accounts* nil)
+(defclass account ()
+  ((username :accessor username :initarg :username)
+   (password-hash :accessor password-hash)
+   (email :accessor email :initarg :email)))
+(defmethod initialize-instance :after ((account account) &key password)
+  (setf (password-hash account) (hash-password password))
+  (push account *accounts*))
+
+(defun find-account (username)
+  (find username *accounts* :key #'username :test #'string=))
+
+(defun account-exists-p (username)
+  (find-account username))
+
+(defun confirm-password (account input)
+  (string= (password-hash account)
+           (hash-password input)))
+
+(defun create-account (client username)
+  (format client "~&Let's create your account!~%")
+  (format client "~&Use ~A as your username? (Y/n) " username)
+  (setf (input-handler client)
+        (let ((state :use-username?)
+              (email nil)
+              (password nil))
+          (lambda (input &aux (input (string-cleanup input)))
+            (ecase state
+              (:use-username?
+               (if (string-equal "n" input)
+                   (progn
+                     (format client "~&Pick a new username: ")
+                     (setf state :pick-username))
+                   (progn
+                     (format client "~&Using ~A as your username.~%" username)
+                     (format client "~&Please enter your email address: ")
+                     (setf state :email))))
+              (:pick-username
+               (format client "~&Use ~A as your username? (Y/n) " input)
+               (setf username input
+                     state :use-username?))
+              (:email
+               (format client "~&You entered ~A as your email address. Is this correct? (Y/n) " input)
+               (setf email input
+                     state :email-confirm))
+              (:email-confirm
+               (if (string-equal "n" input)
+                   (progn
+                     (format client "~&Please enter your email address: ")
+                     (setf state :email))
+                   (progn
+                     (format client "~&Pick a password: ")
+                     (setf state :password))))
+              (:password
+               (setf password input)
+               (format client "~&Confirm your password: ")
+               (setf state :password-confirm))
+              (:password-confirm
+               (if (string= password input)
+                   (progn
+                     (make-instance 'account :username username :password password :email email)
+                     (format client "~&Account successfully created~%")
+                     (login client))
+                   (progn
+                     (format client "~&Passwords did not match.~%")
+                     (format client "~&Pick a password: ")
+                     (setf state :password)))))))))
+
+(defun play-game (client)
+  (broadcast-to-room client "~&~A enters the world.~%" (username (account (soul client))))
+  (setf (input-handler client)
+        (lambda (input)
+          (handle-player-command (soul client) input))))
