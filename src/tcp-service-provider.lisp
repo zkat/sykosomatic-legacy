@@ -243,7 +243,7 @@
     (if k
         (progn (setf (client-continuation client) nil)
                (funcall k (last-input client)))
-        (funcall (client-main client)))))
+        (funcall (client-main client) client))))
 
 (defmethod teardown ((client tcp-client))
   (close client :abort t)
@@ -391,8 +391,9 @@
   (find-account username))
 
 (defun confirm-password (account input)
-  (string= (password-hash account)
-           (hash-password input)))
+  (when (string= (password-hash account)
+                 (hash-password input))
+    account))
 
 (defun/cc maybe-login (client)
   (let* ((username (prompt-client client "~&Username: "))
@@ -406,9 +407,9 @@
     (if account
         (progn
           (setf (soul client) (make-instance 'soul :account account :client client))
-          #+nil(format client "~&You are now logged in as ~A.~%" (username (account (soul client))))
+          (format client "~&You are now logged in as ~A.~%" (username (account (soul client))))
           (format client "~&Commands: 'look' and 'quit'. Type anything else to chat.~%")
-          #+nil(broadcast-to-room client "~&~A enters the world.~%" (username (account (soul client)))))
+          (broadcast-to-room client "~&~A enters the world.~%" (username (account (soul client)))))
         (progn
           (format client "~&Wrong password.~%")
           (maybe-login client)))))
