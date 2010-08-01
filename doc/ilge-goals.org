@@ -6,7 +6,7 @@
   duels to the deas, and log out. They should be able to return to their characters later. Any changes
   to the world they do should be persisted if the server goes down.
 ** Specific features
-*** Fancy Parser
+*** TODO Fancy Parser
     A fancy, English-like parser should be implemented. The parser should not simply accept
     <command> <target1> <target2>. The following examples should work:
 **** amusedly grin at <target>
@@ -25,26 +25,25 @@
     Users should be able to connect to the MUD by telnetting to a hostname+port. Any special
     characters should be ignored by the game for now, and no special formatting/coloring is to be
     done.
-*** Accounts
+*** DONE Accounts
     Users, upon connection, should be prompted to either log in, or create an account. Accounts
     should hold some basic information about the user, such as a username, and the hash of their
     password. They will also hold references to the bodies players can inhabit (their characters).
-*** Character creation
+    Note on status: References to inhabitable characters and character creation will come later.
+*** TODO Character creation
     Upon login, users should be able to create a character. Character creation should ask for some
     basic characteristics for the (human) character to be created. Once character creation is done,
     it should take the user back to the character-selection screen.
-*** Rooms
+*** TODO Rooms
     Several rooms should be created. It should be possible for players to move within and between
     rooms. The first should be achieved through a basic 'proxy' system where a game object can be
     marked as 'close' to a certain object. The latter should use standard MUD movement commands
     (north, south, east, west, and combinations thereof). Players should only be able to move
     between rooms if there are open doors that lead from one to the other.
-*** Persistence
+*** TODO Persistence
     All game objects should be persisted. Reloading the game after a shutdown should bring the whole
-    world back to its pre-shutdown state. Player-controlled characters are an exception to this --
-    they will be removed from the world until the player returns.
-
-*** Combat
+    world back to its pre-shutdown state. Upon linkdeath, player characters REMAIN IN-WORLD.
+*** TODO Combat
     Players should be able to roleplay duels using language that makes it look like regular
     roleplaying. For example:
 
@@ -79,12 +78,12 @@
     
     What sort of damage system should this use? Maybe a Shadowrun-like system? Something simpler
     should suffice for this toy MUD.
-*** Seeing the world.
+*** TODO Seeing the world.
     You can look at what's in a room. You can look at features of the room. You can look at other
     game objects, and features of those game objects.
     Descriptions should be generated to look like English. Freeform description for rooms and
     objects should be allowed.
-*** Interacting with the world.
+*** TODO Interacting with the world.
     Players should be able to target verbs (with adverbs) at specific items within their
     scope. Objects and their features (and those features' features) should be targetable for
     actions. Targeting should happen purely through the English-like parser. There should be some
