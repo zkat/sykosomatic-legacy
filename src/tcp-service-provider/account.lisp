@@ -78,7 +78,7 @@
       (create-account client username)
       (progn
         #+nil(format client "~&Bye!~%")
-        (close client))))
+        (disconnect client :close))))
 
 ;;;
 ;;; Account creation

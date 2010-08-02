@@ -127,10 +127,13 @@
                  (find #.(char-code #\Newline) buffer :end buffer-fill))
         (setf (recent-newline-p client) t)
         ;; Note: We _scrap_ the newline.
-        (let ((string (make-string (1- buffer-fill))))
+        (let ((string (make-string buffer-fill)))
           (loop for code across buffer
-             for i below (1- buffer-fill)
-             do (setf (aref string i) (code-char code)))
+             for i below buffer-fill
+             ;; TODO: This is also totally wrong. For the sake of laziness, I'm just
+             ;;       converting stuff straight from code to chars.
+             ;;       What I _should_ do is properly handle conversion of octet->char
+             do (setf (aref string i) (if (< 0 code 1000000) (code-char code) #\_)))
           (setf (input-buffer-fill client) 0)
           string)))))
 
