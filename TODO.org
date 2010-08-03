@@ -3,6 +3,9 @@
 ** DONE Write TCP server
 ** TODO Make TCP server more robust
 *** TODO Fix read-line-from-client
+**** TODO Handle code->char conversion properly.
+     What is 'properly'? What do I have to take into account?
+**** TODO Implement a ring buffer to chunk input.
 *** TODO Set up a proper logging system
 *** TODO Stress-test TCP server
     Write a basic thing that can spawn several hundred clients and hammer the server with input.
