@@ -126,14 +126,24 @@
       (when (and (plusp buffer-fill)
                  (find #.(char-code #\Newline) buffer :end buffer-fill))
         (setf (recent-newline-p client) t)
-        ;; Note: We _scrap_ the newline.
         (let ((string (make-string buffer-fill)))
           (loop for code across buffer
              for i below buffer-fill
-             ;; TODO: This is also totally wrong. For the sake of laziness, I'm just
-             ;;       converting stuff straight from code to chars.
-             ;;       What I _should_ do is properly handle conversion of octet->char
-             do (setf (aref string i) (if (< 0 code 1000000) (code-char code) #\_)))
+             ;; TODO: Improve this.
+             ;;       As it turns out, CLHS doesn't strictly specify what should happen if CODE-CHAR
+             ;;       receives an invalid code. The two possibilities seem to be to error, or
+             ;;       to just return NIL.
+             ;;
+             ;;       The following is a hack, but it should prevent nasal demons if unexpected
+             ;;       codes are received.
+             ;;
+             ;;       This only really handles up to as many characters as the lisp's encoding
+             ;;       can fit into a single byte. Hopefully, the encoding is ASCII or UTF8 :)
+             ;;
+             ;;       In order to have proper UTF8/16/32 support, as well as support special
+             ;;       telnet codes, or similar, this whole function will have to be much
+             ;;       more clever about how it handles user input.
+             do (setf (aref string i) (or (ignore-errors (code-char code)) #\space)))
           (setf (input-buffer-fill client) 0)
           string)))))
 
@@ -248,4 +258,3 @@
   (format t "~&~A Disconnected.~%" client)
   (detach-client (service-provider client) client)
   client)
-
