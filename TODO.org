@@ -1,8 +1,10 @@
 * Tasks for ILGE2010
-** TODO Try to get things working under CCL again
+** DONE Try to get things working under CCL again
+   I guess it was fine... need to load the system twice, though :(
 ** DONE Write TCP server
 ** TODO Make TCP server more robust
 *** TODO Fix read-line-from-client
+**** DONE Make it not error!
 **** TODO Handle code->char conversion properly.
      What is 'properly'? What do I have to take into account?
 **** TODO Implement a ring buffer to chunk input.
