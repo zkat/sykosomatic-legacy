@@ -1,3 +1,3 @@
 (cl:defpackage #:sykosomatic
-  (:use :cl :alexandria :trivial-gray-streams :cl-cont)
+  (:use :cl :alexandria :trivial-gray-streams :cl-cont :chillax)
   (:shadow :room))
