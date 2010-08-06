@@ -22,32 +22,97 @@
 
 (declaim (optimize debug))
 
-(defvar *accounts* nil
-  "List of existing accounts.")
+(defparameter *db* (ensure-db "sykosomatic"))
 
-;;;
-;;; Account class
-;;;
+(defun gen-uuids (&optional (count 1))
+  (hashget (get-uuids (server *db*) :number count) "uuids"))
+(defun gen-uuid ()
+  (car (gen-uuids 1)))
+
 (defclass account ()
-  ((username :accessor username :initarg :username)
-   (password-hash :accessor password-hash)
-   (email :accessor email :initarg :email)))
+  ((%document :initarg :document)))
 
-(defmethod initialize-instance :after ((account account) &key password)
-  (setf (password-hash account) (hash-password password))
-  (push account *accounts*))
+(defun find-account-document (username)
+  (let* ((response (get-document *db* "_design/accounts/_view/by_username" :key username))
+         (rows (hashget response "rows")))
+    (when rows
+      (get-document *db* (hashget (car rows) "id")))))
+
+(defun find-account (username)
+  (let ((doc (find-account-document username)))
+    (when doc (make-instance 'account :document doc))))
+
+(defun make-account (username password email)
+  (when (find-account username)
+    (error "That username is already being used."))
+  (let ((uuid (gen-uuid)))
+    (put-document *db* uuid
+                  (mkhash "username" username
+                          "password" (hash-password password)
+                          "email" email))
+    (make-instance 'account :document (get-document *db* uuid))))
+
+(defmethod update ((account account))
+  (let ((old-doc (slot-value account '%document)))
+    (setf (slot-value account '%document)
+          (get-document *db* (hashget old-doc "_id")))
+    account))
+
+(defgeneric save (obj)
+  (:method ((account account))
+    (let ((doc (slot-value account '%document)))
+      (put-document *db* (hashget doc "_id") doc))
+    account))
+
+(defgeneric username (account)
+  (:method ((account account))
+    (hashget (slot-value account '%document) "username")))
+(defgeneric (setf username) (new-value account)
+  (:method (new-value (account account))
+    (setf (hashget (slot-value account '%document) "username") new-value)))
+(defgeneric password (account)
+  (:method ((account account))
+    (hashget (slot-value account '%document) "password")))
+(defgeneric (setf password) (new-value account)
+  (:method (new-value (account account))
+    (setf (hashget (slot-value account '%document) "password") (hash-password new-value))))
+(defgeneric email (account)
+  (:method ((account account))
+    (hashget (slot-value account '%document) "email")))
+(defgeneric (setf email) (new-value account)
+  (:method (new-value (account account))
+    (setf (hashget (slot-value account '%document) "email") new-value)))
+(defgeneric uuid (obj)
+  (:method ((account account))
+    (hashget (slot-value account '%document) "_id")))
+(defgeneric revision (account)
+  (:method ((account account))
+    (hashget (slot-value account '%document) "_rev")))
+
+(defun ensure-account-design-doc ()
+  (or (handler-case
+          (get-document *db* "_design/accounts")
+        (document-not-found () nil))
+      (put-document *db* "_design/accounts"
+                    (mkhash "language" "common-lisp"
+                            "views" (mkhash "by_username"
+                                            (mkhash "map"
+                                                    (prin1-to-string
+                                                     '(lambda (doc &aux (username
+                                                                         (hashget doc "username")))
+                                                       (when username
+                                                         (emit username (hashget doc "_id")))))))))))
 
 ;;;
 ;;; Account utils
 ;;;
-(defun find-account (username)
-  (find username *accounts* :key #'username :test #'string=))
-
 (defun account-exists-p (username)
-  (find-account username))
+  (let ((response (get-document *db* "_design/accounts/_view/by_username" :key username)))
+    (when (hashget response "rows")
+      t)))
 
 (defun confirm-password (account input)
-  (when (string= (password-hash account)
+  (when (string= (password account)
                  (hash-password input))
     account))
 
@@ -66,9 +131,11 @@
     (if account
         (progn
           (setf (soul client) (make-instance 'soul :account account :client client))
-          (format client "~&You are now logged in as ~A.~%" (username (account (soul client))))
+          (format client "~&You are now logged in as ~A.~%"
+                  (username (account (soul client))))
           (format client "~&Commands: 'look' and 'quit'. Type anything else to chat.~%")
-          (broadcast-to-room client "~&~A enters the world.~%" (username (account (soul client)))))
+          (broadcast-to-room client "~&~A enters the world.~%"
+                             (username (account (soul client)))))
         (progn
           (format client "~&Wrong password.~%")
           (maybe-login client)))))
@@ -87,7 +154,7 @@
   (let ((username (pick-username client username))
         (password (pick-password client))
         (email (pick-email client)))
-    (make-instance 'account :username username :password password :email email)
+    (make-account username password email)
     (format client "~&Account successfully created~%")
     (maybe-login client)))
 

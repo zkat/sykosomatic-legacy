@@ -15,12 +15,13 @@
 *** DONE Account creation
 *** DONE Log into account
 ** TODO Set up persistence
-*** TODO Make accounts persistent
+*** DONE Make accounts persistent
     These are probably good candidates to get started with -- maybe rucksack can actually work. Note
     that using rucksack means pretty much throwing CCL support out the window for now.  Another
     alternative might be to persist things to CouchDB, which might be relatively
     easy. Unfortunately, there's no library to directly do this from lisp objects (and I won't write
     one).
+    UPDATE: Hooray! Accounts are now persistent. It's slow as balls, but it's good enough for ilge.
 *** TODO Make game objects persistent
 ** TODO Characters
 *** TODO Add character creation.
