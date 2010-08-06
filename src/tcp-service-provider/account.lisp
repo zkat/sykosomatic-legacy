@@ -131,11 +131,7 @@
     (if account
         (progn
           (setf (soul client) (make-instance 'soul :account account :client client))
-          (format client "~&You are now logged in as ~A.~%"
-                  (username (account (soul client))))
-          (format client "~&Commands: 'look' and 'quit'. Type anything else to chat.~%")
-          (broadcast-to-room client "~&~A enters the world.~%"
-                             (username (account (soul client)))))
+          (choose-character client))
         (progn
           (format client "~&Wrong password.~%")
           (maybe-login client)))))

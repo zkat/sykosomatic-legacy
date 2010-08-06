@@ -48,11 +48,11 @@
            (format (client soul)
                    "You see a double rainbow all the way across the sky. So intense.~%"))
           ((string-equal input "quit")
-           (broadcast-to-room (client soul)  "~&~A leaves the world~%" (username (account soul)) input)
+           (broadcast-to-room (client soul)  "~&~A leaves the world~%" (name (body soul)) input)
            (disconnect (client soul) :close))
           (t
            (format (client soul) "~&You say, \"~A\"~%" input)
-           (broadcast-to-room (client soul)  "~&~A says, \"~A\"~%" (username (account soul)) input)))))
+           (broadcast-to-room (client soul)  "~&~A says, \"~A\"~%" (name (body soul)) input)))))
 
 (defun main ()
   (run (make-instance 'game)))
