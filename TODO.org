@@ -2,9 +2,12 @@
 ** DONE Try to get things working under CCL again
    I guess it was fine... need to load the system twice, though :(
 ** DONE Write TCP server
-** TODO Characters 08/07
-*** TODO Add character creation.
-*** TODO Add logging into characters associated with accounts.
+** DONE Accounts
+*** DONE Account creation
+*** DONE Log into account
+** DONE Characters 08/07
+*** DONE Add character creation.
+*** DONE Add logging into characters associated with accounts.
 ** TODO Parse user input 08/07
 *** TODO Parse a very simple grammar
     Maybe something like <verb [direct-object]["chat string"]> is enough for now.
@@ -40,20 +43,20 @@
 *** TODO Add basic AC-based combat rolls to combat verbs
 *** TODO Add defense poses (block, brace, dodge, accept)
 *** TODO Configure some combat-verbs so they're affected by adverbs
-** TODO Make TCP server more robust 08/09
-*** TODO Fix read-line-from-client
-**** DONE Make it not error!
-**** TODO Handle code->char conversion properly.
-     What is 'properly'? What do I have to take into account?
+** TODO Robustness 08/09
+*** TODO TCP server
+**** TODO Fix read-line-from-client
+***** TODO Handle code->char conversion properly.
+      What is 'properly'? What do I have to take into account? At the very least, most special codes
+      should be scrapped.
 **** TODO Implement a ring buffer to chunk input.
-*** TODO Set up a proper logging system
-*** TODO Stress-test TCP server
-    Write a basic thing that can spawn several hundred clients and hammer the server with input.
-** TODO Accounts 08/09
-*** DONE Account creation
-*** DONE Log into account
-*** TODO Validate input - 08/09
-    There's no validation of username/password/emails during account creation. Ew.
+**** TODO Set up a proper logging system
+**** TODO Stress-test TCP server
+     Write a basic thing that can spawn several hundred clients and hammer the server with input.
+*** TODO Accounts
+**** TODO Validate input
+     This needs to be done for all prompts, including account creation, login, and character
+     creation/selection.
 ** TODO Launch! 08/10
    Invite people and have some duels!
 * Post-ILGE
