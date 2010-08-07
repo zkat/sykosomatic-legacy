@@ -22,6 +22,7 @@
                     ((:file "config")
                      (:file "utils")
                      (:file "client")
+                     (:file "documents")
                      (:file "character-creation")
                      (:file "account")
                      (:file "tcp-service-provider")))

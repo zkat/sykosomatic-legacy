@@ -22,15 +22,7 @@
 
 (declaim (optimize debug))
 
-(defparameter *db* (ensure-db "sykosomatic"))
-
-(defun gen-uuids (&optional (count 1))
-  (hashget (get-uuids (server *db*) :number count) "uuids"))
-(defun gen-uuid ()
-  (car (gen-uuids 1)))
-
-(defclass account ()
-  ((%document :initarg :document)))
+(defclass account (document) ())
 
 (defun find-account-document (username)
   (let* ((response (get-document *db* "_design/accounts/_view/by_username" :key username))
@@ -49,45 +41,15 @@
     (put-document *db* uuid
                   (mkhash "username" username
                           "password" (hash-password password)
-                          "email" email))
+                          "email" email
+                          "bodies" nil))
     (make-instance 'account :document (get-document *db* uuid))))
 
-(defmethod update ((account account))
-  (let ((old-doc (slot-value account '%document)))
-    (setf (slot-value account '%document)
-          (get-document *db* (hashget old-doc "_id")))
-    account))
-
-(defgeneric save (obj)
-  (:method ((account account))
-    (let ((doc (slot-value account '%document)))
-      (put-document *db* (hashget doc "_id") doc))
-    account))
-
-(defgeneric username (account)
-  (:method ((account account))
-    (hashget (slot-value account '%document) "username")))
-(defgeneric (setf username) (new-value account)
-  (:method (new-value (account account))
-    (setf (hashget (slot-value account '%document) "username") new-value)))
-(defgeneric password (account)
-  (:method ((account account))
-    (hashget (slot-value account '%document) "password")))
-(defgeneric (setf password) (new-value account)
-  (:method (new-value (account account))
-    (setf (hashget (slot-value account '%document) "password") (hash-password new-value))))
-(defgeneric email (account)
-  (:method ((account account))
-    (hashget (slot-value account '%document) "email")))
-(defgeneric (setf email) (new-value account)
-  (:method (new-value (account account))
-    (setf (hashget (slot-value account '%document) "email") new-value)))
-(defgeneric uuid (obj)
-  (:method ((account account))
-    (hashget (slot-value account '%document) "_id")))
-(defgeneric revision (account)
-  (:method ((account account))
-    (hashget (slot-value account '%document) "_rev")))
+(def-doc-accessors account
+  (username "username")
+  (password "password")
+  (email "email")
+  (bodies "bodies"))
 
 (defun ensure-account-design-doc ()
   (or (handler-case
