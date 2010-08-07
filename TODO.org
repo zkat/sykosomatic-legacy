@@ -12,20 +12,22 @@
 *** DONE Parse a very simple grammar
     Maybe something like <verb [direct-object]["chat string"]> is enough for now.
 *** TODO Add some basic social verbs (chat string only)
-*** TODO Write binder to associate commands with in-game objects
-    Need in-game objects for this!
-*** TODO Improve existing verbs to use binder (for targeting!)
 *** TODO Add some verbs with complex, multi-step interactions (using tasks?)
-*** TODO Add adjective support
+*** TODO Add basic adjective support
+*** TODO Add cardinal number support
+*** TODO Add ordinal number support
 *** TODO Add possessives support
 *** TODO Add adverb support
-** TODO Game world 08/08
+** TODO Game world 08/07 and 08/08
 *** TODO Create a few rooms.
 *** TODO Allow characters to be inside a room.
 *** TODO Port messaging functions to broadcast to _rooms_.
 *** TODO Add movement between rooms.
 *** TODO Allow rooms to act as containers (having other objects in them)
 *** TODO Add features to objects (details)
+*** TODO Write binder to associate commands with in-game objects
+    Need in-game objects for this!
+*** TODO Improve existing verbs to use binder (for targeting!)
 ** TODO Persist the world 08/08
 *** DONE Make accounts persistent
     These are probably good candidates to get started with -- maybe rucksack can actually work. Note
