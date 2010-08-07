@@ -9,7 +9,7 @@
 *** DONE Add character creation.
 *** DONE Add logging into characters associated with accounts.
 ** TODO Parse user input 08/07
-*** TODO Parse a very simple grammar
+*** DONE Parse a very simple grammar
     Maybe something like <verb [direct-object]["chat string"]> is enough for now.
 *** TODO Add some basic social verbs (chat string only)
 *** TODO Write binder to associate commands with in-game objects
