@@ -34,11 +34,41 @@
     (make-instance 'body :document (get-document *db* uuid))))
 
 (defun/cc choose-character (client)
-  (setf (body (soul client))
-        (make-instance 'body
-                       :name (prompt-client client "~&Pick a name for your character: ")
-                       :description (prompt-client client "~&Describe your character: ")))
-  (format client "~&You are now logged in as ~A.~%" (name (body (soul client))))
+  (unless (bodies (account (soul client)))
+    (format client "~&You have no characters.~%")
+    (create-character client))
+  (format client "~&The following characters are available:~%")
+  (print-bodies client)
+  (let ((choice (parse-integer (string-cleanup (prompt-client client "~&Choice: ")) :junk-allowed t))
+        (bodies (bodies (account (soul client)))))
+    (cond ((or (null choice)
+               (not (<= 0 choice (length bodies))))
+           (format client "~&That is not a valid choice.~%")
+           (choose-character client))
+          (t
+           (enter-body client
+                       (make-instance 'body
+                                      :document
+                                      (get-document *db* (elt bodies (1- choice)))))))))
+
+(defun enter-body (client body)
+  (setf (body (soul client)) body)
+  (format client "~&You are now logged in as ~A.~%" (name body))
   (format client "~&Commands: 'look' and 'quit'. Type anything else to chat.~%")
-  (broadcast-to-room client "~&~A enters the world.~%" (name (body (soul client))))
-  client)
+  (broadcast-to-room client "~&~A enters the world.~%" (name body)))
+
+(defun print-bodies (client)
+  (let ((bodies (bodies (account (soul client)))))
+    (loop for body-id in bodies
+       for body = (make-instance 'body :document (get-document *db* body-id))
+       for i from 1
+       do (format client "~&~A. ~A - ~A~%" i (name body) (description body)))))
+
+(defun/cc create-character (client)
+  (let ((body (make-body (prompt-client client "~&Pick a name for your character: ")
+                         (prompt-client client "~&Describe your character: ")))
+        (account (account (soul client))))
+    (setf (body (soul client)) body)
+    (update account)
+    (push (uuid body) (bodies account))
+    (save account)))
