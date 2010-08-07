@@ -103,7 +103,7 @@
                    (setf (verb sentence) "say"
                          state :chat-string))
                   (t
-                   (error 'parser-error :text (format nil "Invalid verb: ~A" verb))))))
+                   (error 'parser-error :text (format nil "Invalid verb: ~S" verb))))))
          (:chat-string
           (cond ((null tokens)
                  (return-from parse-sentence sentence))
@@ -141,7 +141,7 @@
   ((text :initarg :text :reader text))
   (:documentation "Condition signaled whenever some generic parsing error happens.")
   (:report (lambda (condition stream)
-             (format stream "Error parsing: ~a" (text condition)))))
+             (format stream "Error parsing -- ~a" (text condition)))))
 
 (defmethod print-object ((sentence abstract-sentence) stream)
   (print-unreadable-object (sentence stream :type t :identity t)
