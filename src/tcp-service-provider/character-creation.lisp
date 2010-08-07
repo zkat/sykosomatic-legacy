@@ -20,9 +20,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
-(defclass body ()
-  ((name :accessor name :initarg :name)
-   (description :accessor description :initarg :description)))
+(defclass body (document) ())
+
+(def-doc-accessors body
+  (name "name")
+  (description "description"))
+
+(defun make-body (name description)
+  (let ((uuid (gen-uuid)))
+    (put-document *db* uuid
+                  (mkhash "name" name
+                          "description" description))
+    (make-instance 'body :document (get-document *db* uuid))))
 
 (defun/cc choose-character (client)
   (setf (body (soul client))
