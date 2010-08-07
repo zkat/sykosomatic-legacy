@@ -87,10 +87,6 @@
   "Parses a STRING that was entered by AVATAR and returns an Abstract Syntax Tree"
   (parse-sentence (string->token-list string)))
 
-(defun verbp (word)
-  (when (string-equal word "look")
-    t))
-
 (defun parse-sentence (tokens)
   (when (null tokens)
     (error 'parser-error :text "Nothing to parse?"))
