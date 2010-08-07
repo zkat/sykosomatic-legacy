@@ -13,6 +13,7 @@
            :serial t
            :components
            ((:file "packages")
+            (:file "documents")
             (:file "vocabulary")
             (:file "parser")
             (:file "engine")
@@ -22,7 +23,6 @@
                     ((:file "config")
                      (:file "utils")
                      (:file "client")
-                     (:file "documents")
                      (:file "character-creation")
                      (:file "account")
                      (:file "tcp-service-provider")))
