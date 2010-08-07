@@ -24,20 +24,36 @@
 
 (declaim (optimize debug))
 
-(defvar *vocabulary* (make-hash-table :test #'equalp)
+(defparameter *vocabulary-document-id* "vocabulary")
+
+(defvar *vocabulary* nil
   "A hash table holding the vocabulary for the game. Keys are strings mapping to a list of word types")
 
 ;;;
 ;;; Load/Save
 ;;;
+(defun copy-table-contents (orig dest)
+  (maphash (lambda (k v) (setf (hashget dest k) v))
+           orig)
+  dest)
+
+(defun init-vocabulary ()
+  (setf *vocabulary* (make-hash-table :test #'equalp)))
 
 (defun save-vocabulary ()
   "Saves all the nice vocabulary words :)"
-  (format t "Vocabulary saved."))
+  (put-document *db* *vocabulary-document-id* *vocabulary*)
+  (init-vocabulary)
+  (copy-table-contents (get-document *db* *vocabulary-document-id*) *vocabulary*)
+  (format t "Vocabulary saved.")
+  t)
 
 (defun load-vocabulary ()
   "Loads saved vocab files into their respective variables."
-  (format t "Vocabulary loaded."))
+  (init-vocabulary)
+  (copy-table-contents (get-document *db* *vocabulary-document-id*) *vocabulary*)
+  (format t "Vocabulary loaded.")
+  t)
 
 ;;;
 ;;; Database Management
@@ -47,22 +63,22 @@
   word)
 
 (defun add-category-to-word (string category)
-  (pushnew category (gethash string *vocabulary*)))
+  (pushnew category (hashget *vocabulary* string)))
 
 (defun remove-category-from-word (string category)
-  (deletef (gethash string *vocabulary*) category))
+  (deletef (hashget *vocabulary* string) category))
 
 (defun category-in-word-p (string category)
-  (when (find category (gethash string *vocabulary*))
+  (when (find category (hashget *vocabulary* string) :test #'string-equal)
     string))
 
 (defun add-verb (word)
   "Associates STRING with FUNCTION and adds the new verb to *VERBS*"
-  (add-category-to-word word :verb))
+  (add-category-to-word word "verb"))
 
 (defun remove-verb (word)
   "Removes the VERB that corresponds to STRING from *VERBS*"
-  (remove-category-from-word word :verb))
+  (remove-category-from-word word "verb"))
 
 (defun (setf verbp) (verbp word)
   (if verbp
@@ -72,7 +88,7 @@
 
 (defun verbp (word)
   "Is WORD a VERB?"
-  (category-in-word-p word :verb))
+  (category-in-word-p word "verb"))
 
 (defun chat-string-p (word)
   "Is WORD a CHAT-WORD?"
