@@ -26,12 +26,4 @@
                      (:file "character-creation")
                      (:file "account")
                      (:file "tcp-service-provider")))
-            (module "game-objects"
-                    :serial t
-                    :components
-                    ((:file "game-object")
-                     (:file "room")
-                     (:file "mobile")
-                     (:file "item")
-                     (:file "human")))
             (:file "game")))))
