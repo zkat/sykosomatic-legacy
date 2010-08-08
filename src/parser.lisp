@@ -92,7 +92,7 @@
 ;; sentence =  chat-string
 ;; sentence =/ [adverb] verb [noun-clause] [adverb] [chat-string]
 ;;
-;; noun-clause =/ [[[adverb] preposition] noun-phrase] [[[adverb] preposition] noun-phrase]
+;; noun-clause =/ [[[adverb] preposition] noun-group] [[[adverb] preposition] noun-group]
 ;;
 ;; noun-group =  noun-phrase [","] 0*(conjunction noun-phrase)
 ;;
