@@ -119,9 +119,9 @@
         noun-clause
         chat-string)
     (flet ((maybe-parse-adverb ()
-             (if adverb
-                 (error 'parser-error :text "Too many adverbs.")
-                 (when (adverbp (car token-list))
+             (when (adverbp (car token-list))
+               (if adverb
+                   (error 'parser-error :text "Too many adverbs.")
                    (setf adverb (pop token-list))))))
       (maybe-parse-adverb)
       (cond ((and (verbp "say")
@@ -153,17 +153,17 @@
   "Generates the NOUN-CLAUSE list.
 MULTIPLE RETURN VALUES: NOUN-CLAUSE list, a discovered ADVERB, and the remaining TOKEN-LIST"
   (flet ((maybe-parse-adverb ()
-           (if adverb
-               (error 'parser-error :text "Too many adverbs.")
-               (when (adverbp (car token-list))
+           (when (adverbp (car token-list))
+             (if adverb
+                 (error 'parser-error :text "Too many adverbs.")
                  (setf adverb (pop token-list))))))
     (let (prep1 prep2 dir-obj ind-obj)
       (maybe-parse-adverb)
       (when (prepositionp (car token-list))
         (setf prep1 (pop token-list)))
       (multiple-value-setq (dir-obj token-list) (parse-noun-group token-list))
+      (maybe-parse-adverb)
       (when token-list
-        (maybe-parse-adverb)
         (when (prepositionp (car token-list))
           (setf prep2 (pop token-list)))
         (multiple-value-setq (ind-obj token-list) (parse-noun-group token-list)))
