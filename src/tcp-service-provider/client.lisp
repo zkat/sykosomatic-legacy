@@ -87,9 +87,10 @@
     (stream-write-char client #\newline)))
 (defmethod stream-write-string ((client tcp-client) seq &optional start end)
   (let ((seq (if start (subseq seq start end) seq)))
-    (prog1 (write-to-client client seq)
-      (setf (recent-newline-p client)
-            (when (eql #\newline (elt seq (1- (length seq)))) t)))))
+    (when (plusp (length seq))
+      (prog1 (write-to-client client seq)
+        (setf (recent-newline-p client)
+              (when (eql #\newline (elt seq (1- (length seq)))) t))))))
 (defmethod stream-clear-output ((client tcp-client))
   (setf (output-buffer client) nil
         (output-byte-count client) 0))
