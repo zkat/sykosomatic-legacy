@@ -31,19 +31,29 @@
   (:default-initargs
    :providers (list (make-instance 'tcp-service-provider))))
 
+(defun pick-default-location ()
+  (let ((response (get-document *db* "_design/locations/_view/by_id")))
+    (awhen (car (hashget response "rows"))
+      (make-instance 'location :document (get-document *db* (hashget it "key"))))))
+
 (defun play-game (client)
   (handle-player-command (soul client) (last-input client)))
 
 (defmethod init ((game game))
+  (setf *body-id->soul* (make-hash-table :test #'equal))
   (load-vocabulary))
 
 (defmethod run :around ((game game))
-  (let ((*default-client-main* #'play-game))
+  (let ((*default-client-main* #'play-game)
+        (*default-location* (pick-default-location)))
     (call-next-method)))
 
 (defmethod handle-player-command ((soul soul) input &aux (input (string-cleanup input)))
   (when (string-equal input "quit")
-    (broadcast-to-room (client soul)  "~&~A leaves the world~%" (name (body soul)) input)
+    (let ((location-id (location (body soul))))
+      (when location-id
+        (broadcast-to-location (make-instance 'location :document (get-document *db* location-id))
+                               "~&~A leaves the world~%" (name (body soul)))))
     (disconnect (client soul) :close))
   (handler-case
       (format (client soul) "~&AST Generated: ~S~%" (parse-string input))

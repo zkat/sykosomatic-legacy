@@ -71,6 +71,37 @@ its service-providers through events."))
                      :initarg :provider
                      :initform (error "Must provide a provider for this client."))))
 
+(defclass body (document) ())
+
+(def-doc-accessors body
+  (name "name")
+  (description "description")
+  (location "location"))
+
+(defun make-body (name description)
+  (let ((uuid (gen-uuid)))
+    (put-document *db* uuid
+                  (mkhash "type" "body"
+                          "name" name
+                          "description" description
+                          "location" nil))
+    (make-instance 'body :document (get-document *db* uuid))))
+
+(defparameter *body-id->soul* (make-hash-table :test #'equal))
+
+(defun body-id->soul (body-id)
+  (hashget *body-id->soul* body-id))
+
+(defun body->soul (body)
+  (body-id->soul (uuid body)))
+
+(defun (setf body->soul) (soul body)
+  (setf (hashget *body-id->soul* (uuid body)) soul))
+
+(defmethod teardown ((soul soul))
+  (awhen (body soul)
+    (remhash (uuid it) *body-id->soul*)))
+
 (defclass service-provider ()
   ()
   (:documentation
