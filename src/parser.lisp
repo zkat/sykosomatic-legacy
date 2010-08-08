@@ -122,6 +122,9 @@
 ;;; Util
 ;;;
 
+(defun last-char (string)
+  (elt string (1- (length string))))
+
 (defun prepare-chat-string (chat-string)
   (let ((string (remove-chat-string-tilde chat-string)))
     (if (char-equal #\" (last-char string))
@@ -131,11 +134,6 @@
 (defun remove-chat-string-tilde (chat-string)
   "Gets rid of the damn tilde."
   (cadr (cl-ppcre:split "'" chat-string :limit 2)))
-
-(defun extract-number (word)
-  (or (gethash word *cardinal-numbers*)
-      (gethash word *ordinal-numbers*)
-      (parse-integer word :junk-allowed t)))
 
 (define-condition parser-error (error)
   ((text :initarg :text :reader text))
