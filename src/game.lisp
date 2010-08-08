@@ -42,16 +42,13 @@
     (call-next-method)))
 
 (defmethod handle-player-command ((soul soul) input &aux (input (string-cleanup input)))
-  (unless (zerop (length input))
-    (cond ((string-equal input "look")
-           (format (client soul)
-                   "You see a double rainbow all the way across the sky. So intense.~%"))
-          ((string-equal input "quit")
-           (broadcast-to-room (client soul)  "~&~A leaves the world~%" (name (body soul)) input)
-           (disconnect (client soul) :close))
-          (t
-           (format (client soul) "~&You say, \"~A\"~%" input)
-           (broadcast-to-room (client soul)  "~&~A says, \"~A\"~%" (name (body soul)) input)))))
+  (when (string-equal input "quit")
+    (broadcast-to-room (client soul)  "~&~A leaves the world~%" (name (body soul)) input)
+    (disconnect (client soul) :close))
+  (handler-case
+      (format (client soul) "~&AST Generated: ~A~%" (parse-string input))
+    (parser-error (e)
+      (format (client soul) "~&Got a parser error: ~A~%" e))))
 
 (defun main ()
   (run (make-instance 'game)))
