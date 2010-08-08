@@ -75,10 +75,12 @@
   word)
 
 (defun add-category-to-word (string category)
-  (pushnew category (hashget *vocabulary* string)))
+  (pushnew category (hashget *vocabulary* string) :test #'string-equal)
+  (save-vocabulary))
 
 (defun remove-category-from-word (string category)
-  (deletef (hashget *vocabulary* string) category))
+  (deletef (hashget *vocabulary* string) category :test #'string-equal)
+  (save-vocabulary))
 
 (defun category-in-word-p (string category)
   (when (find category (hashget *vocabulary* string) :test #'string-equal)
@@ -111,9 +113,7 @@
   (category-in-word-p word "article"))
 
 (defun conjunctionp (word)
-  ;; Only AND is recognized in sykosomatic.
-  (or (string-equal word "and")
-      (string-equal word ",")))
+  (category-in-word-p word "conjunction"))
 
 (defun prepositionp (word)
   (category-in-word-p word "preposition"))
@@ -151,11 +151,6 @@ This function checks for the full-word version, as well as the plain number vers
   "Is WORD in possessive form?
 This function checks for s' or 's form of possessives in English."
   (or (category-in-word-p word "possessive")
-      ;; (string-equal word "my")
-      ;; (string-equal word "his")
-      ;; (string-equal word "her")
-      ;; (string-equal word "its")
-      ;; (string-equal word "their")
       (when (> (length word) 2)
         (let ((second-to-last-letter (elt word (- (length word) 2)))
               (last-letter (elt word (- (length word) 1))))
