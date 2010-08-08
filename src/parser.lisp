@@ -112,6 +112,43 @@
 ;; -----------Where NOUN-CLAUSE is (preposition noun-phrase noun-phrase)
 ;; -----------Where NOUN-PHRASE is (list-of-objects)
 
+(defun parse-sentence (token-list)
+  "Uses a TOKEN-LIST to generate an AST"
+  (let (adverb
+        verb
+        noun-clause
+        chat-string)
+    (flet ((maybe-parse-adverb ()
+             (if adverb
+                 (error 'parser-error :text "Too many adverbs.")
+                 (when (adverbp (car token-list))
+                   (setf adverb (pop token-list))))))
+      (maybe-parse-adverb)
+      (cond ((and (verbp "say")
+                  (chat-string-p (car token-list)))
+             (setf verb "say")
+             (setf chat-string (prepare-chat-string (pop token-list))))
+            ((verbp (car token-list))
+             (setf verb (pop token-list))
+             (multiple-value-setq (noun-clause adverb token-list)
+               (parse-noun-clause token-list adverb))
+             (when token-list
+               (maybe-parse-adverb)
+               (when (chat-string-p (car token-list))
+                 (setf chat-string (prepare-chat-string (pop token-list))))
+               (when token-list
+                 (error 'parser-error
+                        :text "Input failed to parse (stuff left after finishing parse)."))))
+            (t
+             (let ((fail-verb (car token-list)))
+               (if fail-verb
+                   (error 'parser-error :text (format nil "Unknown verb: ~a" fail-verb))
+                   (error 'parser-error :text "Invalid input"))))))
+    `(:sentence . ((:verb . ,verb)
+                   (:adverb . ,adverb)
+                   (:noun-clause . ,noun-clause)
+                   (:chat-string . ,chat-string)))))
+
 
 ;;;
 ;;; Util
