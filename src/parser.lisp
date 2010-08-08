@@ -158,24 +158,25 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, a discovered ADVERB, and the remaining
                (when (adverbp (car token-list))
                  (setf adverb (pop token-list))))))
     (let (prep1 prep2 dir-obj ind-obj)
-        (maybe-parse-adverb)
-        (when (prepositionp (car token-list))
-          (setf prep1 (pop token-list)))
-        (multiple-value-setq (dir-obj token-list) (parse-noun-group token-list))
+      (maybe-parse-adverb)
+      (when (prepositionp (car token-list))
+        (setf prep1 (pop token-list)))
+      (multiple-value-setq (dir-obj token-list) (parse-noun-group token-list))
+      (when token-list
         (maybe-parse-adverb)
         (when (prepositionp (car token-list))
           (setf prep2 (pop token-list)))
-        (multiple-value-setq (ind-obj token-list) (parse-noun-group token-list))
-        (values `((:direct-object
-                   . (:prepositional-phrase
-                      . ((:preposition . ,prep1)
-                         (:object . ,dir-obj))))
-                  (:indirect-object
-                   . (:prepositional-phrase
-                      . ((:preposition . ,prep2)
-                         (:object . ,ind-obj)))))
-                adverb
-                token-list))))
+        (multiple-value-setq (ind-obj token-list) (parse-noun-group token-list)))
+      (values `((:direct-object
+                 . (:prepositional-phrase
+                    . ((:preposition . ,prep1)
+                       (:object . ,dir-obj))))
+                (:indirect-object
+                 . (:prepositional-phrase
+                    . ((:preposition . ,prep2)
+                       (:object . ,ind-obj)))))
+              adverb
+              token-list))))
 
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP (multiple noun
