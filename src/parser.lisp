@@ -305,6 +305,11 @@ REST of the TOKEN-LIST."
   (when (possessivep word)
     (car (cl-ppcre:split "'|'s" word))))
 
+(define-condition parser-error (error)
+  ((text :initarg :text :accessor text))
+  (:report (lambda (e s)
+             (format s "~A" (text e)))))
+
 (defun test-the-parser ()
   "Runs a loop that asks for avatar input and returns whatever gets parsed. Quits on 'quit'."
   (loop for current-input = (read-line) do
