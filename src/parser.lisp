@@ -286,6 +286,17 @@ MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
   "Gets rid of the damn tilde."
   (cadr (cl-ppcre:split "'" chat-string :limit 2)))
 
+(defun extract-number (word)
+  ;; TODO - need some translations in vocabulary.lisp before these can be ported.
+  (or #+nil(gethash word *cardinal-numbers*)
+      #+nil(gethash word *ordinal-numbers*)
+      (parse-integer word :junk-allowed t)))
+
+(defun extract-noun-from-possessive (word)
+  "Nabs the actual noun out of a possessive."
+  (when (possessivep word)
+    (car (cl-ppcre:split "'|'s" word))))
+
 (define-condition parser-error (error)
   ((text :initarg :text :reader text))
   (:documentation "Condition signaled whenever some generic parsing error happens.")
