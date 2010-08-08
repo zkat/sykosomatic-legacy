@@ -254,7 +254,17 @@ REST of the TOKEN-LIST."
                    (push it token-list)
                    (setf state :adjective)))))
          (:adjective
-          ;; punting on adjectives for now.
+          (loop until (or (possessivep (car token-list))
+                          (conjunctionp (car token-list))
+                          (string-equal "," (car token-list))
+                          (null (second token-list))
+                          ;; looking ahead...
+                          (and (second token-list)
+                               (or (string-equal "," (second token-list))
+                                   (prepositionp (second token-list))
+                                   (chat-string-p (second token-list))
+                                   (adverbp (second token-list)))))
+             do (push (pop token-list) adjs))
           (setf state :noun))
          (:noun
           (let ((it (pop token-list)))
