@@ -23,24 +23,26 @@
 (defparameter *db* (ensure-db "sykosomatic"))
 
 (defclass document ()
-  ((%document :initarg :document)))
+  ((%document :initarg :document)
+   (%transient :initform (make-hash-table :test #'equal))))
 
 (defun gen-uuids (&optional (count 1))
   (hashget (get-uuids (server *db*) :number count) "uuids"))
 (defun gen-uuid ()
   (car (gen-uuids 1)))
 
-(defmacro def-doc-accessor (class slotname stringname)
+(defmacro def-doc-accessor (class slotname stringname &key transientp)
   `(progn
      (defmethod ,slotname ((,class ,class))
-       (hashget (slot-value ,class '%document) ,stringname))
+       (hashget (slot-value ,class ',(if transientp '%transient '%document)) ,stringname))
      (defmethod (setf ,slotname) (new-value (,class ,class))
-       (setf (hashget (slot-value ,class '%document) ,stringname) new-value))))
+       (setf (hashget (slot-value ,class ',(if transientp '%transient '%document))
+                      ,stringname) new-value))))
 
 (defmacro def-doc-accessors (class &body body)
   `(progn
-     ,@(loop for (slot slotstring) in body
-         collect `(def-doc-accessor ,class ,slot ,slotstring))))
+     ,@(loop for (slot slotstring . args) in body
+         collect `(def-doc-accessor ,class ,slot ,slotstring ,@args))))
 
 (def-doc-accessors document
   (uuid "_id")
