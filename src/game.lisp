@@ -35,8 +35,7 @@
   (handle-player-command (soul client) (last-input client)))
 
 (defmethod init ((game game))
-  (setf (newbie-room game) (make-instance 'room)
-        (rooms game) (list (newbie-room game))))
+  nil)
 
 (defmethod run :around ((game game))
   (let ((*default-client-main* #'play-game))
