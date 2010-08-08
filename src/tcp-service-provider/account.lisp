@@ -82,21 +82,19 @@
 ;;; Login
 ;;;
 (defun/cc maybe-login (client)
-  (let* ((username (prompt-client client "~&Username: "))
-         (account (find-account username)))
-    (if account
-        (login client account)
-        (no-such-account client username))))
+  (let ((username (prompt-client client "~&Username: ")))
+    (aif (find-account username)
+         (login client it)
+         (no-such-account client username))))
 
 (defun/cc login (client account)
-  (let ((account (confirm-password account (prompt-client client "~&Password: "))))
-    (if account
-        (progn
-          (setf (soul client) (make-instance 'soul :account account :client client))
-          (choose-character client))
-        (progn
-          (format client "~&Wrong password.~%")
-          (maybe-login client)))))
+  (aif (confirm-password account (prompt-client client "~&Password: "))
+       (progn
+         (setf (soul client) (make-instance 'soul :account it :client client))
+         (choose-character client))
+       (progn
+         (format client "~&Wrong password.~%")
+         (maybe-login client))))
 
 (defun/cc no-such-account (client username)
   (if (client-y-or-n-p client "~&No such account. Create one? (Y/n) ")
