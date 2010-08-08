@@ -86,6 +86,32 @@
   "Parses a STRING that was entered by AVATAR and returns an Abstract Syntax Tree"
   (parse-sentence (string->token-list string)))
 
+;; ABNF grammar - http://en.wikipedia.org/wiki/ABNF
+;; ------------
+;;
+;; sentence =  chat-string
+;; sentence =/ [adverb] verb [noun-clause] [adverb] [chat-string]
+;;
+;; noun-clause =/ [[[adverb] preposition] noun-phrase] [[[adverb] preposition] noun-phrase]
+;;
+;; noun-group =  noun-phrase [","] 0*(conjunction noun-phrase)
+;;
+;; noun-phrase =  pronoun
+;; noun-phrase =/ [article] [cardinal] [adjective] noun
+;; noun-phrase =/ [article] [ordinal] [adjective] \
+;;                (noun / possessive noun-phrase)
+;;
+;; article = satisfies article-p
+;; adjective = any unknown token that comes before a noun or a possessive
+;; noun = anything before a preposition, a conjunction, an adverb, a chat-string, or a NIL
+;; pronoun = satisfies pronoun-p
+;; possessive-noun = satisfies possessive-p (['s] or [s'])
+;; conjunction = satisfies conjunction-p (i.e. "and" "&" "," etc.)
+;;
+;; Goal AST - (verb noun-clause adverb-list chat-string)
+;; -----------Where NOUN-CLAUSE is (preposition noun-phrase noun-phrase)
+;; -----------Where NOUN-PHRASE is (list-of-objects)
+
 
 ;;;
 ;;; Util
