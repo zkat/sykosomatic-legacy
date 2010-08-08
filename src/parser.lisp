@@ -211,6 +211,64 @@ REST of the TOKEN-LIST."
       (adverbp token)
       (string-equal "," token)))
 
+;; TODO: This is a massive function, forks all over the place. Cut it up and make it more readable.
+;; noun-phrase =  pronoun
+;; noun-phrase =/ [article] [cardinal] [adjective] noun
+;; noun-phrase =/ [article] [ordinal] [adjective] \
+;;                (noun / possessive noun-phrase)
+
+(defun parse-noun-phrase (token-list)
+  "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
+MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
+  (let (noun adjs amount cardinality owns)
+    (cond ((or (prepositionp (car token-list))
+               (null (car token-list))
+               (chat-string-p (car token-list))
+               (adverbp (car token-list)))
+           nil)
+          ((pronounp (car token-list))
+           (setf noun (pop token-list)))
+          (t
+           (when (articlep (car token-list))
+             (push (pop token-list) adjs))
+           (if (cardinal-number-p (car token-list))
+               ;; if it's a cardinal number, there's no ordinal
+               (progn
+                 (setf amount (extract-number (pop token-list)))
+                 (loop until (or (prepositionp (cadr token-list))
+                                 (null (cadr token-list)))
+                    do (push (pop token-list) adjs)
+                    finally (setf noun (pop token-list))))
+               (progn
+                 (when (ordinal-number-p (car token-list))
+                   (setf cardinality (extract-number (pop token-list))))
+                 (loop until (or (possessivep (first token-list))
+                                 ;; (possessivep (second token-list))
+                                 (conjunctionp (second token-list))
+                                 (string-equal "," (first token-list))
+                                 (string-equal "," (second token-list)) ;COMMA BAD!
+                                 (prepositionp (second token-list))
+                                 (chat-string-p (second token-list))
+                                 (adverbp (second token-list))
+                                 (null (second token-list)))
+                    do (push (pop token-list) adjs))
+                 (if (possessivep (car token-list))
+                     (progn
+                       (setf noun (extract-noun-from-possessive (pop token-list)))
+                       (multiple-value-setq (owns token-list)
+                         (parse-noun-phrase token-list)))
+                     (unless (terminalp (car token-list))
+                       (setf noun (pop token-list))))))))
+    (if noun
+        (values `(:noun-phrase
+                  . ((:noun . ,noun)
+                     (:adjectives . ,adjs)
+                     (:amount . ,amount)
+                     (:cardinality . ,cardinality)
+                     (:owns . ,owns)))
+                token-list)
+        (values nil token-list))))
+
 ;;;
 ;;; Util
 ;;;
