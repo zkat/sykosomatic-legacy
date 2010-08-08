@@ -166,17 +166,16 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, a discovered ADVERB, and the remaining
         (when (prepositionp (car token-list))
           (setf prep2 (pop token-list)))
         (multiple-value-setq (ind-obj token-list) (parse-noun-group token-list))
-        (values `(:noun-clause
-                  .
-                  ((:direct-object
-                    . (:prepositional-phrase
-                       . ((:preposition . ,prep1)
-                          (:object . ,dir-obj))))
-                   (:indirect-object
-                    . (:prepositional-phrase
-                       . ((:preposition . ,prep2)
-                          (:object . ,ind-obj))))))
-                adverb))))
+        (values `((:direct-object
+                   . (:prepositional-phrase
+                      . ((:preposition . ,prep1)
+                         (:object . ,dir-obj))))
+                  (:indirect-object
+                   . (:prepositional-phrase
+                      . ((:preposition . ,prep2)
+                         (:object . ,ind-obj)))))
+                adverb
+                token-list))))
 
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP (multiple noun
@@ -223,48 +222,50 @@ REST of the TOKEN-LIST."
     (loop
        (case state
          (:pronoun
-          (let ((token (pop token-list)))
-            (if (pronounp token)
+          (awhen (pop token-list)
+            (if (pronounp it)
                 (return-from parse-noun-phrase
                   (values `(:noun-phrase
-                            . ((:pronoun . ,token)))
+                            . ((:pronoun . ,it)))
                           token-list))
-                (setf token-list (cons token token-list)
+                (setf token-list (cons it token-list)
                       state :article))))
          (:article
-          (let ((token (pop token-list)))
-            (cond ((null token)
+          (awhen (pop token-list)
+            (cond ((null it)
                    (error 'parser-error :text "What? All done?"))
-                  ((articlep token)
+                  ((articlep it)
                    (setf state :numerical))
                   (t
-                   (push token token-list)
+                   (push it token-list)
                    (setf state :numerical)))))
          (:numerical
-          (let ((token (pop token-list)))
-            (cond ((null token)
+          (awhen (pop token-list)
+            (cond ((null it)
                    (error 'parser-error :text "Looking for a number, got nothing at all!"))
-                  ((cardinal-number-p token)
-                   (setf amount (extract-number token)
+                  ((cardinal-number-p it)
+                   (setf amount (extract-number it)
                          state :adjective))
-                  ((ordinal-number-p token)
-                   (setf ordinality (extract-number token)
+                  ((ordinal-number-p it)
+                   (setf ordinality (extract-number it)
                          state :adjective))
                   (t
-                   (push token token-list)
+                   (push it token-list)
                    (setf state :adjective)))))
          (:adjective
           ;; punting on adjectives for now.
           (setf state :noun))
          (:noun
           ;; Punting on possessives for now, too.
-          (let ((token (pop token-list)))
-            (cond ((null token)
+          (let ((it (pop token-list)))
+            (cond ((and (null it)
+                        (or adjs amount ordinality owns))
                    (error 'parser-error :text "I NEEDED A NOUN HERE!"))
-                  ((not (or (adverbp token)
-                            (prepositionp token)
-                            (chat-string-p token)))
-                   (setf noun token)
+                  ((and (stringp it)
+                        (not (or (adverbp it)
+                                 (prepositionp it)
+                                 (chat-string-p it))))
+                   (setf noun it)
                    (return-from parse-noun-phrase
                      (values `(:noun-phrase
                                . ((:noun . ,noun)
@@ -273,7 +274,8 @@ REST of the TOKEN-LIST."
                                   (:ordinality . ,ordinality)
                                   (:owns . ,owns)))
                              token-list)))
-                  (t (error 'parser-error :text "I'm so confused. Why am I here? Who are you?")))))))))
+                  (t (when it (push it token-list))
+                     (return-from parse-noun-phrase (values nil token-list))))))))))
 
 ;;;
 ;;; Util
