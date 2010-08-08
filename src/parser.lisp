@@ -271,7 +271,8 @@ REST of the TOKEN-LIST."
                                   (:adjectives . ,adjs)
                                   (:amount . ,amount)
                                   (:ordinality . ,ordinality)
-                                  (:owns . ,owns))))))
+                                  (:owns . ,owns)))
+                             token-list)))
                   (t (error 'parser-error :text "I'm so confused. Why am I here? Who are you?")))))))))
 
 ;;;
