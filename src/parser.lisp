@@ -266,14 +266,19 @@ REST of the TOKEN-LIST."
                         (not (or (adverbp it)
                                  (prepositionp it)
                                  (chat-string-p it))))
-                   (setf noun it)
+                   (if (possessivep it)
+                       (progn
+                         (setf noun (extract-noun-from-possessive it))
+                         (multiple-value-setq (owns token-list)
+                           (parse-noun-phrase token-list)))
+                       (setf noun it))
                    (return-from parse-noun-phrase
                      (values `(:noun-phrase
                                . ((:noun . ,noun)
                                   (:adjectives . ,adjs)
                                   (:amount . ,amount)
                                   (:ordinality . ,ordinality)
-                                  (:owns . ,owns)))
+                                  (:possesses . ,owns)))
                              token-list)))
                   (t (when it (push it token-list))
                      (return-from parse-noun-phrase (values nil token-list))))))))))
