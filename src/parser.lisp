@@ -257,7 +257,6 @@ REST of the TOKEN-LIST."
           ;; punting on adjectives for now.
           (setf state :noun))
          (:noun
-          ;; Punting on possessives for now, too.
           (let ((it (pop token-list)))
             (cond ((and (null it)
                         (or adjs amount ordinality owns))
