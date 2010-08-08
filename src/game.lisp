@@ -46,7 +46,7 @@
     (broadcast-to-room (client soul)  "~&~A leaves the world~%" (name (body soul)) input)
     (disconnect (client soul) :close))
   (handler-case
-      (format (client soul) "~&AST Generated: ~A~%" (parse-string input))
+      (format (client soul) "~&AST Generated: ~S~%" (parse-string input))
     (parser-error (e)
       (format (client soul) "~&Got a parser error: ~A~%" e))))
 
