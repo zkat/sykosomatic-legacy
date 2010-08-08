@@ -111,8 +111,9 @@
              (setf chat-string (prepare-chat-string (pop token-list))))
             ((verbp (car token-list))
              (setf verb (pop token-list))
-             (multiple-value-setq (noun-clause adverb token-list)
-               (parse-noun-clause token-list adverb))
+             (when token-list
+               (multiple-value-setq (noun-clause adverb token-list)
+                 (parse-noun-clause token-list adverb)))
              (when token-list
                (maybe-parse-adverb)
                (when (chat-string-p (car token-list))
