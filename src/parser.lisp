@@ -86,36 +86,6 @@
   "Parses a STRING that was entered by AVATAR and returns an Abstract Syntax Tree"
   (parse-sentence (string->token-list string)))
 
-(defun parse-sentence (tokens)
-  (when (null tokens)
-    (error 'parser-error :text "Nothing to parse?"))
-  (let ((sentence (make-instance 'abstract-sentence))
-        (state :verb))
-    (loop
-       (case state
-         (:verb
-          (let ((verb (pop tokens)))
-            (cond ((verbp verb)
-                   (setf (verb sentence) verb
-                         state :chat-string))
-                  ((chat-string-p verb)
-                   (setf (verb sentence) "say"
-                         state :chat-string))
-                  (t
-                   (error 'parser-error :text (format nil "Invalid verb: ~S" verb))))))
-         (:chat-string
-          (cond ((null tokens)
-                 (return-from parse-sentence sentence))
-                ((chat-string-p (car tokens))
-                 (setf (chat-string sentence) (prepare-chat-string (pop tokens)))
-                 (return-from parse-sentence sentence))
-                (t
-                 (setf state :direct-object))))
-         (:direct-object
-          (if (direct-object sentence)
-              (error 'parser-error :text "Too many direct objects.")
-              (setf (direct-object sentence) (pop tokens)
-                    state :chat-string)))))))
 
 ;;;
 ;;; Util
