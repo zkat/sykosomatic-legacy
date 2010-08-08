@@ -178,6 +178,31 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, a discovered ADVERB, and the remaining
                           (:object . ,ind-obj))))))
                 adverb))))
 
+(defun parse-noun-group (token-list)
+  "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP (multiple noun
+phrases, joined by conjunctions) MULTIPLE RETURN VALUES: NOUN-GROUP and the
+REST of the TOKEN-LIST."
+  (multiple-value-bind (noun-phrase token-list) (parse-noun-phrase token-list)
+    (cond ((or (conjunctionp (car token-list))
+               (string-equal "," (car token-list)))
+           ;; NOTE: we can scrap the actual conjunction because we only accept 'and'
+           (when (and (string-equal "," (car token-list)) ;BAD COMMA, BAD
+                      (conjunctionp (cadr token-list)))
+             (pop token-list))
+           (pop token-list)
+           (when (or (conjunctionp (car token-list))
+                     (string-equal "," (car token-list)))
+             (error 'parser-error :text "Too many conjunctions."))
+           (multiple-value-bind (other-noun-phrases token-list)
+               (parse-noun-group token-list)
+             (if noun-phrase
+                 (values (cons noun-phrase other-noun-phrases) token-list)
+                 (values nil token-list))))
+          (t
+           (if noun-phrase
+               (values (list noun-phrase) token-list)
+               (values nil token-list))))))
+
 
 ;;;
 ;;; Util
