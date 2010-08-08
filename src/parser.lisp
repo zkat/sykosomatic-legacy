@@ -202,7 +202,7 @@ REST of the TOKEN-LIST."
 
 (defun parse-noun-phrase (token-list)
   (let ((state :pronoun)
-        noun adjs amount ordinality owns)
+        article noun adjs amount ordinality owns)
     (loop
        (case state
          (:pronoun
@@ -219,6 +219,7 @@ REST of the TOKEN-LIST."
             (cond ((null it)
                    (error 'parser-error :text "What? All done?"))
                   ((articlep it)
+                   (setf article it)
                    (setf state :numerical))
                   (t
                    (push it token-list)
@@ -266,7 +267,8 @@ REST of the TOKEN-LIST."
                        (setf noun it))
                    (return-from parse-noun-phrase
                      (values `(:noun-phrase
-                               . ((:noun . ,noun)
+                               . ((:article . ,article)
+                                  (:noun . ,noun)
                                   (:adjectives . ,adjs)
                                   (:amount . ,amount)
                                   (:ordinality . ,ordinality)
