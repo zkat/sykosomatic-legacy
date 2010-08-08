@@ -106,3 +106,60 @@
   "Is WORD a CHAT-WORD?"
   ;; Ew..
   (char-equal #\' (char word 0)))
+
+(defun articlep (word)
+  (category-in-word-p word "article"))
+
+(defun conjunctionp (word)
+  ;; Only AND is recognized in sykosomatic.
+  (or (string-equal word "and")
+      (string-equal word ",")))
+
+(defun prepositionp (word)
+  (category-in-word-p word "preposition"))
+
+(defun pronounp (word)
+  (category-in-word-p word "pronoun"))
+
+(defun adverbp (word)
+  (category-in-word-p word "adverb"))
+
+(defun ordinal-number-p (word)
+  "Is WORD an ORDINAL NUMBER?
+This function checks for the full-word version,
+as well as number+th/st/nd/rd form."
+  (or (category-in-word-p word "ordinal-number")
+      (multiple-value-bind (integer stop)
+          (parse-integer word :junk-allowed t)
+        (and (numberp integer)
+             (let ((subword (subseq word stop)))
+               (or (string-equal subword "st")
+                   (string-equal subword "nd")
+                   (string-equal subword "rd")
+                   (string-equal subword "th")))))))
+
+(defun cardinal-number-p (word)
+  "Is WORD a CARDINAL NUMBER?
+This function checks for the full-word version, as well as the plain number version."
+  (or (category-in-word-p word "cardinal-number")
+      (multiple-value-bind (integer stop)
+          (parse-integer word :junk-allowed t)
+        (and (numberp integer)
+             (zerop (length (subseq word stop)))))))
+
+(defun possessivep (word)
+  "Is WORD in possessive form?
+This function checks for s' or 's form of possessives in English."
+  (or (category-in-word-p word "possessive")
+      ;; (string-equal word "my")
+      ;; (string-equal word "his")
+      ;; (string-equal word "her")
+      ;; (string-equal word "its")
+      ;; (string-equal word "their")
+      (when (> (length word) 2)
+        (let ((second-to-last-letter (elt word (- (length word) 2)))
+              (last-letter (elt word (- (length word) 1))))
+          (or (and (equal second-to-last-letter #\')
+                   (equal last-letter #\s))
+              (and (equal second-to-last-letter #\s)
+                   (equal last-letter #\')))))))
