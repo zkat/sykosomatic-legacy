@@ -20,19 +20,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
-(defclass body (document) ())
-
-(def-doc-accessors body
-  (name "name")
-  (description "description"))
-
-(defun make-body (name description)
-  (let ((uuid (gen-uuid)))
-    (put-document *db* uuid
-                  (mkhash "name" name
-                          "description" description))
-    (make-instance 'body :document (get-document *db* uuid))))
-
 (defun/cc choose-character (client)
   (unless (bodies (account (soul client)))
     (format client "~&You have no characters.~%")
@@ -53,9 +40,14 @@
 
 (defun enter-body (client body)
   (setf (body (soul client)) body)
+  (setf (body->soul body) (soul client))
   (format client "~&You are now logged in as ~A.~%" (name body))
   (format client "~&Commands: 'look' and 'quit'. Type anything else to chat.~%")
-  (broadcast-to-room client "~&~A enters the world.~%" (name body)))
+  (unless (location body)
+    (add-to-room body *default-location*))
+  (let ((location-id (location body)))
+    (broadcast-to-location (make-instance 'location :document (get-document *db* location-id))
+                           "~&~A enters the world.~%" (name body))))
 
 (defun print-bodies (client)
   (loop for body-id in (bodies (account (soul client)))

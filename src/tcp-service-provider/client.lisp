@@ -227,12 +227,12 @@
       (enqueue (map-into array #'char-code data)
                (output-buffer-queue client)))))
 
-(defun broadcast-to-room (client format-string &rest format-args)
-  (maphash (lambda (k current-client)
-             (declare (ignore k))
-             (unless (eq client current-client)
-               (apply #'format current-client format-string format-args)))
-           (clients (service-provider client))))
+(defun broadcast-to-location (location format-string &rest format-args)
+  (let ((souls (loop for body-id in (contents location)
+                  for soul = (body-id->soul body-id)
+                  when soul collect soul)))
+    (loop for soul in souls do
+         (apply #'format (client soul) format-string format-args))))
 
 (defun broadcast-to-provider (provider format-string &rest format-args)
   (maphash (lambda (k client)
@@ -257,4 +257,6 @@
   (close client :abort t)
   (format t "~&~A Disconnected.~%" client)
   (detach-client (service-provider client) client)
+  (awhen (soul client)
+    (teardown it))
   client)

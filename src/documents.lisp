@@ -46,7 +46,8 @@
 
 (def-doc-accessors document
   (uuid "_id")
-  (revision "_rev"))
+  (revision "_rev")
+  (type "type"))
 
 (defmethod update ((doc document))
   (setf (slot-value doc '%document)

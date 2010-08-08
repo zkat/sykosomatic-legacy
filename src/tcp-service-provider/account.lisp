@@ -39,7 +39,8 @@
     (error "That username is already being used."))
   (let ((uuid (gen-uuid)))
     (put-document *db* uuid
-                  (mkhash "username" username
+                  (mkhash "type" "account"
+                          "username" username
                           "password" (hash-password password)
                           "email" email
                           "bodies" nil))
@@ -60,10 +61,10 @@
                             "views" (mkhash "by_username"
                                             (mkhash "map"
                                                     (prin1-to-string
-                                                     '(lambda (doc &aux (username
-                                                                         (hashget doc "username")))
-                                                       (when username
-                                                         (emit username (hashget doc "_id")))))))))))
+                                                     '(lambda (doc &aux (type (hashget doc "type")))
+                                                       (when (equal type "account")
+                                                         (emit (hashget doc "username")
+                                                               (hashget doc "_id")))))))))))
 
 ;;;
 ;;; Account utils

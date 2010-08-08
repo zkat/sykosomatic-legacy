@@ -14,6 +14,7 @@
            :components
            ((:file "packages")
             (:file "documents")
+            (:file "location")
             (:file "vocabulary")
             (:file "parser")
             (:file "engine")
