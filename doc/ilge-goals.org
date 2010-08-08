@@ -30,7 +30,7 @@
     should hold some basic information about the user, such as a username, and the hash of their
     password. They will also hold references to the bodies players can inhabit (their characters).
     Note on status: References to inhabitable characters and character creation will come later.
-*** TODO Character creation
+*** DONE Character creation
     Upon login, users should be able to create a character. Character creation should ask for some
     basic characteristics for the (human) character to be created. Once character creation is done,
     it should take the user back to the character-selection screen.
@@ -43,6 +43,36 @@
 *** TODO Persistence
     All game objects should be persisted. Reloading the game after a shutdown should bring the whole
     world back to its pre-shutdown state. Upon linkdeath, player characters REMAIN IN-WORLD.
+*** TODO Seeing the world.
+    You can look at what's in a room. You can look at features of the room. You can look at other
+    game objects, and features of those game objects.
+    Descriptions should be generated to look like English. Freeform description for rooms and
+    objects should be allowed.
+*** TODO Interacting with the world.
+    Players should be able to target verbs (with adverbs) at specific items within their
+    scope. Objects and their features (and those features' features) should be targetable for
+    actions. Targeting should happen purely through the English-like parser. There should be some
+    standard pronouns to make targeting easier, such as 'my', 'myself', 'him', 'her', and
+    'it'. Objects should also be mass-targettable through appropriate plurals ('things', 'gems',
+    'weapons', 'swords')
+
+    For example:
+    > look at myself
+    A handsome-looking fellow!
+    > look at my things.
+    You see a stick, a pouch, and a hat.
+    > look at my weapons.
+    You see a stick.
+    > Look at her.
+    Who are you talking about?
+    > Look at Diane.
+    You see a handsome-looking fellow!
+    > smile at her.
+    You smile at Diane.
+    > get gems from table.
+    You approach a table.
+    You get 5 gems from a table.
+
 *** TODO Combat
     Players should be able to roleplay duels using language that makes it look like regular
     roleplaying. For example:
@@ -78,32 +108,3 @@
     
     What sort of damage system should this use? Maybe a Shadowrun-like system? Something simpler
     should suffice for this toy MUD.
-*** TODO Seeing the world.
-    You can look at what's in a room. You can look at features of the room. You can look at other
-    game objects, and features of those game objects.
-    Descriptions should be generated to look like English. Freeform description for rooms and
-    objects should be allowed.
-*** TODO Interacting with the world.
-    Players should be able to target verbs (with adverbs) at specific items within their
-    scope. Objects and their features (and those features' features) should be targetable for
-    actions. Targeting should happen purely through the English-like parser. There should be some
-    standard pronouns to make targeting easier, such as 'my', 'myself', 'him', 'her', and
-    'it'. Objects should also be mass-targettable through appropriate plurals ('things', 'gems',
-    'weapons', 'swords')
-
-    For example:
-    > look at myself
-    A handsome-looking fellow!
-    > look at my things.
-    You see a stick, a pouch, and a hat.
-    > look at my weapons.
-    You see a stick.
-    > Look at her.
-    Who are you talking about?
-    > Look at Diane.
-    You see a handsome-looking fellow!
-    > smile at her.
-    You smile at Diane.
-    > get gems from table.
-    You approach a table.
-    You get 5 gems from a table.
