@@ -60,25 +60,6 @@
         commands)))
 
 ;;;
-;;; Parser
-;;;
-;;; - Takes a string-list, and returns an AST.
-
-(defclass abstract-sentence ()
-  ((verb
-    :accessor verb
-    :initarg :verb
-    :initform nil)
-   (direct-object
-    :accessor direct-object
-    :initarg :direct-object
-    :initform nil)
-   (chat-string
-    :accessor chat-string
-    :initarg :chat-string
-    :initform nil)))
-
-;;;
 ;;; AST Generation
 ;;;
 
@@ -319,19 +300,6 @@ REST of the TOKEN-LIST."
   "Nabs the actual noun out of a possessive."
   (when (possessivep word)
     (car (cl-ppcre:split "'|'s" word))))
-
-(define-condition parser-error (error)
-  ((text :initarg :text :reader text))
-  (:documentation "Condition signaled whenever some generic parsing error happens.")
-  (:report (lambda (condition stream)
-             (format stream "Error parsing -- ~a" (text condition)))))
-
-(defmethod print-object ((sentence abstract-sentence) stream)
-  (print-unreadable-object (sentence stream :type t :identity t)
-    (format stream "Verb: ~S, D.O.: ~S, Chat: ~S"
-            (verb sentence)
-            (direct-object sentence)
-            (chat-string sentence))))
 
 (defun test-the-parser ()
   "Runs a loop that asks for avatar input and returns whatever gets parsed. Quits on 'quit'."
