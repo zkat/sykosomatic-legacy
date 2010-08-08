@@ -106,6 +106,7 @@
                    (setf adverb (pop token-list))))))
       (maybe-parse-adverb)
       (cond ((and (verbp "say")
+                  (car token-list)
                   (chat-string-p (car token-list)))
              (setf verb "say")
              (setf chat-string (prepare-chat-string (pop token-list))))
