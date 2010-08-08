@@ -203,6 +203,13 @@ REST of the TOKEN-LIST."
                (values (list noun-phrase) token-list)
                (values nil token-list))))))
 
+(defun terminalp (token)
+  (or (null token)
+      (possessivep token)
+      (prepositionp token)
+      (chat-string-p token)
+      (adverbp token)
+      (string-equal "," token)))
 
 ;;;
 ;;; Util
