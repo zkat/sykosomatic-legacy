@@ -42,17 +42,28 @@
 
 (defun save-vocabulary ()
   "Saves all the nice vocabulary words :)"
-  (put-document *db* *vocabulary-document-id* *vocabulary*)
+  (handler-case
+      (put-document *db* *vocabulary-document-id* *vocabulary*)
+    (document-conflict ()
+      (format t "~&Conflict while saving the current vocabulary. Loading existing one.~%")
+      (return-from save-vocabulary (load-vocabulary))))
   (init-vocabulary)
-  (copy-table-contents (get-document *db* *vocabulary-document-id*) *vocabulary*)
-  (format t "Vocabulary saved.")
+  (handler-case
+      (copy-table-contents (get-document *db* *vocabulary-document-id*) *vocabulary*)
+    (document-not-found ()
+      (format t "~&The vocabulary disappeared from under our noses!~%")))
+  (format t "~&Vocabulary saved.~%")
   t)
 
 (defun load-vocabulary ()
   "Loads saved vocab files into their respective variables."
   (init-vocabulary)
-  (copy-table-contents (get-document *db* *vocabulary-document-id*) *vocabulary*)
-  (format t "Vocabulary loaded.")
+  (handler-case
+      (copy-table-contents (get-document *db* *vocabulary-document-id*) *vocabulary*)
+    (document-not-found ()
+      (format t "~&No vocabulary document. Unable to load.~%")
+      (return-from load-vocabulary nil)))
+  (format t "~&Vocabulary loaded.~%")
   t)
 
 ;;;

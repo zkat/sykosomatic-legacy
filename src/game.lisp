@@ -35,7 +35,7 @@
   (handle-player-command (soul client) (last-input client)))
 
 (defmethod init ((game game))
-  nil)
+  (load-vocabulary))
 
 (defmethod run :around ((game game))
   (let ((*default-client-main* #'play-game))
