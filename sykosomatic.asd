@@ -6,7 +6,7 @@
   :licence "AGPL"
   :depends-on (alexandria iolib cl-ppcre cl-store
                trivial-gray-streams ironclad cl-cont
-               chillax)
+               chillax anaphora)
   :serial t
   :components
   ((module "src"

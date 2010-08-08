@@ -33,7 +33,8 @@
 ;;; Load/Save
 ;;;
 (defun copy-table-contents (orig dest)
-  (maphash (lambda (k v) (setf (hashget dest k) v))
+  (maphash (lambda (k v)
+             (setf (hashget dest k) v))
            orig)
   dest)
 
@@ -49,7 +50,7 @@
       (return-from save-vocabulary (load-vocabulary))))
   (init-vocabulary)
   (handler-case
-      (copy-table-contents (get-document *db* *vocabulary-document-id*) *vocabulary*)
+      (setf *vocabulary* (copy-hash-table (get-document *db* *vocabulary-document-id*) :test #'equalp))
     (document-not-found ()
       (format t "~&The vocabulary disappeared from under our noses!~%")))
   (format t "~&Vocabulary saved.~%")
@@ -59,7 +60,7 @@
   "Loads saved vocab files into their respective variables."
   (init-vocabulary)
   (handler-case
-      (copy-table-contents (get-document *db* *vocabulary-document-id*) *vocabulary*)
+      (setf *vocabulary* (copy-hash-table (get-document *db* *vocabulary-document-id*) :test #'equalp))
     (document-not-found ()
       (format t "~&No vocabulary document. Unable to load.~%")
       (return-from load-vocabulary nil)))

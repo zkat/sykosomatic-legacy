@@ -48,15 +48,14 @@
 
 (defun format-chat-string (chat-string)
   "Adds a ['] to the beginning of the CHAT-STRING. Used to tell it apart from other parts of the sentence."
-  (when chat-string
-    (format nil "'~a" chat-string)))
+  (awhen chat-string (format nil "'~a" it)))
 
 (defun string->token-list (string)
   "Converts a STRING into a LIST of TOKEN-STRINGS."
   (let* ((com+chat (split-off-chat-string (preprocess-string string)))
          (commands (split-command-string (car com+chat))))
-    (if (cadr com+chat)
-        (let ((chat-string (format-chat-string (cadr com+chat))))
+    (aif (cadr com+chat)
+        (let ((chat-string (format-chat-string it)))
           (append commands (list chat-string)))
         commands)))
 

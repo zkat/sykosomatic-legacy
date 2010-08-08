@@ -247,11 +247,10 @@
   (maybe-login client))
 
 (defmethod update ((client tcp-client))
-  (let ((k (client-continuation client)))
-    (if k
-        (progn (setf (client-continuation client) nil)
-               (funcall k (last-input client)))
-        (funcall (client-main client) client))))
+  (aif (client-continuation client)
+       (progn (setf (client-continuation client) nil)
+              (funcall it (last-input client)))
+       (funcall (client-main client) client)))
 
 (defmethod teardown ((client tcp-client))
   (close client :abort t)

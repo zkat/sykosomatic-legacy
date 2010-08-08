@@ -58,11 +58,10 @@
   (broadcast-to-room client "~&~A enters the world.~%" (name body)))
 
 (defun print-bodies (client)
-  (let ((bodies (bodies (account (soul client)))))
-    (loop for body-id in bodies
-       for body = (make-instance 'body :document (get-document *db* body-id))
-       for i from 1
-       do (format client "~&~A. ~A - ~A~%" i (name body) (description body)))))
+  (loop for body-id in (bodies (account (soul client)))
+     for body = (make-instance 'body :document (get-document *db* body-id))
+     for i from 1
+     do (format client "~&~A. ~A - ~A~%" i (name body) (description body))))
 
 (defun/cc create-character (client)
   (let ((body (make-body (prompt-client client "~&Pick a name for your character: ")
