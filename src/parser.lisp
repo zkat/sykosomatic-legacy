@@ -218,56 +218,61 @@ REST of the TOKEN-LIST."
 ;;                (noun / possessive noun-phrase)
 
 (defun parse-noun-phrase (token-list)
-  "Parses a TOKEN-LIST into a LIST representing a NOUN PHRASE.
-MULTIPLE RETURN VALUES: NOUN-PHRASE and REST of the TOKEN-LIST."
-  (let (noun adjs amount cardinality owns)
-    (cond ((or (prepositionp (car token-list))
-               (null (car token-list))
-               (chat-string-p (car token-list))
-               (adverbp (car token-list)))
-           nil)
-          ((pronounp (car token-list))
-           (setf noun (pop token-list)))
-          (t
-           (when (articlep (car token-list))
-             (push (pop token-list) adjs))
-           (if (cardinal-number-p (car token-list))
-               ;; if it's a cardinal number, there's no ordinal
-               (progn
-                 (setf amount (extract-number (pop token-list)))
-                 (loop until (or (prepositionp (cadr token-list))
-                                 (null (cadr token-list)))
-                    do (push (pop token-list) adjs)
-                    finally (setf noun (pop token-list))))
-               (progn
-                 (when (ordinal-number-p (car token-list))
-                   (setf cardinality (extract-number (pop token-list))))
-                 (loop until (or (possessivep (first token-list))
-                                 ;; (possessivep (second token-list))
-                                 (conjunctionp (second token-list))
-                                 (string-equal "," (first token-list))
-                                 (string-equal "," (second token-list)) ;COMMA BAD!
-                                 (prepositionp (second token-list))
-                                 (chat-string-p (second token-list))
-                                 (adverbp (second token-list))
-                                 (null (second token-list)))
-                    do (push (pop token-list) adjs))
-                 (if (possessivep (car token-list))
-                     (progn
-                       (setf noun (extract-noun-from-possessive (pop token-list)))
-                       (multiple-value-setq (owns token-list)
-                         (parse-noun-phrase token-list)))
-                     (unless (terminalp (car token-list))
-                       (setf noun (pop token-list))))))))
-    (if noun
-        (values `(:noun-phrase
-                  . ((:noun . ,noun)
-                     (:adjectives . ,adjs)
-                     (:amount . ,amount)
-                     (:cardinality . ,cardinality)
-                     (:owns . ,owns)))
-                token-list)
-        (values nil token-list))))
+  (let ((state :pronoun)
+        noun adjs amount ordinality owns)
+    (loop
+       (case state
+         (:pronoun
+          (let ((token (pop token-list)))
+            (if (pronounp token)
+                (return-from parse-noun-phrase
+                  (values `(:noun-phrase
+                            . ((:pronoun . ,token)))
+                          token-list))
+                (setf token-list (cons token token-list)
+                      state :article))))
+         (:article
+          (let ((token (pop token-list)))
+            (cond ((null token)
+                   (error 'parser-error :text "What? All done?"))
+                  ((articlep token)
+                   (setf state :numerical))
+                  (t
+                   (push token token-list)
+                   (setf state :numerical)))))
+         (:numerical
+          (let ((token (pop token-list)))
+            (cond ((null token)
+                   (error 'parser-error :text "Looking for a number, got nothing at all!"))
+                  ((cardinal-number-p token)
+                   (setf amount (extract-number token)
+                         state :adjective))
+                  ((ordinal-number-p token)
+                   (setf ordinality (extract-number token)
+                         state :adjective))
+                  (t
+                   (push token token-list)
+                   (setf state :adjective)))))
+         (:adjective
+          ;; punting on adjectives for now.
+          (setf state :noun))
+         (:noun
+          ;; Punting on possessives for now, too.
+          (let ((token (pop token-list)))
+            (cond ((null token)
+                   (error 'parser-error :text "I NEEDED A NOUN HERE!"))
+                  ((not (or (adverbp token)
+                            (prepositionp token)
+                            (chat-string-p token)))
+                   (setf noun token)
+                   (return-from parse-noun-phrase
+                     (values `(:noun-phrase
+                               . ((:noun . ,noun)
+                                  (:adjectives . ,adjs)
+                                  (:amount . ,amount)
+                                  (:ordinality . ,ordinality)
+                                  (:owns . ,owns))))))
+                  (t (error 'parser-error :text "I'm so confused. Why am I here? Who are you?")))))))))
 
 ;;;
 ;;; Util
