@@ -27,4 +27,5 @@
                      (:file "character-creation")
                      (:file "account")
                      (:file "tcp-service-provider")))
+            (:file "binder")
             (:file "game")))))
