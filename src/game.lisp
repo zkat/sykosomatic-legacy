@@ -55,6 +55,8 @@
         (broadcast-to-location (make-instance 'location :document (get-document *db* location-id))
                                "~&~A leaves the world~%" (name (body soul)))))
     (disconnect (client soul) :close))
+  (when (string-equal input "look")
+    (format (client soul) "~&Objects in scope:~{ ~A~}~%" (mapcar #'name (objects-in-scope (body soul)))))
   (handler-case
       (format (client soul) "~&AST Generated: ~S~%" (parse-string input))
     (parser-error (e)
