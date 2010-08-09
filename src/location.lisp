@@ -26,23 +26,24 @@
 (defclass location (document) ())
 
 (def-doc-accessors location
+  (name "name")
   (description "description")
-  (contents "contents")
-  (exits "exits"))
+  (contents "contents"))
 
 (defun make-location (description)
   (let ((uuid (gen-uuid)))
     (put-document *db* uuid
                   (mkhash "type" "location"
+                          "name" "location"
                           "description" description
-                          "contents" #()
-                          "exits" #()))
+                          "contents" #()))
     (make-instance 'location :document (get-document *db* uuid))))
 
 (defun add-to-room (obj location)
   (update location)
   (pushnew (uuid obj) (contents location) :test #'equal)
   (setf (location obj) (uuid location))
+  (save obj)
   (save location))
 
 (defun ensure-location-design-doc ()
