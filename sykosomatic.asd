@@ -16,6 +16,7 @@
             (:file "documents")
             (:file "location")
             (:file "vocabulary")
+            (:file "verbs")
             (:file "parser")
             (:file "engine")
             (module "tcp-service-provider"
