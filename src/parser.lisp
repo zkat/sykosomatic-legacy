@@ -44,7 +44,7 @@
 
 (defun split-off-chat-string (string)
   "Takes a raw STRING and returns a LIST with COMMAND-STRING and CHAT-STRING"
-  (cl-ppcre:split " +'|\"" string :limit 2))
+  (cl-ppcre:split "^'| +'|\"" string :limit 2))
 
 (defun format-chat-string (chat-string)
   "Adds a ['] to the beginning of the CHAT-STRING. Used to tell it apart from other parts of the sentence."
