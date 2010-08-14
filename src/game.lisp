@@ -56,7 +56,8 @@
                                "~&~A leaves the world~%" (name (body soul)))))
     (disconnect (client soul) :close))
   (handler-case
-      (invoke-bound-syntax-tree (body soul) (bind-syntax-tree (body soul) (parse-string input)))
+      (invoke-syntax-tree (parse-string input)
+                          (body soul))
     (parser-error (e)
       (format (client soul) "~&Got a parser error: ~A~%" e))))
 
