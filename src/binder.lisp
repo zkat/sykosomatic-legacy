@@ -32,9 +32,9 @@
   (let ((verb (eval (read-from-string (function-definition (bind-verb (cdr (assoc :verb tree)))))))
         (*adverb* (bind-adverb (cdr (assoc :adverb tree))))
         (*chat-string* (cdr (assoc :chat-string tree)))
-        (*direct-object* (bind-object (cdr (assoc :direct-object
+        (*direct-object* (bind-object (cddr (assoc :direct-object
                                                 (cdr (assoc :noun-clause tree))))))
-        (*indirect-object* (bind-object (cdr (assoc :indirect-object
+        (*indirect-object* (bind-object (cddr (assoc :indirect-object
                                                   (cdr (assoc :noun-clause tree)))))))
     (funcall verb)))
 
