@@ -201,81 +201,82 @@ REST of the TOKEN-LIST."
 ;;                (noun / possessive noun-phrase)
 
 (defun parse-noun-phrase (token-list)
-  (let ((state :pronoun)
-        article noun adjs amount ordinality owns)
-    (loop
-       (case state
-         (:pronoun
-          (awhen (pop token-list)
-            (if (pronounp it)
-                (return-from parse-noun-phrase
-                  (values `(:noun-phrase
-                            . ((:pronoun . ,it)))
-                          token-list))
-                (setf token-list (cons it token-list)
-                      state :article))))
-         (:article
-          (awhen (pop token-list)
-            (cond ((null it)
-                   (error 'parser-error :text "What? All done?"))
-                  ((articlep it)
-                   (setf article it)
-                   (setf state :numerical))
-                  (t
-                   (push it token-list)
-                   (setf state :numerical)))))
-         (:numerical
-          (awhen (pop token-list)
-            (cond ((null it)
-                   (error 'parser-error :text "Looking for a number, got nothing at all!"))
-                  ((cardinal-number-p it)
-                   (setf amount (extract-number it)
-                         state :adjective))
-                  ((ordinal-number-p it)
-                   (setf ordinality (extract-number it)
-                         state :adjective))
-                  (t
-                   (push it token-list)
-                   (setf state :adjective)))))
-         (:adjective
-          (loop until (or (possessivep (car token-list))
-                          (conjunctionp (car token-list))
-                          (string-equal "," (car token-list))
-                          (null (second token-list))
-                          ;; looking ahead...
-                          (and (second token-list)
-                               (or (string-equal "," (second token-list))
-                                   (prepositionp (second token-list))
-                                   (chat-string-p (second token-list))
-                                   (adverbp (second token-list)))))
-             do (push (pop token-list) adjs))
-          (setf state :noun))
-         (:noun
-          (let ((it (pop token-list)))
-            (cond ((and (null it)
-                        (or adjs amount ordinality owns))
-                   (error 'parser-error :text "I NEEDED A NOUN HERE!"))
-                  ((and (stringp it)
-                        (not (or (adverbp it)
-                                 (prepositionp it)
-                                 (chat-string-p it))))
-                   (if (possessivep it)
-                       (progn
-                         (setf noun (extract-noun-from-possessive it))
-                         (multiple-value-setq (owns token-list)
-                           (parse-noun-phrase token-list)))
-                       (setf noun it))
-                   (return-from parse-noun-phrase
-                     (values `(:noun-phrase
-                               . ((:article . ,article)
-                                  (:noun . ,noun)
-                                  (:adjectives . ,adjs)
-                                  (:amount . ,amount)
-                                  (:ordinality . ,ordinality)
-                                  (:possesses . ,owns)))
-                             token-list)))
-                  (t (when it (push it token-list))
-                     (return-from parse-noun-phrase (values nil token-list))))))))))
+  (when token-list
+   (let ((state :pronoun)
+         article noun adjs amount ordinality owns)
+     (loop
+        (case state
+          (:pronoun
+           (awhen (pop token-list)
+             (if (pronounp it)
+                 (return-from parse-noun-phrase
+                   (values `(:noun-phrase
+                             . ((:pronoun . ,it)))
+                           token-list))
+                 (setf token-list (cons it token-list)
+                       state :article))))
+          (:article
+           (awhen (pop token-list)
+             (cond ((null it)
+                    (error 'parser-error :text "What? All done?"))
+                   ((articlep it)
+                    (setf article it)
+                    (setf state :numerical))
+                   (t
+                    (push it token-list)
+                    (setf state :numerical)))))
+          (:numerical
+           (awhen (pop token-list)
+             (cond ((null it)
+                    (error 'parser-error :text "Looking for a number, got nothing at all!"))
+                   ((cardinal-number-p it)
+                    (setf amount (extract-number it)
+                          state :adjective))
+                   ((ordinal-number-p it)
+                    (setf ordinality (extract-number it)
+                          state :adjective))
+                   (t
+                    (push it token-list)
+                    (setf state :adjective)))))
+          (:adjective
+           (loop until (or (possessivep (car token-list))
+                           (conjunctionp (car token-list))
+                           (string-equal "," (car token-list))
+                           (null (second token-list))
+                           ;; looking ahead...
+                           (and (second token-list)
+                                (or (string-equal "," (second token-list))
+                                    (prepositionp (second token-list))
+                                    (chat-string-p (second token-list))
+                                    (adverbp (second token-list)))))
+              do (push (pop token-list) adjs))
+           (setf state :noun))
+          (:noun
+           (let ((it (pop token-list)))
+             (cond ((and (null it)
+                         (or adjs amount ordinality owns))
+                    (error 'parser-error :text "I NEEDED A NOUN HERE!"))
+                   ((and (stringp it)
+                         (not (or (adverbp it)
+                                  (prepositionp it)
+                                  (chat-string-p it))))
+                    (if (possessivep it)
+                        (progn
+                          (setf noun (extract-noun-from-possessive it))
+                          (multiple-value-setq (owns token-list)
+                            (parse-noun-phrase token-list)))
+                        (setf noun it))
+                    (return-from parse-noun-phrase
+                      (values `(:noun-phrase
+                                . ((:article . ,article)
+                                   (:noun . ,noun)
+                                   (:adjectives . ,adjs)
+                                   (:amount . ,amount)
+                                   (:ordinality . ,ordinality)
+                                   (:possesses . ,owns)))
+                              token-list)))
+                   (t (when it (push it token-list))
+                      (return-from parse-noun-phrase (values nil token-list)))))))))))
 
 ;;;
 ;;; Util
