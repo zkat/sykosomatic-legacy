@@ -22,20 +22,21 @@
 (in-package :sykosomatic)
 
 (defvar *actor*)
-
-(defun bind-syntax-tree (actor tree &aux (*actor* actor) (tree (cdr tree)))
-  (let ((verb (bind-verb (cdr (assoc :verb tree))))
-        (adverb (bind-adverb (cdr (assoc :adverb tree))))
-        (chat-string (cdr (assoc :chat-string tree)))
-        (direct-object (bind-object (cdr (assoc :direct-object
+(defvar *direct-object*)
+(defvar *indirect-object*)
+(defvar *adverb*)
+(defvar *chat-string*)
+(defun invoke-syntax-tree (tree actor &aux
+                           (*actor* actor) (tree (cdr tree))
+                           (*package* (find-package :sykosomatic)))
+  (let ((verb (eval (read-from-string (function-definition (bind-verb (cdr (assoc :verb tree)))))))
+        (*adverb* (bind-adverb (cdr (assoc :adverb tree))))
+        (*chat-string* (cdr (assoc :chat-string tree)))
+        (*direct-object* (bind-object (cdr (assoc :direct-object
                                                 (cdr (assoc :noun-clause tree))))))
-        (indirect-object (bind-object (cdr (assoc :indirect-object
+        (*indirect-object* (bind-object (cdr (assoc :indirect-object
                                                   (cdr (assoc :noun-clause tree)))))))
-    `((:verb . ,verb)
-      (:adverb . ,adverb)
-      (:chat-string . ,chat-string)
-      (:direct-object . ,direct-object)
-      (:indirect-object . ,indirect-object))))
+    (funcall verb)))
 
 (defun bind-verb (word)
   (find-verb word))
@@ -61,9 +62,3 @@
                              (make-instance 'body :document
                                             (get-document *db* obj-id)))
                            (contents location)))))
-
-(defun invoke-bound-syntax-tree (actor tree &aux (*package* (find-package :sykosomatic)))
-  (let* ((verb-body (print (read-from-string (function-definition (cdr (assoc :verb tree))))))
-         (verb (eval verb-body))
-         (direct-object (cdr (assoc :direct-object tree))))
-    (funcall verb actor direct-object nil nil)))

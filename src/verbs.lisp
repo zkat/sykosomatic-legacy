@@ -73,6 +73,6 @@
   "Removes the VERB that corresponds to STRING from *VERBS*"
   (remove-category-from-word word "verb"))
 
-(defmacro defverb (name (actor direct-object indirect-object adverb) &body body)
+(defmacro defverb (name &body body)
   `(add-verb (string-downcase (string ',name))
-             '(lambda (,actor ,direct-object ,indirect-object ,adverb) ,@body)))
+             '(lambda () ,@body)))
