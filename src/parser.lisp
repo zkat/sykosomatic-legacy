@@ -283,7 +283,9 @@ REST of the TOKEN-LIST."
 ;;;
 
 (defun last-char (string)
-  (elt string (1- (length string))))
+  (if (plusp (length string))
+      (elt string (1- (length string)))
+      #\space))
 
 (defun prepare-chat-string (chat-string)
   (let ((string (remove-chat-string-tilde chat-string)))
