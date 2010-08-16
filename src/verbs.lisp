@@ -76,3 +76,16 @@
 (defmacro defverb (name &body body)
   `(add-verb (string-downcase (string ',name))
              '(lambda () ,@body)))
+
+(defun handle-social-verb (infinitive 1psingular)
+  (let ((soul (body->soul *actor*)))
+    (cond (*chat-string*
+           (format (client soul) "~&You ~A, \"~A\"~%" infinitive *chat-string*)
+           (broadcast-to-others *actor* "~&~A ~A, \"~A\"~%" (name *actor*) 1psingular *chat-string*))
+          (t
+           (format (client soul) "~&You ~A.~%" infinitive)
+           (broadcast-to-others *actor* "~&~A ~A.~%" (name *actor*) 1psingular)))))
+
+(defun add-social-verb (infinitive 1psingular)
+  (add-verb (string-downcase infinitive)
+            `(lambda () (handle-social-verb ,infinitive ,1psingular))))
