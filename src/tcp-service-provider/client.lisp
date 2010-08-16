@@ -234,6 +234,16 @@
     (loop for soul in souls do
          (apply #'format (client soul) format-string format-args))))
 
+(defun broadcast-to-others (body format-string &rest format-args)
+  "Broadcasts output to everyone in BODY's location."
+  (let* ((location (make-instance 'location :document (get-document *db* (location body))))
+         (souls (loop for body-id in (contents location)
+                   for soul = (body-id->soul body-id)
+                   when (and soul (not (string= body-id (uuid body))))
+                   collect soul)))
+    (loop for soul in souls do
+         (apply #'format (client soul) format-string format-args))))
+
 (defun broadcast-to-provider (provider format-string &rest format-args)
   (maphash (lambda (k client)
              (declare (ignore k))
