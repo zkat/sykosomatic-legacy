@@ -32,9 +32,9 @@
    :providers (list (make-instance 'tcp-service-provider))))
 
 (defun pick-default-location ()
-  (let ((response (get-document *db* "_design/locations/_view/by_id")))
-    (awhen (car (hashget response "rows"))
-      (make-instance 'location :document (get-document *db* (hashget it "key"))))))
+  (awhen (car (hashget (get-document *db* "_design/locations/_view/by_id")
+                       "rows"))
+    (make-instance 'location :document (get-document *db* (hashget it "key")))))
 
 (defun play-game (client)
   (handle-player-command (soul client) (last-input client)))
@@ -49,17 +49,16 @@
     (call-next-method)))
 
 (defmethod handle-player-command ((soul soul) input &aux (input (string-cleanup input)))
-  (when (string-equal input "quit")
-    (let ((location-id (location (body soul))))
-      (when location-id
-        (broadcast-to-location (make-instance 'location :document (get-document *db* location-id))
-                               "~&~A leaves the world~%" (name (body soul)))))
+  (awhen (and (string-equal input "quit")
+              (location (body soul)))
+    (broadcast-to-location (make-instance 'location :document (get-document *db* it))
+                           "~&~A leaves the world~%" (name (body soul)))
     (disconnect (client soul) :close))
   (handler-case
       (invoke-syntax-tree (parse-string input)
                           (body soul))
     (parser-error (e)
-      (format (client soul) "~&Got a parser error: ~A~%" e))))
+      (format (client soul) "~&Parser error -- ~A~%" e))))
 
 (defun main ()
   (run (make-instance 'game)))
