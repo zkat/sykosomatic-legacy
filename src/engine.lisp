@@ -87,6 +87,13 @@ its service-providers through events."))
                           "location" nil))
     (make-instance 'body :document (get-document *db* uuid))))
 
+(defun get-body-by-id (id)
+  (awhen (handler-case
+             (get-document *db* id)
+           (document-not-found ()
+             nil))
+    (make-instance 'body :document it)))
+
 (defparameter *body-id->soul* (make-hash-table :test #'equal))
 
 (defun body-id->soul (body-id)

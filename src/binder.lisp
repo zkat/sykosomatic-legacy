@@ -56,9 +56,5 @@
     (find noun (objects-in-scope *actor*) :key #'name :test #'string=)))
 
 (defun objects-in-scope (actor)
-  (let* ((location-id (location actor))
-         (location (make-instance 'location :document (get-document *db* location-id))))
-    (cons location (mapcar (lambda (obj-id)
-                             (make-instance 'body :document
-                                            (get-document *db* obj-id)))
-                           (contents location)))))
+  (let ((location (get-location-by-id (location actor))))
+    (cons location (mapcar #'get-body-by-id (contents location)))))
