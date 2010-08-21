@@ -118,6 +118,14 @@
 ;;;
 ;;; Input
 ;;;
+(defun ensure-simple-string (string)
+  (cond ((simple-string-p string)
+         string)
+        ((stringp string)
+         (aprog1 (make-string (length string) :element-type 'character)
+           (map-into it #'identity string)))
+        (t (error "Not a string: ~A" string))))
+
 (defgeneric read-line-from-client (client)
   (:method ((client tcp-client))
     (let ((buffer (input-buffer client))
@@ -126,12 +134,23 @@
         ;; We've got input! Try to convert it to a string.
         (flex:with-input-from-sequence (s buffer :end buffer-fill)
           (setf s (flex:make-flexi-stream s :external-format :utf-8))
-          ;; TODO: Loop on READ-CHAR here, so things like telnet codes can be checked for.
-          (aprog1 (handler-case (read-line s nil nil)
-                    (flex:external-format-encoding-error ()
-                      ;; Screw your input!
-                      (setf (input-buffer-fill client) 0)
-                      (return-from read-line-from-client nil)))
+          (aprog1 (loop with string = (make-array 16 :element-type 'character
+                                                  :adjustable t :fill-pointer 0)
+                     for char = (handler-case (read-char s nil nil)
+                                  (flex:external-format-encoding-error ()
+                                    (read-byte s nil nil)))
+                     do (cond ((and (characterp char) (not (char= #\newline char)))
+                               (vector-push-extend char string))
+                              ((and (or (null char)
+                                        (char= #\newline)))
+                               (return (ensure-simple-string string)))
+                              ((numberp char)
+                               ;; Ignore special codes for now
+                               ;; TODO - If a special code is received, this should
+                               ;;        trigger a telnet-code-handler callback.
+                               nil)
+                              (t
+                               (return nil))))
             (if (flex:peek-byte s nil nil nil)
                 ;; If there's still stuff in the buffer, we'll have to shift things to the left.
                 (loop
