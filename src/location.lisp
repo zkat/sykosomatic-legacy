@@ -46,6 +46,11 @@
   (save obj)
   (save location))
 
+(defun get-location-by-id (id)
+  (awhen (car (hashget (get-document *db* "_design/locations/_view/by_id" :key id)
+                       "rows"))
+    (make-instance 'location :document (get-document *db* (hashget it "key")))))
+
 (defun ensure-location-design-doc ()
   (or (handler-case
           (get-document *db* "_design/locations")

@@ -53,7 +53,7 @@
 (defmethod handle-player-command ((soul soul) input &aux (input (string-cleanup input)))
   (awhen (and (string-equal input "quit")
               (location (body soul)))
-    (broadcast-to-location (make-instance 'location :document (get-document *db* it))
+    (broadcast-to-location (get-location-by-id it)
                            "~&~A leaves the world~%" (name (body soul)))
     (disconnect (client soul) :close))
   (handler-case
