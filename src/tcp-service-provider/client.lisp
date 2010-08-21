@@ -131,7 +131,7 @@
                     (flex:external-format-encoding-error ()
                       ;; Screw your input!
                       (setf (input-buffer-fill client) 0)
-                      nil))
+                      (return-from read-line-from-client nil)))
             (if (flex:peek-byte s nil nil nil)
                 ;; If there's still stuff in the buffer, we'll have to shift things to the left.
                 (loop
