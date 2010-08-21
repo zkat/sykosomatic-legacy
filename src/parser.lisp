@@ -128,9 +128,9 @@
                    (error 'parser-error :text (format nil "Unknown verb: ~a" fail-verb))
                    (error 'parser-error :text "Invalid input"))))))
     `(:sentence . ((:verb . ,verb)
-                   (:adverb . ,adverb)
-                   (:noun-clause . ,noun-clause)
-                   (:chat-string . ,chat-string)))))
+                   ,@(when adverb `((:adverb . ,adverb)))
+                   ,@(when noun-clause `((:noun-clause . ,noun-clause)))
+                   ,@(when chat-string `((:chat-string . ,chat-string)))))))
 
 (defun parse-noun-clause (token-list adverb)
   "Generates the NOUN-CLAUSE list.
@@ -140,26 +140,26 @@ MULTIPLE RETURN VALUES: NOUN-CLAUSE list, a discovered ADVERB, and the remaining
              (if adverb
                  (error 'parser-error :text "Too many adverbs.")
                  (setf adverb (pop token-list))))))
-    (let (prep1 prep2 dir-obj ind-obj)
+    (let (prep1 prep2 noun-phrase-1 noun-phrase-2)
       (maybe-parse-adverb)
       (when (prepositionp (car token-list))
         (setf prep1 (pop token-list)))
-      (multiple-value-setq (dir-obj token-list) (parse-noun-group token-list))
+      (multiple-value-setq (noun-phrase-1 token-list) (parse-noun-group token-list))
       (maybe-parse-adverb)
       (when token-list
         (when (prepositionp (car token-list))
           (setf prep2 (pop token-list)))
-        (multiple-value-setq (ind-obj token-list) (parse-noun-group token-list)))
-      (values `((:direct-object
-                 . (:prepositional-phrase
-                    . ((:preposition . ,prep1)
-                       (:object . ,dir-obj))))
-                (:indirect-object
-                 . (:prepositional-phrase
-                    . ((:preposition . ,prep2)
-                       (:object . ,ind-obj)))))
-              adverb
-              token-list))))
+        (multiple-value-setq (noun-phrase-2 token-list) (parse-noun-group token-list)))
+      (let ((tree nil))
+        (when noun-phrase-2 (push `(:noun-group
+                                    . (,@(when prep2 `((:preposition . ,prep2)))
+                                         ,noun-phrase-2))
+                                  tree))
+        (when noun-phrase-1 (push `(:noun-group
+                                    . (,@(when prep1 `((:preposition . ,prep1)))
+                                         ,noun-phrase-1))
+                                  tree))
+        (values tree adverb token-list)))))
 
 (defun parse-noun-group (token-list)
   "Parses a TOKEN-LIST into a LIST representing a NOUN GROUP (multiple noun
@@ -245,7 +245,8 @@ REST of the TOKEN-LIST."
                            (null (second token-list))
                            ;; looking ahead...
                            (and (second token-list)
-                                (or (string-equal "," (second token-list))
+                                (or (conjunctionp (second token-list))
+                                    (string-equal "," (second token-list))
                                     (prepositionp (second token-list))
                                     (chat-string-p (second token-list))
                                     (adverbp (second token-list)))))
@@ -268,12 +269,12 @@ REST of the TOKEN-LIST."
                         (setf noun it))
                     (return-from parse-noun-phrase
                       (values `(:noun-phrase
-                                . ((:article . ,article)
-                                   (:noun . ,noun)
-                                   (:adjectives . ,adjs)
-                                   (:amount . ,amount)
-                                   (:ordinality . ,ordinality)
-                                   (:possesses . ,owns)))
+                                . (,@(when article `((:article . ,article)))
+                                     (:noun . ,noun)
+                                     ,@(when adjs `((:adjectives . ,adjs)))
+                                     ,@(when amount `((:amount . ,amount)))
+                                     ,@(when ordinality `((:ordinality . ,ordinality)))
+                                     ,@(when owns `((:possesses . ,owns)))))
                               token-list)))
                    (t (when it (push it token-list))
                       (return-from parse-noun-phrase (values nil token-list)))))))))))
