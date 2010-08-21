@@ -60,5 +60,5 @@
     (parser-error (e)
       (format (client soul) "~&Parser error -- ~A~%" e))))
 
-(defun main ()
+(defun begin-shared-hallucination ()
   (run (make-instance 'game)))
