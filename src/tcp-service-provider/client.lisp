@@ -120,33 +120,34 @@
 ;;;
 (defgeneric read-line-from-client (client)
   (:method ((client tcp-client))
-    (let ((buffer (input-buffer client))
-          (buffer-fill (input-buffer-fill client)))
-      ;; TODO: This is *totally* wrong. If there's more than one newline in the buffer,
-      ;; it'll grab the _entire_ thing as a single string! Use ring buffer? :\
-      (when (and (plusp buffer-fill)
-                 (find #.(char-code #\Newline) buffer :end buffer-fill))
-        (setf (recent-newline-p client) t)
-        (let ((string (make-string buffer-fill)))
-          (loop for code across buffer
-             for i below buffer-fill
-             ;; TODO: Improve this.
-             ;;       As it turns out, CLHS doesn't strictly specify what should happen if CODE-CHAR
-             ;;       receives an invalid code. The two possibilities seem to be to error, or
-             ;;       to just return NIL.
-             ;;
-             ;;       The following is a hack, but it should prevent nasal demons if unexpected
-             ;;       codes are received.
-             ;;
-             ;;       This only really handles up to as many characters as the lisp's encoding
-             ;;       can fit into a single byte. Hopefully, the encoding is ASCII or UTF8 :)
-             ;;
-             ;;       In order to have proper UTF8/16/32 support, as well as support special
-             ;;       telnet codes, or similar, this whole function will have to be much
-             ;;       more clever about how it handles user input.
-             do (setf (aref string i) (or (ignore-errors (code-char code)) #\space)))
-          (setf (input-buffer-fill client) 0)
-          string)))))
+    (let* ((buffer (input-buffer client))
+           (buffer-fill (input-buffer-fill client)))
+      (when (plusp buffer-fill)
+        ;; We've got input! Try to convert it to a string.
+        ;; FIXME: This is a nice, easy approach, but it is possible that this will never actually
+        ;;        return any input -- if a client is sending lots of UTF-8, it's possible that
+        ;;        octets-to-string will always try to read from the buffer at a multibyte char
+        ;;        boundary.
+        (let ((string (handler-case (flex:octets-to-string buffer
+                                                           :external-format :utf-8
+                                                           :end buffer-fill)
+                        (flex:external-format-encoding-error ()
+                          ;; The octets we have so far are not enough to build a multibyte char.
+
+                          ;; FIXME: invalid telnet codes will end up triggering this, and will
+                          ;;        basically make the client's input buffer useless.
+                          nil))))
+          (awhen (and string (position #\newline string))
+            (setf (recent-newline-p client) t)
+            (if (> (length string) it)
+                ;; Shift everything after the newline to the beginning of the buffer.
+                (let ((remaining-octets (flex:string-to-octets (subseq string (1+ it))
+                                                               :external-format :utf-8)))
+                  (setf (input-buffer-fill client) (length remaining-octets))
+                  (map-into buffer #'identity remaining-octets)
+                  ;; We return everything up to the newline (non-inclusive)
+                  (subseq string 0 it))
+                string)))))))
 
 (defgeneric handle-line (client line)
   (:method ((client tcp-client) line)
@@ -223,9 +224,8 @@
 
 (defgeneric write-to-client (client data)
   (:method ((client tcp-client) (data string))
-    (let ((array (make-array (length data) :element-type '(unsigned-byte 8))))
-      (enqueue (map-into array #'char-code data)
-               (output-buffer-queue client)))))
+    (enqueue (flex:string-to-octets data :external-format :utf-8)
+             (output-buffer-queue client))))
 
 (defun broadcast-to-location (location format-string &rest format-args)
   (let ((souls (loop for body-id in (contents location)
