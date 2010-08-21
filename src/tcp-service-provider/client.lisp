@@ -144,7 +144,7 @@
 
 (defgeneric handle-line (client line)
   (:method ((client tcp-client) line)
-    (format t "~A sez: ~A~%" client line)
+    (format t "~&~A sez: ~S~%" client line)
     (setf (last-input client) line)
     (update client)))
 
@@ -159,8 +159,8 @@
           (when (zerop bytes-read)
             (error 'end-of-file))
           (incf (input-buffer-fill client) bytes-read)
-          (let ((maybe-line (read-line client)))
-            (when maybe-line (handle-line client maybe-line))))
+          (awhen (read-line client)
+            (handle-line client it)))
       (iolib:socket-connection-reset-error ()
         ;; Should do something here
         (format t "Got a reset from ~A.~%" client)
@@ -221,21 +221,21 @@
              (output-buffer-queue client))))
 
 (defun broadcast-to-location (location format-string &rest format-args)
-  (let ((souls (loop for body-id in (contents location)
-                  for soul = (body-id->soul body-id)
-                  when soul collect soul)))
-    (loop for soul in souls do
-         (apply #'format (client soul) format-string format-args))))
+  (mapc (lambda (soul)
+          (apply #'format (client soul) format-string format-args))
+        (loop for body-id in (contents location)
+           for soul = (body-id->soul body-id)
+           when soul collect soul)))
 
 (defun broadcast-to-others (body format-string &rest format-args)
   "Broadcasts output to everyone in BODY's location."
-  (let* ((location (make-instance 'location :document (get-document *db* (location body))))
-         (souls (loop for body-id in (contents location)
-                   for soul = (body-id->soul body-id)
-                   when (and soul (not (string= body-id (uuid body))))
-                   collect soul)))
-    (loop for soul in souls do
-         (apply #'format (client soul) format-string format-args))))
+  (let ((location (make-instance 'location :document (get-document *db* (location body)))))
+    (mapc (lambda (soul)
+            (apply #'format (client soul) format-string format-args))
+          (loop for body-id in (contents location)
+             for soul = (body-id->soul body-id)
+             when (and soul (not (string= body-id (uuid body))))
+             collect soul))))
 
 (defun broadcast-to-provider (provider format-string &rest format-args)
   (maphash (lambda (k client)
