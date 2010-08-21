@@ -120,34 +120,27 @@
 ;;;
 (defgeneric read-line-from-client (client)
   (:method ((client tcp-client))
-    (let* ((buffer (input-buffer client))
-           (buffer-fill (input-buffer-fill client)))
+    (let ((buffer (input-buffer client))
+          (buffer-fill (input-buffer-fill client)))
       (when (plusp buffer-fill)
         ;; We've got input! Try to convert it to a string.
-        ;; FIXME: This is a nice, easy approach, but it is possible that this will never actually
-        ;;        return any input -- if a client is sending lots of UTF-8, it's possible that
-        ;;        octets-to-string will always try to read from the buffer at a multibyte char
-        ;;        boundary.
-        (let ((string (handler-case (flex:octets-to-string buffer
-                                                           :external-format :utf-8
-                                                           :end buffer-fill)
-                        (flex:external-format-encoding-error ()
-                          ;; The octets we have so far are not enough to build a multibyte char.
-
-                          ;; FIXME: invalid telnet codes will end up triggering this, and will
-                          ;;        basically make the client's input buffer useless.
-                          nil))))
-          (awhen (and string (position #\newline string))
-            (setf (recent-newline-p client) t)
-            (if (> (length string) it)
-                ;; Shift everything after the newline to the beginning of the buffer.
-                (let ((remaining-octets (flex:string-to-octets (subseq string (1+ it))
-                                                               :external-format :utf-8)))
-                  (setf (input-buffer-fill client) (length remaining-octets))
-                  (map-into buffer #'identity remaining-octets)
-                  ;; We return everything up to the newline (non-inclusive)
-                  (subseq string 0 it))
-                string)))))))
+        (flex:with-input-from-sequence (s buffer :end buffer-fill)
+          (setf s (flex:make-flexi-stream s :external-format :utf-8))
+          ;; TODO: Loop on READ-CHAR here, so things like telnet codes can be checked for.
+          (aprog1 (handler-case (read-line s nil nil)
+                    (flex:external-format-encoding-error ()
+                      ;; Screw your input!
+                      (setf (input-buffer-fill client) 0)
+                      nil))
+            (if (flex:peek-byte s nil nil nil)
+                ;; If there's still stuff in the buffer, we'll have to shift things to the left.
+                (loop
+                   for next-byte = (read-byte s nil nil)
+                   for i from 0
+                   while next-byte
+                   do (setf (aref buffer i) next-byte)
+                   finally (setf (input-buffer-fill client) (1+ i)))
+                (setf (input-buffer-fill client) 0))))))))
 
 (defgeneric handle-line (client line)
   (:method ((client tcp-client) line)
