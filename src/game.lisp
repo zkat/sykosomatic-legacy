@@ -41,6 +41,8 @@
 
 (defmethod init ((game game))
   (setf *body-id->soul* (make-hash-table :test #'equal))
+  (ensure-account-design-doc)
+  (ensure-verb-design-doc)
   (load-vocabulary))
 
 (defmethod run :around ((game game))
