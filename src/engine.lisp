@@ -66,7 +66,7 @@ its service-providers through events."))
    (client :initarg :client :accessor client)))
 
 (defclass client ()
-  ((soul :accessor soul)
+  ((soul :accessor soul :initform nil)
    (service-provider :accessor service-provider
                      :initarg :provider
                      :initform (error "Must provide a provider for this client."))))
