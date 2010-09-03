@@ -27,8 +27,7 @@
 (defun find-account-document (username)
   (let* ((response (get-document *db* "_design/accounts/_view/by_username" :key username))
          (rows (hashget response "rows")))
-    (when rows
-      (get-document *db* (hashget (car rows) "id")))))
+    (when rows (hashget (car rows) "value"))))
 
 (defun find-account (username)
   (let ((doc (find-account-document username)))
@@ -37,14 +36,13 @@
 (defun make-account (username password email)
   (when (find-account username)
     (error "That username is already being used."))
-  (let ((uuid (gen-uuid)))
-    (put-document *db* uuid
-                  (mkhash "type" "account"
-                          "username" username
-                          "password" (hash-password password)
-                          "email" email
-                          "bodies" nil))
-    (make-instance 'account :document (get-document *db* uuid))))
+  (make-instance 'account :document
+                 (save-document *db* (gen-uuid)
+                                (mkhash "type" "account"
+                                        "username" username
+                                        "password" (hash-password password)
+                                        "email" email
+                                        "bodies" nil))))
 
 (def-doc-accessors account
   (username "username")
@@ -64,7 +62,7 @@
                                                      '(lambda (doc &aux (type (hashget doc "type")))
                                                        (when (equal type "account")
                                                          (emit (hashget doc "username")
-                                                               (hashget doc "_id")))))))))))
+                                                               doc))))))))))
 
 ;;;
 ;;; Account utils

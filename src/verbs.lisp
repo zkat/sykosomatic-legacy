@@ -31,33 +31,33 @@
       (call-next-method (prin1-to-string new-value) verb)))
 
 (defun make-verb (word function-definition)
-  (let ((uuid (gen-uuid)))
-    (put-document *db* uuid
-                  (mkhash "type" "verb"
-                          "word" word
-                          "function-definition" (prin1-to-string function-definition)))
-    (make-instance 'verb :document (get-document *db* uuid))))
+  (make-instance 'verb :document
+                 (save-document *db* (gen-uuid)
+                                (mkhash "type" "verb"
+                                        "word" word
+                                        "function-definition"
+                                        (prin1-to-string function-definition)))))
 
 (defun ensure-verb-design-doc ()
-  (or (handler-case
-          (get-document *db* "_design/verbs")
-        (document-not-found () nil))
-      (put-document *db* "_design/verbs"
-                    (mkhash "language" "common-lisp"
+  (aprog1 (handler-case
+              (get-document *db* "_design/verbs")
+            (document-not-found () nil))
+    (let ((document (mkhash "language" "common-lisp"
                             "views" (mkhash "by_word"
                                             (mkhash "map"
                                                     (prin1-to-string
                                                      '(lambda (doc &aux (type (hashget doc "type")))
                                                        (when (equal type "verb")
                                                          (emit (hashget doc "word")
-                                                               (hashget doc "function-definition")))))))))))
+                                                               (hashget doc "function-definition"))))))))))
+      (when it (setf (hashget document "_rev") (hashget it "_rev")))
+      (save-document *db* "_design/verbs" document))))
 
-(defun find-verb (word)
-  (let* ((response (get-document *db* "_design/verbs/_view/by_word" :key word))
-         (rows (hashget response "rows")))
-    (when rows
-      (make-instance 'verb
-                     :document (get-document *db* (hashget (car rows) "id"))))))
+(defun get-verb-body (word)
+  (awhen (hashget
+          (get-document *db* "_design/verbs/_view/by_word" :key word)
+          "rows")
+    (values (hashget (car it) "value"))))
 
 (defun add-verb (word function-definition)
   "Associates STRING with FUNCTION and adds the new verb to *VERBS*"
