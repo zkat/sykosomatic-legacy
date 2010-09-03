@@ -22,20 +22,13 @@
 (in-package :sykosomatic)
 
 (defvar *actor*)
-(defvar *direct-object*)
-(defvar *indirect-object*)
-(defvar *adverb*)
-(defvar *chat-string*)
+(defvar *tree*)
 (defun invoke-syntax-tree (tree actor &aux
-                           (*actor* actor) (tree (cdr tree))
-                           (*package* (find-package :sykosomatic)))
-  (let ((verb (eval (read-from-string (function-definition (bind-verb (cdr (assoc :verb tree)))))))
-        (*adverb* (bind-adverb (cdr (assoc :adverb tree))))
-        (*chat-string* (cdr (assoc :chat-string tree)))
-        (*direct-object* (bind-object (cddr (assoc :direct-object
-                                                (cdr (assoc :noun-clause tree))))))
-        (*indirect-object* (bind-object (cddr (assoc :indirect-object
-                                                  (cdr (assoc :noun-clause tree)))))))
+                           (*actor* actor)
+                           (*package* (find-package :sykosomatic))
+                           (tree (cdr tree))
+                           (*tree* tree))
+  (let ((verb (eval (read-from-string (function-definition (bind-verb (cdr (assoc :verb tree))))))))
     (funcall verb)))
 
 (defun bind-verb (word)
@@ -44,7 +37,7 @@
 (defun bind-adverb (adverb)
   adverb)
 
-(defun bind-object (tree)
+(defun bind-noun-group (tree)
   ;; NOTE: Very lame about actually binding right now.
   (let* ((prep-phrase (cdr (assoc :prepositional-phrase tree)))
          (object (bind-noun-phrase (cdr (assoc :noun-phrase (cdr (assoc :object prep-phrase)))))))
