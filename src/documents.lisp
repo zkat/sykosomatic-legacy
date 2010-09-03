@@ -20,7 +20,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
-(defparameter *db* (ensure-db "sykosomatic"))
+(defparameter *db* (ensure-db (make-instance 'yason-server) "sykosomatic"))
 
 (defclass document ()
   ((%document :initarg :document)

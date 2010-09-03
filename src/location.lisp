@@ -31,13 +31,12 @@
   (contents "contents"))
 
 (defun make-location (description)
-  (let ((uuid (gen-uuid)))
-    (put-document *db* uuid
-                  (mkhash "type" "location"
-                          "name" "location"
-                          "description" description
-                          "contents" #()))
-    (make-instance 'location :document (get-document *db* uuid))))
+  (make-instance 'location :document
+                 (save-document *db* (gen-uuid)
+                                (mkhash "type" "location"
+                                        "name" "location"
+                                        "description" description
+                                        "contents" nil))))
 
 (defun add-to-room (obj location)
   (update location)
@@ -47,20 +46,21 @@
   (save location))
 
 (defun get-location-by-id (id)
-  (awhen (car (hashget (get-document *db* "_design/locations/_view/by_id" :key id)
-                       "rows"))
-    (make-instance 'location :document (get-document *db* (hashget it "key")))))
+  (aprog1 (get-document *db* id)
+    (unless (equal (hashget it "type") "location")
+      (error "Not a location object ID: ~A." id))))
 
 (defun ensure-location-design-doc ()
-  (or (handler-case
-          (get-document *db* "_design/locations")
-        (document-not-found () nil))
-      (put-document *db* "_design/locations"
-                    (mkhash "language" "common-lisp"
-                            "views" (mkhash "by_id"
-                                            (mkhash "map"
-                                                    (prin1-to-string
-                                                     '(lambda (doc &aux (type (hashget doc "type")))
-                                                       (when (equal type "location")
-                                                         (emit (hashget doc "_id")
-                                                               (hashget doc "description")))))))))))
+  (aprog1 (handler-case
+              (get-document *db* "_design/locations")
+            (document-not-found () nil))
+    (let ((document (mkhash "language" "common-lisp"
+                          "views" (mkhash "by_id"
+                                          (mkhash "map"
+                                                  (prin1-to-string
+                                                   '(lambda (doc &aux (type (hashget doc "type")))
+                                                     (when (equal type "location")
+                                                       (emit (hashget doc "_id")
+                                                             doc)))))))))
+      (when it (setf (hashget document "_rev") (hashget it "_rev")))
+      (put-document *db* "_design/locations" document))))
