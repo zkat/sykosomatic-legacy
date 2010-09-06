@@ -22,11 +22,13 @@
             (module "tcp-service-provider"
                     :serial t
                     :components
-                    ((:file "config")
-                     (:file "utils")
-                     (:file "client")
-                     (:file "character-creation")
-                     (:file "account")
-                     (:file "tcp-service-provider")))
+                    ((module "socket-server"
+                             :serial t
+                             :components
+                             ((:file "packages")
+                              (:file "utils")
+                              (:file "tcp-socket-client")
+                              (:file "tcp-socket-server")))))
             (:file "binder")
             (:file "game")))))
+

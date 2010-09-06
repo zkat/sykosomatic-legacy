@@ -23,6 +23,4 @@
 ;;;
 ;;; Config variables
 ;;;
-(defparameter *server-listen-ip* iolib:+ipv4-unspecified+)
-(defparameter *server-port* 4000)
 (defparameter *password-salt* "sh00rizs4lt1")

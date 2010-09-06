@@ -20,63 +20,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (in-package :sykosomatic)
 
-(declaim (optimize debug))
-
-(defclass account (document) ())
-
-(defun find-account-document (username)
-  (let* ((response (get-document *db* "_design/accounts/_view/by_username" :key username))
-         (rows (hashget response "rows")))
-    (when rows (hashget (car rows) "value"))))
-
-(defun find-account (username)
-  (let ((doc (find-account-document username)))
-    (when doc (make-instance 'account :document doc))))
-
-(defun make-account (username password email)
-  (when (find-account username)
-    (error "That username is already being used."))
-  (make-instance 'account :document
-                 (save-document *db* (gen-uuid)
-                                (mkhash "type" "account"
-                                        "username" username
-                                        "password" (hash-password password)
-                                        "email" email
-                                        "bodies" nil))))
-
-(def-doc-accessors account
-  (username "username")
-  (password "password")
-  (email "email")
-  (bodies "bodies"))
-
-(defun ensure-account-design-doc ()
-  (or (handler-case
-          (get-document *db* "_design/accounts")
-        (document-not-found () nil))
-      (put-document *db* "_design/accounts"
-                    (mkhash "language" "common-lisp"
-                            "views" (mkhash "by_username"
-                                            (mkhash "map"
-                                                    (prin1-to-string
-                                                     '(lambda (doc &aux (type (hashget doc "type")))
-                                                       (when (equal type "account")
-                                                         (emit (hashget doc "username")
-                                                               doc))))))))))
-
-;;;
-;;; Account utils
-;;;
-(defun account-exists-p (username)
-  (let ((response (get-document *db* "_design/accounts/_view/by_username" :key username)))
-    (when (hashget response "rows")
-      t)))
-
-(defun confirm-password (account input)
-  (when (string= (password account)
-                 (hash-password input))
-    account))
-
 ;;;
 ;;; Login
 ;;;
