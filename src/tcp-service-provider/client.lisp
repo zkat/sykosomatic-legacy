@@ -26,7 +26,7 @@
 ;;;
 (defparameter *default-client-main* nil)
 
-(defclass tcp-client (client fundamental-character-output-stream
+(defclass tcp-socket-client (fundamental-character-output-stream
                              fundamental-character-input-stream)
   ((socket :accessor socket :initarg :socket
            :initform (error "Must provide a socket for this client."))
@@ -41,7 +41,8 @@
    (recent-newline-p :accessor recent-newline-p :initform t)
    (last-input :accessor last-input :initform nil)
    (client-main :accessor client-main :initarg :client-main :initform *default-client-main*)
-   (client-continuation :accessor client-continuation :initform nil)))
+   (client-continuation :accessor client-continuation :initform nil)
+   (server :initarg :server)))
 
 (defmethod initialize-instance :after ((client tcp-client) &key)
   (multiple-value-bind (name port)
@@ -50,10 +51,6 @@
           (port client) port
           (input-buffer client) (make-array (max-buffer-bytes client)
                                             :element-type '(unsigned-byte 8)))))
-
-(defmethod print-object ((client tcp-client) s)
-  (print-unreadable-object (client s :type t)
-    (format s "~A:~A" (remote-name client) (port client))))
 
 ;;;
 ;;; Gray streams stuff
@@ -282,3 +279,13 @@
   (awhen (soul client)
     (teardown it))
   client)
+
+;;;
+;;; Client Protocol Implementation
+;;;
+(defmethod print-object ((client tcp-client) s)
+  (print-unreadable-object (client s :type t)
+    (princ (client-name client) s)))
+
+(defmethod client-name ((client tcp-client))
+  (format nil "~A:~A" (remote-name client) (port client)))
