@@ -20,7 +20,10 @@
 ;; Engine protocol and base implementation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (cl:defpackage #:sykosomatic.account
-  (:use :cl))
+  (:use :cl)
+  (:export :account-username :account-password :account-email :account-engine :find-account
+           :ensure-account :hash-password :validate-username :validate-password :validate-email
+           :verify-password :verify-password-using-engine :account-exists-p))
 (cl:in-package :sykosomatic.account)
 
 ;;;
@@ -40,7 +43,8 @@ NIL is returned."))
 (defgeneric ensure-account (engine username password email)
   (:documentation "Creates a new account."))
 
-(defgeneric hash-password (engine password))
+(defgeneric hash-password (engine password)
+  (:documentation "Hashes PASSWORD. This is generally the form in which it will be stored."))
 
 (defgeneric validate-username (engine username)
   (:method (engine username)
