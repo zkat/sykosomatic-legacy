@@ -20,18 +20,28 @@
 ;; Engine protocol and base implementation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (cl:defpackage #:sykosomatic.engine
-  (:use :cl :sykosomatic.account))
+  (:use :cl)
+  (:export :init-engine :engine-running-p :update-engine :teardown-engine
+           :engine-service-providers :run-engine))
 (cl:in-package :sykosomatic.engine)
 
 ;;;
 ;;; Engine API
 ;;;
-(defgeneric start-engine (engine))
+(defgeneric init-engine (engine))
+(defgeneric engine-running-p (engine))
 (defgeneric update-engine (engine))
-(defgeneric stop-engine (engine))
+(defgeneric teardown-engine (engine))
 (defgeneric engine-service-providers (engine)
   (:documentation "Returns a sequence of service providers associated with this engine."))
-(defgeneric engine-account-db (engine))
+(defgeneric run-engine (engine)
+  (:method (engine)
+    (unwind-protect
+         (progn (init-engine engine)
+                (loop while (engine-running-p engine)
+                   do (update-engine engine))
+                engine)
+      (teardown-engine engine))))
 
 ;;;
 ;;; Implementation
