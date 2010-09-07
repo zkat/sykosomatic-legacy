@@ -44,21 +44,29 @@
       (teardown-engine engine))))
 
 ;;;
-;;; Implementation
+;;; Testing
 ;;;
-(defclass standard-engine ()
+(cl:defpackage #:sykosomatic.engine.test
+  (:use :cl :sykosomatic.engine))
+(cl:in-package :sykosomatic.engine.test)
+
+(defclass test-engine ()
   ((service-providers :reader engine-service-providers :initarg :providers)
-   (db :reader engine-account-db :initarg :db)))
+   (runningp :reader engine-running-p :initform nil))
+  (:default-initargs :providers nil))
 
-(defmethod start-engine ((engine standard-engine))
-  (format t "~&Engine ~A started!~%" engine))
+(defmethod init-engine ((engine test-engine))
+  (setf (slot-value engine 'runningp) t)
+  (format t "~&Engine ~A starting.~%" engine))
 
-(defmethod update-engine ((engine standard-engine))
-  (format t "~&Updated ~A.~%" engine))
+(defmethod update-engine ((engine test-engine))
+  (let ((line (read-line)))
+    (if (equalp "quit" line)
+        (setf (slot-value engine 'runningp) nil)
+        (progn (princ line) (fresh-line)))))
 
-(defmethod stop-engine ((engine standard-engine))
-  (format t "~&Stopping ~A.~%" engine))
+(defmethod teardown-engine ((engine test-engine))
+  (format t "~&Engine ~A stopped.~%" engine))
 
-(defun begin-shared-hallucination (engine)
-  (start-engine engine)
-  (loop (update-engine engine)))
+(defun begin-shared-hallucination (&optional (engine (make-instance 'test-engine)))
+  (run-engine engine))
