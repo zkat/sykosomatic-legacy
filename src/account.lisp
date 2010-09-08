@@ -15,9 +15,9 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with sykosomatic.  If not, see <http://www.gnu.org/licenses/>.
 
-;; engine.lisp
+;; account.lisp
 ;;
-;; Engine protocol and base implementation.
+;; Account protocol for sykosomatic engines.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (cl:defpackage #:sykosomatic.account
   (:use :cl)
@@ -75,51 +75,3 @@ password for ACCOUNT."
   (:documentation "Returns a true value if an account associated with USERNAME exists.")
   (:method (engine username)
     (find-account engine username)))
-
-;;;
-;;; Documents as accounts
-;;;
-;; (defun find-account-document (db username)
-;;   (let* ((response (get-document db "_design/accounts/_view/by_username" :key username))
-;;          (rows (at response "rows")))
-;;     (when rows (at (car rows) "value"))))
-
-;; (defmethod find-account (engine username)
-;;   (make-instance 'document :engine engine
-;;                  :document 
-;;                  (find-account-document (engine-db engine) username)))
-
-;; (defmethod ensure-account (engine username password email)
-;;   (when (account-exists-p engine username)
-;;     (error "That username is already being used."))
-;;   (make-instance 'document
-;;                  :engine engine
-;;                  :document
-;;                  (put-document (engine-db engine) (gen-uuid)
-;;                                (mkhash "type" "account"
-;;                                        "username" username
-;;                                        "password" password
-;;                                        "email" email))))
-
-;; (defmethod account-username ((doc document))
-;;   (document-slot-value doc "username"))
-;; (defmethod account-password ((doc document))
-;;   (document-slot-value doc "password"))
-;; (defmethod account-email ((doc document))
-;;   (document-slot-value doc "email"))
-;; (defmethod account-engine ((doc document))
-;;   (document-engine doc))
-
-;; (defun ensure-account-design-doc (engine &aux (db (engine-db engine)))
-;;   (or (handler-case
-;;           (get-document db "_design/accounts")
-;;         (document-not-found () nil))
-;;       (put-document db "_design/accounts"
-;;                     (mkhash "language" "common-lisp"
-;;                             "views" (mkhash "by_username"
-;;                                             (mkhash "map"
-;;                                                     (prin1-to-string
-;;                                                      '(lambda (doc &aux (type (at doc "type")))
-;;                                                        (when (equal type "account")
-;;                                                          (emit (at doc "username")
-;;                                                                doc))))))))))
