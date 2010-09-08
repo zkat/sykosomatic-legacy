@@ -4,10 +4,11 @@
   :maintainer "Kat Marchán <kzm@sykosomatic.org>"
   :author "Kat Marchán <kzm@sykosomatic.org>"
   :licence "AGPLv3"
-  :depends-on ()
+  :depends-on (chillax)
   :components
   ((:module src
             :components
             ((:file "engine")
              (:file "account")
-             (:file "game" :depends-on ("engine" "account"))))))
+             (:file "document")
+             (:file "game" :depends-on ("engine" "account" "document"))))))
