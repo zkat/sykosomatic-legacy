@@ -69,7 +69,7 @@ NIL is returned."))
 (defun verify-password (account password)
   "Trampoline function for VERIFY-ACCOUNT-USING-ENGINE. Confirms that PASSWORD is the correct
 password for ACCOUNT."
-  (verify-account-using-engine (account-engine account) account password))
+  (verify-password-using-engine (account-engine account) account password))
 
 (defgeneric account-exists-p (engine username)
   (:documentation "Returns a true value if an account associated with USERNAME exists.")
