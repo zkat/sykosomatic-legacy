@@ -28,13 +28,24 @@
 ;;;
 ;;; Engine API
 ;;;
-(defgeneric init-engine (engine))
-(defgeneric engine-running-p (engine))
-(defgeneric update-engine (engine))
-(defgeneric teardown-engine (engine))
+(defgeneric init-engine (engine)
+  (:documentation "Performs any initialization necessary before ENGINE can run."))
+
+;; TODO: This could be specified better? -JM
+(defgeneric engine-running-p (engine)
+  (:documentation "Returns a generalized boolean if ENGINE is still active."))
+
+(defgeneric update-engine (engine)
+  (:documentation "Ticks ENGINE. Generally meant to be used as part of a main loop."))
+
+(defgeneric teardown-engine (engine)
+  (:documentation "Performs any cleanup that needs to be done after ENGINE stops running."))
+
 (defgeneric engine-service-providers (engine)
   (:documentation "Returns a sequence of service providers associated with this engine."))
+
 (defgeneric run-engine (engine)
+  (:documentation "Runs the main loop for ENGINE.")
   (:method (engine)
     (unwind-protect
          (progn (init-engine engine)
