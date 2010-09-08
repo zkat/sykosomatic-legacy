@@ -20,7 +20,8 @@
 ;; Implements a simple Sykosomatic-based game. Used for development and testing.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (cl:defpackage #:sykosomatic.game
-  (:use :cl :sykosomatic.engine :sykosomatic.account))
+  (:use :cl :sykosomatic.engine :sykosomatic.account)
+  (:export :begin-shared-hallucination))
 (cl:in-package :sykosomatic.game)
 
 (defclass test-engine ()
