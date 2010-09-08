@@ -9,4 +9,5 @@
   ((:module src
             :components
             ((:file "engine")
-             (:file "account")))))
+             (:file "account")
+             (:file "game" :depends-on ("engine" "account"))))))
