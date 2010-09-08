@@ -74,5 +74,6 @@
   doc)
 
 (defmethod save-document ((doc document))
+  ;; TODO: This sucks, and is useless. (at least update the revision, ffs)
   (put-document (document-db doc) (document-uuid doc) (slot-value doc 'document))
   doc)
